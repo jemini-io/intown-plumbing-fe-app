@@ -4,6 +4,10 @@ export interface FormData {
   email: string;
   startTime?: string;
   endTime?: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
 }
 
 export interface BookRequest extends FormData {
