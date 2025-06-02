@@ -17,11 +17,16 @@ export default function DatePage() {
     setFormData,
   } = useFormStore();
 
+
   useEffect(() => {
     const fetchTimeSlots = async () => {
       try {
         const response = await fetch('/api/book');
         const data = await response.json();
+        if (!data) {
+          console.error("TRASSH", data)
+          return
+        }
         setAvailableTimeSlots(data);
         if (data.length > 0) {
           setSelectedDate(data[0].date);
@@ -70,6 +75,10 @@ export default function DatePage() {
     }).format(date) + ' CT';
   };
 
+  if (!availableTimeSlots || availableTimeSlots.length === 0) {
+    return <div>No available time slots</div>
+  }
+
   return (
     <FormLayout subtitle="Select Appointment Date and Time">
       {isLoading ? (
@@ -79,7 +88,7 @@ export default function DatePage() {
       ) : (
         <div className="mt-8 space-y-4">
           <div className="flex overflow-x-auto space-x-4">
-            {availableTimeSlots.map((slot, index) => {
+            {availableTimeSlots?.map((slot, index) => {
               const [year, month, day] = slot.date.split('-').map(Number);
               const localDate = new Date(year, month - 1, day);
 

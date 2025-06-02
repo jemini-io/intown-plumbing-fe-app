@@ -11,6 +11,9 @@ const convertToCT = (dateString: string) => {
     return toZonedTime(date, timeZone);
 };
 
+/**
+ * Need to get all technicians in the "Virtual Service" business unit
+ */
 async function getAvailableTimeSlots(): Promise<any> {
     const authService = new AuthService(environment);
     const technicianService = new TechnicianService(environment);
@@ -23,62 +26,84 @@ async function getAvailableTimeSlots(): Promise<any> {
     // Get auth token
     const authToken = await authService.getAuthToken(clientId, clientSecret);
 
-    // Fetch technician shifts
-    const shiftsResponse = await technicianService.getTechShifts(authToken, appKey, tenantId, technicianId, todayStr);
-    const shifts = shiftsResponse.data;
+    // NEW: Fetch all technicians
+    const allTechsResponse = await technicianService.getAllTechnicians(authToken, appKey, tenantId);
+    const allTechs = allTechsResponse.data || allTechsResponse; // adjust if API returns .data
 
-    // Filter shifts for the next 2 weeks, including today
-    const twoWeeksFromNow = new Date(today);
-    twoWeeksFromNow.setDate(today.getDate() + 14);
-    const filteredShifts = shifts.filter((shift: any) => {
-        const shiftDate = new Date(shift.start);
-        // Include today's shifts by comparing only the date part
-        return shiftDate.toISOString().split('T')[0] >= todayStr && shiftDate <= twoWeeksFromNow;
-    });
+    // Hardcoded business unit ID for filtering
+    // TODO: Make this an environment variable
+    const VIRTUAL_SERVICE_BU_ID = 76816943;
 
-    // console.log(filteredShifts);
-    // Fetch appointments
-    const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, todayStr, technicianId);
-    const appointments = appointmentsResponse.data;
-    // console.log(appointments);
-    // Process available time slots
-    const availableTimeSlots: { date: string, timeSlots: string[] }[] = []; 
+    // Filter technicians for the business unit
+    const filteredTechs = allTechs.filter((tech: any) =>
+        tech.businessUnitId === VIRTUAL_SERVICE_BU_ID
+    );
 
-    filteredShifts.forEach((shift: any) => {
-        const shiftDate = new Date(shift.start).toISOString().split('T')[0];
-        const shiftStart = convertToCT(shift.start);
-        const shiftEnd = convertToCT(shift.end);
-        // Create 30-minute blocks
-        let currentTime = new Date(shiftStart);
-        const timeSlots: string[] = [];
+    console.log(filteredTechs.length, "should be 2", filteredTechs.map((tech: any) => tech.name));
 
-        while (currentTime < shiftEnd) {
-            const currentTimeStr = format(currentTime, 'HH:mm', { timeZone: 'America/Chicago' });
-            const nextTime = new Date(currentTime);
-            
-            nextTime.setMinutes(currentTime.getMinutes() + 30);
+    // For each technician, fetch shifts and appointments, then aggregate
+    const availableTimeSlots: { date: string, timeSlots: string[] }[] = [];
 
-            // Check if the current time block is available
-            const isAvailable = !appointments.some((appointment: any) => {
-                const appointmentStart = convertToCT(appointment.arrivalWindowStart);
-                const appointmentEnd = convertToCT(appointment.arrivalWindowEnd);
-                return currentTime >= appointmentStart && currentTime < appointmentEnd;
-            });
+    for (const tech of filteredTechs) {
+        // Fetch shifts for this technician
+        const shiftsResponse = await technicianService.getTechShifts(authToken, appKey, tenantId, tech.id, todayStr);
+        const shifts = shiftsResponse.data;
 
-            // Add time slot if available and meets the criteria
-            const oneHourFromNow = new Date(today.getTime() + 60 * 60 * 1000);
-            if (isAvailable && (shiftDate !== todayStr || currentTime > oneHourFromNow)) {
-                timeSlots.push(currentTimeStr);
+        // Filter shifts for the next 2 weeks, including today
+        const twoWeeksFromNow = new Date(today);
+        twoWeeksFromNow.setDate(today.getDate() + 14);
+        const filteredShifts = shifts.filter((shift: any) => {
+            const shiftDate = new Date(shift.start);
+            return shiftDate.toISOString().split('T')[0] >= todayStr && shiftDate <= twoWeeksFromNow;
+        });
+
+        // Fetch appointments for this technician
+        const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, todayStr, tech.id);
+        const appointments = appointmentsResponse.data;
+
+        // Process available time slots for this technician
+        filteredShifts.forEach((shift: any) => {
+            const shiftDate = new Date(shift.start).toISOString().split('T')[0];
+            const shiftStart = convertToCT(shift.start);
+            const shiftEnd = convertToCT(shift.end);
+            let currentTime = new Date(shiftStart);
+            const timeSlots: string[] = [];
+
+            while (currentTime < shiftEnd) {
+                const currentTimeStr = format(currentTime, 'HH:mm', { timeZone: 'America/Chicago' });
+                const nextTime = new Date(currentTime);
+                nextTime.setMinutes(currentTime.getMinutes() + 30);
+
+                // Check if the current time block is available
+                const isAvailable = !appointments.some((appointment: any) => {
+                    const appointmentStart = convertToCT(appointment.arrivalWindowStart);
+                    const appointmentEnd = convertToCT(appointment.arrivalWindowEnd);
+                    return currentTime >= appointmentStart && currentTime < appointmentEnd;
+                });
+
+                // Add time slot if available and meets the criteria
+                const oneHourFromNow = new Date(today.getTime() + 60 * 60 * 1000);
+                if (isAvailable && (shiftDate !== todayStr || currentTime > oneHourFromNow)) {
+                    timeSlots.push(currentTimeStr);
+                }
+
+                currentTime = nextTime;
             }
 
-            currentTime = nextTime;
-        }
+            if (timeSlots.length > 0) {
+                // Merge slots for the same date across technicians
+                const existing = availableTimeSlots.find(slot => slot.date === shiftDate);
+                if (existing) {
+                    existing.timeSlots.push(...timeSlots);
+                    // Remove duplicates and sort
+                    existing.timeSlots = Array.from(new Set(existing.timeSlots)).sort();
+                } else {
+                    availableTimeSlots.push({ date: shiftDate, timeSlots });
+                }
+            }
+        });
+    }
 
-        if (timeSlots.length > 0) {
-            availableTimeSlots.push({ date: shiftDate, timeSlots });
-        }
-    });
-    // console.log(availableTimeSlots);
     return availableTimeSlots;
 }
 
@@ -141,7 +166,7 @@ async function createJobAppointmentHandler(name: string, email: string, phone: s
         customer = existingCustomers.data[0];
 
         // Fetch locations for the existing customer
-        const locationsResponse = await customerService.getLocation(authToken, appKey, tenantId, customer.id);
+        const locationsResponse = await customerService.getLocation(authToken, appKey, tenantId, customer?.id || '');
         if (locationsResponse && locationsResponse.data && locationsResponse.data.length > 0) {
             customer.locations = locationsResponse.data;
         } else {

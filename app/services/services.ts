@@ -22,8 +22,22 @@ class AuthService {
             client_secret: clientSecret
         });
 
-        const response = await axios.post(url, data, { headers });
-        return response.data.access_token;
+        try {
+            const response = await axios.post(url, data, { headers });
+            return response.data.access_token;
+        } catch (error: any) {
+            if (error.response) {
+                console.error(`[AuthService.getAuthToken] HTTP ${error.response.status}: ${error.response.statusText}`);
+                console.error('Response data:', error.response.data);
+                throw new Error(`Failed to get auth token: ${error.response.status} ${error.response.statusText} - ${JSON.stringify(error.response.data)}`);
+            } else if (error.request) {
+                console.error(`[AuthService.getAuthToken] No response received:`, error.request);
+                throw new Error('No response received from server while getting auth token.');
+            } else {
+                console.error(`[AuthService.getAuthToken] Error:`, error.message);
+                throw new Error(`Error while getting auth token: ${error.message}`);
+            }
+        }
     }
 }
 
@@ -132,6 +146,31 @@ class TechnicianService {
         this.baseUrl = environment === 'prod' ? 'https://api.servicetitan.io' : 'https://api-integration.servicetitan.io';
     }
 
+    async getAllTechnicians(authToken: string, appKey: string, tenantId: string): Promise<any> {
+        const url = `${this.baseUrl}/settings/v2/tenant/${tenantId}/technicians`;
+        const headers = {
+            'ST-App-Key': appKey,
+            'Authorization': `Bearer ${authToken}`
+        };
+
+        try {
+            const response = await axios.get(url, { headers });
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                console.error(`[TechnicianService.getAllTechnicians] HTTP ${error.response.status}: ${error.response.statusText}`);
+                console.error('Response data:', error.response.data);
+                throw new Error(`Failed to get all technicians: ${error.response.status} ${error.response.statusText} - ${JSON.stringify(error.response.data)}`);
+            } else if (error.request) {
+                console.error(`[TechnicianService.getAllTechnicians] No response received:`, error.request);
+                throw new Error('No response received from server while getting all technicians.');
+            } else {
+                console.error(`[TechnicianService.getAllTechnicians] Error:`, error.message);
+                throw new Error(`Error while getting all technicians: ${error.message}`);
+            }
+        }
+    }
+
     async getTechShifts(authToken: string, appKey: string, tenantId: string, technicianId: string, startsOnOrAfter: string): Promise<any> {
         const url = `${this.baseUrl}/dispatch/v2/tenant/${tenantId}/technician-shifts?technicianId=${technicianId}&startsOnOrAfter=${startsOnOrAfter}`;
         const headers = {
@@ -158,8 +197,22 @@ class AppointmentService {
             'Authorization': `Bearer ${authToken}`
         };
 
-        const response = await axios.get(url, { headers });
-        return response.data;
+        try {
+            const response = await axios.get(url, { headers });
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                console.error(`[AppointmentService.getAppointments] HTTP ${error.response.status}: ${error.response.statusText}`);
+                console.error('Response data:', error.response.data);
+                throw new Error(`Failed to get appointments: ${error.response.status} ${error.response.statusText} - ${JSON.stringify(error.response.data)}`);
+            } else if (error.request) {
+                console.error(`[AppointmentService.getAppointments] No response received:`, error.request);
+                throw new Error('No response received from server while getting appointments.');
+            } else {
+                console.error(`[AppointmentService.getAppointments] Error:`, error.message);
+                throw new Error(`Error while getting appointments: ${error.message}`);
+            }
+        }
     }
 }
 
