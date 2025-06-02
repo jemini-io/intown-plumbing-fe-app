@@ -23,10 +23,6 @@ export default function DatePage() {
       try {
         const response = await fetch('/api/book');
         const data = await response.json();
-        if (!data) {
-          console.error("TRASSH", data)
-          return
-        }
         setAvailableTimeSlots(data);
         if (data.length > 0) {
           setSelectedDate(data[0].date);
