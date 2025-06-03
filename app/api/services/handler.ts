@@ -4,6 +4,21 @@ import { toZonedTime, format, fromZonedTime } from 'date-fns-tz';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId, technicianId }, environment } = env;
 
+interface Technician {
+    id: string;
+    name: string;
+}
+
+interface TimeSlot {
+    time: string;
+    technicians: Technician[];
+}
+
+interface DateEntry {
+    date: string;
+    timeSlots: TimeSlot[];
+}
+
 // Convert shift and appointment times to CT
 const convertToCT = (dateString: string) => {
     const date = new Date(dateString);
@@ -14,7 +29,7 @@ const convertToCT = (dateString: string) => {
 /**
  * Need to get all technicians in the "Virtual Service" business unit
  */
-async function getAvailableTimeSlots(): Promise<any> {
+async function getAvailableTimeSlots(): Promise<DateEntry[]> {
     const authService = new AuthService(environment);
     const technicianService = new TechnicianService(environment);
     const appointmentService = new AppointmentService(environment);
@@ -42,7 +57,7 @@ async function getAvailableTimeSlots(): Promise<any> {
     console.log(filteredTechs.length, "should be 2", filteredTechs.map((tech: any) => tech.name));
 
     // For each technician, fetch shifts and appointments, then aggregate
-    const availableTimeSlots: { date: string, timeSlots: string[] }[] = [];
+    const availableTimeSlots: DateEntry[] = [];
 
     for (const tech of filteredTechs) {
         // Fetch shifts for this technician
@@ -67,7 +82,6 @@ async function getAvailableTimeSlots(): Promise<any> {
             const shiftStart = convertToCT(shift.start);
             const shiftEnd = convertToCT(shift.end);
             let currentTime = new Date(shiftStart);
-            const timeSlots: string[] = [];
 
             while (currentTime < shiftEnd) {
                 const currentTimeStr = format(currentTime, 'HH:mm', { timeZone: 'America/Chicago' });
@@ -84,30 +98,55 @@ async function getAvailableTimeSlots(): Promise<any> {
                 // Add time slot if available and meets the criteria
                 const oneHourFromNow = new Date(today.getTime() + 60 * 60 * 1000);
                 if (isAvailable && (shiftDate !== todayStr || currentTime > oneHourFromNow)) {
-                    timeSlots.push(currentTimeStr);
+                    // Find or create the date entry
+                    let dateEntry = availableTimeSlots.find(slot => slot.date === shiftDate);
+                    if (!dateEntry) {
+                        dateEntry = { date: shiftDate, timeSlots: [] };
+                        availableTimeSlots.push(dateEntry);
+                    }
+
+                    // Find or create the time slot entry
+                    let timeSlotEntry = dateEntry.timeSlots.find(slot => slot.time === currentTimeStr);
+                    if (!timeSlotEntry) {
+                        timeSlotEntry = { time: currentTimeStr, technicians: [] };
+                        dateEntry.timeSlots.push(timeSlotEntry);
+                    }
+
+                    // Add the technician to the time slot
+                    timeSlotEntry.technicians.push({
+                        id: tech.id,
+                        name: tech.name
+                    });
                 }
 
                 currentTime = nextTime;
             }
-
-            if (timeSlots.length > 0) {
-                // Merge slots for the same date across technicians
-                const existing = availableTimeSlots.find(slot => slot.date === shiftDate);
-                if (existing) {
-                    existing.timeSlots.push(...timeSlots);
-                    // Remove duplicates and sort
-                    existing.timeSlots = Array.from(new Set(existing.timeSlots)).sort();
-                } else {
-                    availableTimeSlots.push({ date: shiftDate, timeSlots });
-                }
-            }
         });
     }
+
+    // Sort time slots within each date
+    availableTimeSlots.forEach(dateEntry => {
+        dateEntry.timeSlots.sort((a, b) => a.time.localeCompare(b.time));
+    });
 
     return availableTimeSlots;
 }
 
-async function createJobAppointmentHandler(name: string, email: string, phone: string, startTime: string, endTime: string): Promise<any> {
+async function createJobAppointmentHandler({
+    name,
+    email,
+    phone,
+    startTime,
+    endTime,
+    technicianId
+}: {
+    name: string;
+    email: string;
+    phone: string;
+    startTime: string;
+    endTime: string;
+    technicianId: string;
+}): Promise<any> {
     const authService = new AuthService(environment);
     const jobService = new JobService(environment);
     const customerService = new CustomerService(environment);
@@ -189,6 +228,7 @@ async function createJobAppointmentHandler(name: string, email: string, phone: s
         console.log('Job already exists:', existingJobs.data[0].id);
         return existingJobs.data[0];
     }
+
     // Create job
     const jobData = {
         customerId: customer.id,
@@ -202,11 +242,11 @@ async function createJobAppointmentHandler(name: string, email: string, phone: s
             end: endTime,
             arrivalWindowStart: startTime,
             arrivalWindowEnd: endTime,
-            technicianIds: [technicianId] //TODO: update technician id for available technician
+            technicianIds: [technicianId]
         }],
         summary: "Jemini test of services" //TODO: Make this dynamic
     };
-
+    console.log("Job data:", jobData);
     console.log("Creating job starting at:", startTime);
     const jobResponse = await jobService.createJob(authToken, appKey, tenantId, jobData);
     console.log("Job created:", jobResponse.id);
@@ -220,7 +260,7 @@ async function createJobAppointmentHandler(name: string, email: string, phone: s
                     skuName: "VIRTUALSERVICE", //TODO: change skuName to the sku name of the service
                     description: "New Service Jemini", //TODO: change description to the description of the service
                     unitPrice: 100, //TODO: change amount to the amount of the service
-                    technicianId: 34365881, // TODO: Replace with actual technician ID
+                    technicianId: technicianId,
                     quantity: 1
                 }
             ]

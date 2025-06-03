@@ -13,7 +13,7 @@ const states = [
 export default function ContactPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const { formData, setFormData } = useFormStore();
+  const { formData, selectedTechnician, setFormData } = useFormStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -42,17 +42,24 @@ export default function ContactPage() {
       month: 'short',
       day: 'numeric'
     }).format(start);
-    return `Selected appointment time: ${date} ${formatTime(start)} - ${formatTime(end)}`;
+    const technicianName = selectedTechnician ? ` with ${selectedTechnician.name}` : '';
+    return `Selected appointment time: ${date} ${formatTime(start)} - ${formatTime(end)}${technicianName}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     
+    if (!selectedTechnician) {
+      alert('No technician selected. Please go back and select a time slot.');
+      setIsLoading(false);
+      return;
+    }
+
     const startTimeISO = new Date(formData.startTime ?? '').toISOString();
     const endTimeISO = new Date(formData.endTime ?? '').toISOString();
 
-    const successUrl = `${window.location.origin}/confirmation?success=true&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&phone=${encodeURIComponent(formData.phone)}&startTime=${encodeURIComponent(startTimeISO)}&endTime=${encodeURIComponent(endTimeISO)}`;
+    const successUrl = `${window.location.origin}/confirmation?success=true&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&phone=${encodeURIComponent(formData.phone)}&startTime=${encodeURIComponent(startTimeISO)}&endTime=${encodeURIComponent(endTimeISO)}&technicianId=${encodeURIComponent(selectedTechnician.id)}&technicianName=${encodeURIComponent(selectedTechnician.name)}`;
 
     try {
       const response = await fetch('/api/book', {
@@ -64,6 +71,8 @@ export default function ContactPage() {
           ...formData,
           startTime: startTimeISO,
           endTime: endTimeISO,
+          technicianId: selectedTechnician.id,
+          technician: selectedTechnician,
           successUrl,
         }),
       });

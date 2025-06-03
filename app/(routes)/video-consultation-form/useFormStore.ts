@@ -1,9 +1,19 @@
 import { create } from 'zustand';
 import { FormData } from './types';
 
+interface Technician {
+  id: string;
+  name: string;
+}
+
+interface TimeSlot {
+  time: string;
+  technicians: Technician[];
+}
+
 interface AvailableTimeSlots {
   date: string;
-  timeSlots: string[];
+  timeSlots: TimeSlot[];
 }
 
 interface FormStore {
@@ -24,12 +34,16 @@ interface FormStore {
   setSelectedSubService: (subService: string | null) => void;
   setDetails: (details: string) => void;
   
-  // Time slots
+  // Time slots and technician selection
   availableTimeSlots: AvailableTimeSlots[];
   selectedDate: string | null;
+  selectedTimeSlot: TimeSlot | null;
+  selectedTechnician: Technician | null;
   isLoading: boolean;
   setAvailableTimeSlots: (slots: AvailableTimeSlots[]) => void;
   setSelectedDate: (date: string | null) => void;
+  setSelectedTimeSlot: (slot: TimeSlot | null) => void;
+  setSelectedTechnician: (technician: Technician | null) => void;
   setIsLoading: (loading: boolean) => void;
   
   // Reset form
@@ -51,6 +65,8 @@ const initialState = {
   details: '',
   availableTimeSlots: [],
   selectedDate: null,
+  selectedTimeSlot: null,
+  selectedTechnician: null,
   isLoading: true,
 };
 
@@ -67,6 +83,8 @@ export const useFormStore = create<FormStore>((set) => ({
   
   setAvailableTimeSlots: (slots) => set({ availableTimeSlots: slots }),
   setSelectedDate: (date) => set({ selectedDate: date }),
+  setSelectedTimeSlot: (slot) => set({ selectedTimeSlot: slot }),
+  setSelectedTechnician: (technician) => set({ selectedTechnician: technician }),
   setIsLoading: (loading) => set({ isLoading: loading }),
   
   resetForm: () => set(initialState),

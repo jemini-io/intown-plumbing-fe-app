@@ -10,9 +10,16 @@ export interface FormData {
   zip: string;
 }
 
+export interface Technician {
+  id: string;
+  name: string;
+}
+
 export interface BookRequest extends FormData {
   successUrl: string;
   cancelUrl: string;
+  technicianId?: string;
+  technician?: Technician;
 }
 
 export interface BookResponse {

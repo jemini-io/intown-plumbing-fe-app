@@ -13,6 +13,8 @@ export default function DatePage() {
     isLoading,
     setAvailableTimeSlots,
     setSelectedDate,
+    setSelectedTimeSlot,
+    setSelectedTechnician,
     setIsLoading,
     setFormData,
   } = useFormStore();
@@ -42,20 +44,28 @@ export default function DatePage() {
     setSelectedDate(date);
   };
 
-  const handleTimeSelect = (time: string) => {
+  const handleTimeSelect = (timeSlot: { time: string, technicians: { id: string, name: string }[] }) => {
     if (!selectedDate) return;
 
+    // Randomly select a technician from the available ones
+    const randomIndex = Math.floor(Math.random() * timeSlot.technicians.length);
+    const selectedTechnician = timeSlot.technicians[randomIndex];
+
     const [year, month, day] = selectedDate.split('-').map(Number);
-    const [hours, minutes] = time.split(':').map(Number);
+    const [hours, minutes] = timeSlot.time.split(':').map(Number);
     const date = new Date(year, month - 1, day, hours, minutes);
 
     const startTime = date;
     const endTime = new Date(date.getTime() + 30 * 60000);
 
+    // Store all the selection data
+    setSelectedTimeSlot(timeSlot);
+    setSelectedTechnician(selectedTechnician);
     setFormData({
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString()
     });
+    
     router.push('/contact');
   };
 
@@ -103,13 +113,16 @@ export default function DatePage() {
 
           {selectedDate && (
             <div className="mt-4 space-y-2">
-              {availableTimeSlots.find(slot => slot.date === selectedDate)?.timeSlots.map((time, index) => (
+              {availableTimeSlots.find(slot => slot.date === selectedDate)?.timeSlots.map((timeSlot, index) => (
                 <button
                   key={index}
-                  onClick={() => handleTimeSelect(time)}
-                  className="w-full flex justify-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                  onClick={() => handleTimeSelect(timeSlot)}
+                  className="w-full flex justify-between items-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                 >
-                  {formatTime(new Date(`${selectedDate}T${time}:00`))}
+                  <span>{formatTime(new Date(`${selectedDate}T${timeSlot.time}:00`))}</span>
+                  <span className="text-xs text-gray-500">
+                    {timeSlot.technicians.length} technician{timeSlot.technicians.length !== 1 ? 's' : ''} available
+                  </span>
                 </button>
               ))}
             </div>
