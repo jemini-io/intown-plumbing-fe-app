@@ -1,8 +1,8 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useFormStore } from '../store/useFormStore';
-import FormLayout from '../components/FormLayout';
+import { useFormStore } from '@/app/(routes)/video-consultation-form/useFormStore';
+import FormLayout from '@/components/FormLayout';
 
 export default function ServicePage() {
   const router = useRouter();

@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFormStore } from '../store/useFormStore';
-import FormLayout from '../components/FormLayout';
+import { useFormStore } from '@/app/(routes)/video-consultation-form/useFormStore';
+import FormLayout from '@/components/FormLayout';
 
 export default function DatePage() {
   const router = useRouter();
@@ -21,6 +21,7 @@ export default function DatePage() {
   useEffect(() => {
     const fetchTimeSlots = async () => {
       try {
+        // TODO: rename this because it's not getting bookings, it's getting time slots
         const response = await fetch('/api/book');
         const data = await response.json();
         setAvailableTimeSlots(data);

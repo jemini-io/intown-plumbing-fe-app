@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { env } from "@/app/config/env"; // Adjust the path as necessary
+import { env } from "@/lib/config/env"; // Adjust the path as necessary
 
 // Use the environment variable from the imported config
 const { environment } = env;

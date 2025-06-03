@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
-import { createJobAppointmentHandler } from "@/app/services/handler";
-import { BookRequest, ErrorResponse } from "@/app/types";
+import { createJobAppointmentHandler } from "@/app/api/services/handler";
+import { BookRequest, ErrorResponse } from "@/app/(routes)/video-consultation-form/types";
 
 export async function POST(req: NextRequest) {
   try {

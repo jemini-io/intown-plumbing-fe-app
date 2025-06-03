@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { FormData } from '../types';
+import { FormData } from './types';
 
 interface AvailableTimeSlots {
   date: string;

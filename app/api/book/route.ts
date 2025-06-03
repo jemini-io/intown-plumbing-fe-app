@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
-import { BookRequest, BookResponse, ErrorResponse } from "@/app/types";
-import { env } from "@/app/config/env";
-import { getAvailableTimeSlots } from "@/app/services/handler";
+import { BookRequest, BookResponse, ErrorResponse } from "@/app/(routes)/video-consultation-form/types";
+import { env } from "@/lib/config/env";
+import { getAvailableTimeSlots } from "@/app/api/services/handler";
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(env.stripe.secretKey);
 
+// TODO: this does not actually create the booking, it just creates a Stripe session
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as BookRequest;
@@ -58,6 +59,7 @@ export async function POST(req: NextRequest) {
   }
 }
 
+// Get available time slots by technicians
 export async function GET(req: NextRequest) {
   try {
     const availableTimeSlots = await getAvailableTimeSlots();
