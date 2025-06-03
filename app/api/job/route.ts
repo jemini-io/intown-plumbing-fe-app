@@ -21,4 +21,4 @@ export async function POST(req: NextRequest) {
     const errorResponse: ErrorResponse = { error: "Error creating job appointment" };
     return NextResponse.json(errorResponse, { status: 500 });
   }
-} 
+}
