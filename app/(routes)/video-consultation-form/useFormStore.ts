@@ -16,7 +16,13 @@ interface AvailableTimeSlots {
   timeSlots: TimeSlot[];
 }
 
+export type FormStep = 'service' | 'date' | 'contact' | 'confirmation';
+
 interface FormStore {
+  // Step navigation
+  currentStep: FormStep;
+  setCurrentStep: (step: FormStep) => void;
+  
   // Form data
   formData: FormData & {
     street: string;
@@ -46,11 +52,16 @@ interface FormStore {
   setSelectedTechnician: (technician: Technician | null) => void;
   setIsLoading: (loading: boolean) => void;
   
+  // Confirmation
+  jobId: string | null;
+  setJobId: (id: string | null) => void;
+  
   // Reset form
   resetForm: () => void;
 }
 
 const initialState = {
+  currentStep: 'service' as FormStep,
   formData: {
     name: '',
     phone: '',
@@ -68,10 +79,13 @@ const initialState = {
   selectedTimeSlot: null,
   selectedTechnician: null,
   isLoading: true,
+  jobId: null,
 };
 
 export const useFormStore = create<FormStore>((set) => ({
   ...initialState,
+  
+  setCurrentStep: (step) => set({ currentStep: step }),
   
   setFormData: (data) => set((state) => ({
     formData: { ...state.formData, ...data }
@@ -86,6 +100,8 @@ export const useFormStore = create<FormStore>((set) => ({
   setSelectedTimeSlot: (slot) => set({ selectedTimeSlot: slot }),
   setSelectedTechnician: (technician) => set({ selectedTechnician: technician }),
   setIsLoading: (loading) => set({ isLoading: loading }),
+  
+  setJobId: (id) => set({ jobId: id }),
   
   resetForm: () => set(initialState),
 })); 

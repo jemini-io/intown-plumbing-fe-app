@@ -1,13 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
+import { useFormStore } from '../useFormStore';
 
-export default function ConfirmationPage() {
+function ConfirmationStepContent() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const { setJobId, resetForm } = useFormStore();
 
   useEffect(() => {
     const name = searchParams.get('name');
@@ -47,6 +49,7 @@ export default function ConfirmationPage() {
           throw new Error(data.error);
         }
 
+        setJobId(data.id);
         setSuccessMessage(`Virtual Service scheduled successfully! Job ID: ${data.id}. You will receive notifications via SMS and email.`);
       } catch (error) {
         console.error('Error confirming job:', error);
@@ -57,7 +60,15 @@ export default function ConfirmationPage() {
     };
 
     confirmJob();
-  }, [searchParams]);
+  }, [searchParams, setJobId]);
+
+  const handleStartOver = () => {
+    resetForm();
+  };
+
+  const handleReturnHome = () => {
+    window.location.href = '/';
+  };
 
   if (isLoading) {
     return (
@@ -91,12 +102,18 @@ export default function ConfirmationPage() {
                     <p className="mt-2">Technician: {searchParams.get('technicianName')}</p>
                   )}
                 </div>
-                <div className="mt-4">
+                <div className="mt-4 space-x-4">
                   <button
-                    onClick={() => window.location.href = '/'}
+                    onClick={handleReturnHome}
                     className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
                   >
                     Return to Home
+                  </button>
+                  <button
+                    onClick={handleStartOver}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+                  >
+                    Book Another
                   </button>
                 </div>
               </div>
@@ -117,7 +134,7 @@ export default function ConfirmationPage() {
                 </div>
                 <div className="mt-4">
                   <button
-                    onClick={() => window.location.href = '/service'}
+                    onClick={handleStartOver}
                     className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                   >
                     Start Over
@@ -129,5 +146,22 @@ export default function ConfirmationPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function ConfirmationStep() {
+  return (
+    <Suspense fallback={
+      <main className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-lg w-full space-y-8">
+          <div className="flex justify-center items-center">
+            <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+          </div>
+          <p className="text-center text-gray-600">Loading...</p>
+        </div>
+      </main>
+    }>
+      <ConfirmationStepContent />
+    </Suspense>
   );
 } 

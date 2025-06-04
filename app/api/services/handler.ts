@@ -1,6 +1,8 @@
 import { AuthService, TechnicianService, AppointmentService, CustomerService, JobService, InvoiceService } from './services';
 import { env } from "@/lib/config/env";
 import { toZonedTime, format, fromZonedTime } from 'date-fns-tz';
+import { Appointment } from '../servicetitan/types';
+import { ServiceTitanResponse } from '../servicetitan/types';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId, technicianId }, environment } = env;
 
@@ -74,7 +76,7 @@ async function getAvailableTimeSlots(): Promise<DateEntry[]> {
 
         // Fetch appointments for this technician
         const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, todayStr, tech.id);
-        const appointments = appointmentsResponse.data;
+        const {data: appointments} = appointmentsResponse as ServiceTitanResponse<Appointment>;
 
         // Process available time slots for this technician
         filteredShifts.forEach((shift: any) => {
@@ -89,9 +91,9 @@ async function getAvailableTimeSlots(): Promise<DateEntry[]> {
                 nextTime.setMinutes(currentTime.getMinutes() + 30);
 
                 // Check if the current time block is available
-                const isAvailable = !appointments.some((appointment: any) => {
-                    const appointmentStart = convertToCT(appointment.arrivalWindowStart);
-                    const appointmentEnd = convertToCT(appointment.arrivalWindowEnd);
+                const isAvailable = !appointments.some((appointment) => {
+                    const appointmentStart = convertToCT(appointment.start);
+                    const appointmentEnd = convertToCT(appointment.end);
                     return currentTime >= appointmentStart && currentTime < appointmentEnd;
                 });
 
@@ -199,7 +201,7 @@ async function createJobAppointmentHandler({
 
     // Check if a customer already exists
     const existingCustomers = await customerService.getCustomer(authToken, appKey, tenantId, customerData.name, customerData.locations[0].address.street, customerData.locations[0].address.zip);
-    let customer = { id: null, locations: [] };
+    let customer: any = { id: null, locations: [] };
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {
         console.log('Customer already exists:', existingCustomers.data[0].id);
         customer = existingCustomers.data[0];

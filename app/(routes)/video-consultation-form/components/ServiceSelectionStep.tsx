@@ -1,11 +1,9 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
-import { useFormStore } from '@/app/(routes)/video-consultation-form/useFormStore';
+import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 
-export default function ServicePage() {
-  const router = useRouter();
+export default function ServiceStep() {
   const {
     selectedService,
     selectedSubService,
@@ -13,6 +11,7 @@ export default function ServicePage() {
     setSelectedService,
     setSelectedSubService,
     setDetails,
+    setCurrentStep,
   } = useFormStore();
 
   const handleServiceClick = (service: string) => {
@@ -26,7 +25,7 @@ export default function ServicePage() {
 
   const handleNextClick = () => {
     if (selectedService && selectedSubService) {
-      router.push('/date');
+      setCurrentStep('date');
     }
   };
 

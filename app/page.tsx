@@ -7,7 +7,7 @@ export default function Home() {
   const router = useRouter();
 
   useEffect(() => {
-    router.push('/service');
+    router.push('/video-consultation-form');
   }, [router]);
 
   return null;

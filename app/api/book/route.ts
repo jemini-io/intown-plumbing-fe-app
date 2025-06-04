@@ -58,15 +58,3 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(errorResponse, { status: 500 });
   }
 }
-
-// Get available time slots by technicians
-export async function GET(req: NextRequest) {
-  try {
-    const availableTimeSlots = await getAvailableTimeSlots();
-
-    return NextResponse.json(availableTimeSlots);
-  } catch (error) {
-    console.error("Error fetching available time slots:", error);
-    return NextResponse.json({ error: "Error fetching available time slots" }, { status: 500 });
-  }
-}

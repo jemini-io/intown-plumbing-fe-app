@@ -1,19 +1,17 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { useFormStore } from '@/app/(routes)/video-consultation-form/useFormStore';
+import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
-import { BookResponse, ErrorResponse } from '@/app/(routes)/video-consultation-form/types';
+import { BookResponse, ErrorResponse } from '../types';
 
 const states = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC"
 ];
 
-export default function ContactPage() {
-  const router = useRouter();
+export default function ContactStep() {
   const [isLoading, setIsLoading] = useState(false);
-  const { formData, selectedTechnician, setFormData } = useFormStore();
+  const { formData, selectedTechnician, setFormData, setCurrentStep } = useFormStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -59,7 +57,7 @@ export default function ContactPage() {
     const startTimeISO = new Date(formData.startTime ?? '').toISOString();
     const endTimeISO = new Date(formData.endTime ?? '').toISOString();
 
-    const successUrl = `${window.location.origin}/confirmation?success=true&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&phone=${encodeURIComponent(formData.phone)}&startTime=${encodeURIComponent(startTimeISO)}&endTime=${encodeURIComponent(endTimeISO)}&technicianId=${encodeURIComponent(selectedTechnician.id)}&technicianName=${encodeURIComponent(selectedTechnician.name)}`;
+    const successUrl = `${window.location.origin}/video-consultation-form?success=true&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&phone=${encodeURIComponent(formData.phone)}&startTime=${encodeURIComponent(startTimeISO)}&endTime=${encodeURIComponent(endTimeISO)}&technicianId=${encodeURIComponent(selectedTechnician.id)}&technicianName=${encodeURIComponent(selectedTechnician.name)}`;
 
     try {
       const response = await fetch('/api/book', {
@@ -93,6 +91,10 @@ export default function ContactPage() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleBackClick = () => {
+    setCurrentStep('date');
   };
 
   return (
@@ -238,7 +240,7 @@ export default function ContactPage() {
         <div className="flex space-x-4">
           <button
             type="button"
-            onClick={() => router.push('/date')}
+            onClick={handleBackClick}
             className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
           >
             Back
