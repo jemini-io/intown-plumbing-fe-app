@@ -23,3 +23,26 @@ export interface Appointment {
     createdById: number;
     isConfirmed: boolean;
 }
+
+export interface JobType {
+    id: number;
+    name: string;
+    businessUnitIds: number[];
+    skills: string[];
+    tagTypeIds: number[];
+    priority: string;
+    duration: number;
+    soldThreshold: number;
+    class: string;
+    summary: string;
+    noCharge: boolean;
+    enforceRecurringServiceEventSelection: boolean;
+    invoiceSignaturesRequired: boolean;
+    modifiedOn: string;
+    createdOn: string;
+    externalData: {
+        key: string;
+        value: string;
+    }[];
+    active: boolean;
+}

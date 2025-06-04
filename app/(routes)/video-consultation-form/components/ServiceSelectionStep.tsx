@@ -1,9 +1,12 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
+import { getJobTypesByBusinessUnit } from '@/app/api/booking/job-types/getJobTypes';
 
 export default function ServiceStep() {
+
   const {
     selectedService,
     selectedSubService,
@@ -13,6 +16,15 @@ export default function ServiceStep() {
     setDetails,
     setCurrentStep,
   } = useFormStore();
+
+  // useEffect to fetch job types
+  useEffect(() => {
+    const fetchJobTypes = async () => {
+      const jobTypes = await getJobTypesByBusinessUnit();
+      console.log(jobTypes);
+    };
+    fetchJobTypes();
+  }, []);
 
   const handleServiceClick = (service: string) => {
     setSelectedService(service);

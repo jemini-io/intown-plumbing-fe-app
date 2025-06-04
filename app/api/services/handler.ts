@@ -1,8 +1,8 @@
 import { AuthService, TechnicianService, AppointmentService, CustomerService, JobService, InvoiceService } from './services';
 import { env } from "@/lib/config/env";
 import { toZonedTime, format, fromZonedTime } from 'date-fns-tz';
-import { Appointment } from '../servicetitan/types';
-import { ServiceTitanResponse } from '../servicetitan/types';
+import { Appointment } from '../servicetitan-api/types';
+import { ServiceTitanResponse } from '../servicetitan-api/types';
 import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_NAME } from '@/lib/utils/constants';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId, technicianId }, environment } = env;

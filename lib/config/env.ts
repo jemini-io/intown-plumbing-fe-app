@@ -7,7 +7,7 @@ const getEnvVar = (key: string): string => {
 };
 
 export const env = {
-  environment: "integration",
+  environment: getEnvVar("NODE_ENV"),
   stripe: {
     secretKey: getEnvVar("STRIPE_SECRET_KEY"),
     priceId: getEnvVar("STRIPE_PRICE_ID"),
@@ -18,5 +18,6 @@ export const env = {
     appKey: getEnvVar("SERVICETITAN_APP_KEY"),
     tenantId: getEnvVar("SERVICETITAN_TENANT_ID"),
     technicianId: getEnvVar("SERVICETITAN_TECHNICIAN_ID"),
+    baseUrl: getEnvVar("SERVICETITAN_BASE_URL"),
   },
 } as const; 
