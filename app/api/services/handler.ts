@@ -253,6 +253,7 @@ async function createJobAppointmentHandler({
     const jobResponse = await jobService.createJob(authToken, appKey, tenantId, jobData);
     console.log("Job created:", jobResponse.id);
     const invoiceResponse = await invoiceService.getInvoiceByJobId(authToken, appKey, tenantId, jobResponse.id);
+    console.log("Invoice response:", invoiceResponse.data);
     if (invoiceResponse && invoiceResponse.data && invoiceResponse.data.length > 0) {
         const invoiceId = invoiceResponse.data[0].id;
         const updatedInvoiceData = {
@@ -268,9 +269,11 @@ async function createJobAppointmentHandler({
             ]
         };
         await invoiceService.updateInvoice(authToken, appKey, tenantId, invoiceId, updatedInvoiceData);
+        console.log("Invoice updated:", invoiceId);
         
         // Check for existing payments
         const paymentsResponse = await invoiceService.getPaymentsByInvoiceId(authToken, appKey, tenantId, invoiceId);
+        console.log("Payments response:", paymentsResponse.data);
         if (paymentsResponse && paymentsResponse.data && paymentsResponse.data.length > 0) {
             console.log("Existing payments found:", paymentsResponse.data);
         } else {
@@ -287,6 +290,7 @@ async function createJobAppointmentHandler({
                 }]
             };
             await invoiceService.createPayment(authToken, appKey, tenantId, paymentData);
+            console.log("Payment created:", paymentData);
         }
     }
 
