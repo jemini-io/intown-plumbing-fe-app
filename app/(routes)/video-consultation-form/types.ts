@@ -20,6 +20,7 @@ export interface BookRequest extends FormData {
   cancelUrl: string;
   technicianId?: string;
   technician?: Technician;
+  jobTypeId?: number;
 }
 
 export interface BookResponse {

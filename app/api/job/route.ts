@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json() as BookRequest;
 
-    if (!body.name || !body.email || !body.phone || !body.startTime || !body.endTime || !body.technicianId) {
+    if (!body.name || !body.email || !body.phone || !body.startTime || !body.endTime || !body.technicianId || !body.jobTypeId) {
       const errorResponse: ErrorResponse = { error: "Missing required information" };
       return NextResponse.json(errorResponse, { status: 400 });
     }
@@ -20,7 +20,8 @@ export async function POST(req: NextRequest) {
         phone: body.phone, 
         startTime: body.startTime, 
         endTime: body.endTime,
-        technicianId: body.technicianId
+        technicianId: body.technicianId,
+        jobTypeId: body.jobTypeId
       }
     );
 

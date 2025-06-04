@@ -11,7 +11,7 @@ const states = [
 
 export default function ContactStep() {
   const [isLoading, setIsLoading] = useState(false);
-  const { formData, selectedTechnician, setFormData, setCurrentStep } = useFormStore();
+  const { formData, selectedTechnician, selectedJobType, setFormData, setCurrentStep } = useFormStore();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -41,7 +41,8 @@ export default function ContactStep() {
       day: 'numeric'
     }).format(start);
     const technicianName = selectedTechnician ? ` with ${selectedTechnician.name}` : '';
-    return `Selected appointment time: ${date} ${formatTime(start)} - ${formatTime(end)}${technicianName}`;
+    const serviceName = selectedJobType ? ` for ${selectedJobType.name}` : '';
+    return `Selected appointment time: ${date} ${formatTime(start)} - ${formatTime(end)}${serviceName}${technicianName}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -54,10 +55,16 @@ export default function ContactStep() {
       return;
     }
 
+    if (!selectedJobType) {
+      alert('No service selected. Please go back and select a service.');
+      setIsLoading(false);
+      return;
+    }
+
     const startTimeISO = new Date(formData.startTime ?? '').toISOString();
     const endTimeISO = new Date(formData.endTime ?? '').toISOString();
 
-    const successUrl = `${window.location.origin}/video-consultation-form?success=true&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&phone=${encodeURIComponent(formData.phone)}&startTime=${encodeURIComponent(startTimeISO)}&endTime=${encodeURIComponent(endTimeISO)}&technicianId=${encodeURIComponent(selectedTechnician.id)}&technicianName=${encodeURIComponent(selectedTechnician.name)}`;
+    const successUrl = `${window.location.origin}/video-consultation-form?success=true&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&phone=${encodeURIComponent(formData.phone)}&startTime=${encodeURIComponent(startTimeISO)}&endTime=${encodeURIComponent(endTimeISO)}&technicianId=${encodeURIComponent(selectedTechnician.id)}&technicianName=${encodeURIComponent(selectedTechnician.name)}&jobTypeId=${encodeURIComponent(selectedJobType.id)}`;
 
     try {
       const response = await fetch('/api/book', {
@@ -71,6 +78,7 @@ export default function ContactStep() {
           endTime: endTimeISO,
           technicianId: selectedTechnician.id,
           technician: selectedTechnician,
+          jobTypeId: selectedJobType.id,
           successUrl,
         }),
       });

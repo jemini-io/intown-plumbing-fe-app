@@ -18,9 +18,9 @@ function ConfirmationStepContent() {
     const startTime = searchParams.get('startTime');
     const endTime = searchParams.get('endTime');
     const technicianId = searchParams.get('technicianId');
-    const technicianName = searchParams.get('technicianName');
+    const jobTypeId = searchParams.get('jobTypeId');
 
-    if (!name || !email || !phone || !startTime || !endTime || !technicianId) {
+    if (!name || !email || !phone || !startTime || !endTime || !technicianId || !jobTypeId) {
       setErrorMessage('Missing required information. Please complete the booking process.');
       setIsLoading(false);
       return;
@@ -40,6 +40,7 @@ function ConfirmationStepContent() {
             startTime, 
             endTime, 
             technicianId,
+            jobTypeId,
           }),
         });
 

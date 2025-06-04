@@ -1,18 +1,20 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 import { getJobTypesByBusinessUnit } from '@/app/api/booking/job-types/getJobTypes';
 
 export default function ServiceStep() {
+  const [isLoadingJobTypes, setIsLoadingJobTypes] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const {
-    selectedService,
-    selectedSubService,
+    availableJobTypes,
+    selectedJobType,
     details,
-    setSelectedService,
-    setSelectedSubService,
+    setAvailableJobTypes,
+    setSelectedJobType,
     setDetails,
     setCurrentStep,
   } = useFormStore();
@@ -20,87 +22,77 @@ export default function ServiceStep() {
   // useEffect to fetch job types
   useEffect(() => {
     const fetchJobTypes = async () => {
-      const jobTypes = await getJobTypesByBusinessUnit();
-      console.log(jobTypes);
+      try {
+        setIsLoadingJobTypes(true);
+        setError(null);
+        const jobTypes = await getJobTypesByBusinessUnit();
+        setAvailableJobTypes(jobTypes);
+        console.log('Fetched job types:', jobTypes);
+      } catch (error) {
+        console.error('Error fetching job types:', error);
+        setError('Failed to load available services. Please try again.');
+      } finally {
+        setIsLoadingJobTypes(false);
+      }
     };
     fetchJobTypes();
-  }, []);
+  }, [setAvailableJobTypes]);
 
-  const handleServiceClick = (service: string) => {
-    setSelectedService(service);
-    setSelectedSubService(null);
-  };
-
-  const handleSubServiceClick = (subService: string) => {
-    setSelectedSubService(subService);
+  const handleJobTypeClick = (jobType: any) => {
+    setSelectedJobType(jobType);
   };
 
   const handleNextClick = () => {
-    if (selectedService && selectedSubService) {
+    if (selectedJobType) {
       setCurrentStep('date');
     }
   };
 
+  if (isLoadingJobTypes) {
+    return (
+      <FormLayout subtitle="What can we do for you?">
+        <div className="flex justify-center items-center py-12">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+        </div>
+        <p className="text-center text-gray-600 mt-4">Loading available services...</p>
+      </FormLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <FormLayout subtitle="What can we do for you?">
+        <div className="text-center py-12">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          >
+            Retry
+          </button>
+        </div>
+      </FormLayout>
+    );
+  }
+
   return (
     <FormLayout subtitle="What can we do for you?">
       <div className="survey-container">
-        <div className="button-row">
-          {['Plumbing', 'Water Heaters', 'Water Quality', 'Sewer & Gas', 'Foundation'].map(service => (
-            <button
-              key={service}
-              className={`option-button ${selectedService === service ? 'selected' : ''}`}
-              onClick={() => handleServiceClick(service)}
-            >
-              {service}
-            </button>
-          ))}
-        </div>
-
-        {selectedService === 'Plumbing' && (
+        {availableJobTypes.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-600">No services available at this time.</p>
+          </div>
+        ) : (
           <>
-            <h3>What plumbing service are you interested in?</h3>
             <div className="button-row">
-              {['Plumbing Repair', 'Drain Cleaning', 'Commercial', 'Other'].map(subService => (
+              {availableJobTypes.map(jobType => (
                 <button
-                  key={subService}
-                  className={`option-button ${selectedSubService === subService ? 'selected' : ''}`}
-                  onClick={() => handleSubServiceClick(subService)}
+                  key={jobType.id}
+                  className={`option-button ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
+                  onClick={() => handleJobTypeClick(jobType)}
+                  title={jobType.summary || jobType.name}
                 >
-                  {subService}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {selectedService === 'Water Heaters' && (
-          <>
-            <h3>What type of water heater are you interested in?</h3>
-            <div className="button-row">
-              {['Tank Water Heaters', 'Tankless Water Heaters'].map(subService => (
-                <button
-                  key={subService}
-                  className={`option-button ${selectedSubService === subService ? 'selected' : ''}`}
-                  onClick={() => handleSubServiceClick(subService)}
-                >
-                  {subService}
-                </button>
-              ))}
-            </div>
-          </>
-        )}
-
-        {selectedService === 'Water Quality' && (
-          <>
-            <h3>Which water quality service are you looking for?</h3>
-            <div className="button-row">
-              {['Water Testing', 'Water Filtration', 'Water Softeners', 'Water Conditioners', 'Reverse Osmosis', 'UV Water Filters'].map(subService => (
-                <button
-                  key={subService}
-                  className={`option-button ${selectedSubService === subService ? 'selected' : ''}`}
-                  onClick={() => handleSubServiceClick(subService)}
-                >
-                  {subService}
+                  {jobType.name}
                 </button>
               ))}
             </div>
@@ -118,7 +110,7 @@ export default function ServiceStep() {
         <button 
           className="next-button" 
           onClick={handleNextClick}
-          disabled={!selectedService || !selectedSubService}
+          disabled={!selectedJobType}
         >
           NEXT
         </button>

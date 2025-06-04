@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { FormData } from './types';
+import { JobType } from '@/app/api/servicetitan-api/types';
 
 interface Technician {
   id: string;
@@ -32,12 +33,12 @@ interface FormStore {
   };
   setFormData: (data: Partial<FormData & { street: string; city: string; state: string; zip: string; }>) => void;
   
-  // Service selection
-  selectedService: string | null;
-  selectedSubService: string | null;
+  // Job type selection
+  availableJobTypes: JobType[];
+  selectedJobType: JobType | null;
   details: string;
-  setSelectedService: (service: string | null) => void;
-  setSelectedSubService: (subService: string | null) => void;
+  setAvailableJobTypes: (jobTypes: JobType[]) => void;
+  setSelectedJobType: (jobType: JobType | null) => void;
   setDetails: (details: string) => void;
   
   // Time slots and technician selection
@@ -71,8 +72,8 @@ const initialState = {
     state: '',
     zip: '',
   },
-  selectedService: null,
-  selectedSubService: null,
+  availableJobTypes: [],
+  selectedJobType: null,
   details: '',
   availableTimeSlots: [],
   selectedDate: null,
@@ -91,8 +92,8 @@ export const useFormStore = create<FormStore>((set) => ({
     formData: { ...state.formData, ...data }
   })),
   
-  setSelectedService: (service) => set({ selectedService: service }),
-  setSelectedSubService: (subService) => set({ selectedSubService: subService }),
+  setAvailableJobTypes: (jobTypes) => set({ availableJobTypes: jobTypes }),
+  setSelectedJobType: (jobType) => set({ selectedJobType: jobType }),
   setDetails: (details) => set({ details }),
   
   setAvailableTimeSlots: (slots) => set({ availableTimeSlots: slots }),

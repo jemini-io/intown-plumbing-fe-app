@@ -141,7 +141,8 @@ async function createJobAppointmentHandler({
     phone,
     startTime,
     endTime,
-    technicianId
+    technicianId,
+    jobTypeId
 }: {
     name: string;
     email: string;
@@ -149,6 +150,7 @@ async function createJobAppointmentHandler({
     startTime: string;
     endTime: string;
     technicianId: string;
+    jobTypeId?: number;
 }): Promise<any> {
     const authService = new AuthService(environment);
     const jobService = new JobService(environment);
@@ -237,7 +239,7 @@ async function createJobAppointmentHandler({
         customerId: customer.id,
         locationId: customer.locations[0].id,
         businessUnitId: BUSINESS_UNIT_ID,
-        jobTypeId: 1689, //TODO: Make this dynamic
+        jobTypeId: jobTypeId,
         priority: "Normal", // KEEP for now
         campaignId: CAMPAIGN_ID,
         appointments: [{
