@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
+import { THIRTY_MINUTES } from '@/lib/utils/constants';
 
 export default function DateStep() {
   const {
@@ -70,7 +71,7 @@ export default function DateStep() {
     
     // Set start and end times
     const selectedDateObj = new Date(selectedDate + 'T' + timeSlot.time);
-    const endTime = new Date(selectedDateObj.getTime() + 60 * 60 * 1000);
+    const endTime = new Date(selectedDateObj.getTime() + THIRTY_MINUTES);
     
     setFormData({
       startTime: selectedDateObj.toISOString(),
