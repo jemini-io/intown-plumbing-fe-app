@@ -3,6 +3,7 @@ import { env } from "@/lib/config/env";
 import { toZonedTime, format, fromZonedTime } from 'date-fns-tz';
 import { Appointment } from '../servicetitan/types';
 import { ServiceTitanResponse } from '../servicetitan/types';
+import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_NAME } from '@/lib/utils/constants';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId, technicianId }, environment } = env;
 
@@ -235,10 +236,10 @@ async function createJobAppointmentHandler({
     const jobData = {
         customerId: customer.id,
         locationId: customer.locations[0].id,
-        businessUnitId: 4282891, //STATIC: "Virtual Service" business unit
+        businessUnitId: BUSINESS_UNIT_ID,
         jobTypeId: 1689, //TODO: Make this dynamic
         priority: "Normal", // KEEP for now
-        campaignId: 46989774, // STATIC: "Direct Web Traffic" campaign
+        campaignId: CAMPAIGN_ID,
         appointments: [{
             start: startTime,
             end: endTime,
@@ -260,7 +261,7 @@ async function createJobAppointmentHandler({
             summary: "test invoice test", //TODO: change summary to the summary of the invoice
             items: [
                 {
-                    skuName: "VIRTUALSERVICE", //TODO: change skuName to the sku name of the service
+                    skuName: VIRTUAL_SERVICE_SKU_NAME, //TODO: change skuName to the sku name of the service
                     description: "New Service Jemini", //TODO: change description to the description of the service
                     unitPrice: 100, //TODO: change amount to the amount of the service
                     technicianId: technicianId,
