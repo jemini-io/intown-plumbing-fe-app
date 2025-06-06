@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
-import { BookResponse, ErrorResponse } from '../types';
 
 const states = [
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC"
@@ -45,60 +44,13 @@ export default function ContactStep() {
     return `Selected appointment time: ${date} ${formatTime(start)} - ${formatTime(end)}${serviceName}${technicianName}`;
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
-    if (!selectedTechnician) {
-      alert('No technician selected. Please go back and select a time slot.');
-      setIsLoading(false);
+    if (!selectedTechnician || !selectedJobType || !formData.name || !formData.email || !formData.phone) {
+      alert('Please fill in all required fields.');
       return;
     }
-
-    if (!selectedJobType) {
-      alert('No service selected. Please go back and select a service.');
-      setIsLoading(false);
-      return;
-    }
-
-    const startTimeISO = new Date(formData.startTime ?? '').toISOString();
-    const endTimeISO = new Date(formData.endTime ?? '').toISOString();
-
-    const successUrl = `${window.location.origin}/video-consultation-form?success=true&name=${encodeURIComponent(formData.name)}&email=${encodeURIComponent(formData.email)}&phone=${encodeURIComponent(formData.phone)}&startTime=${encodeURIComponent(startTimeISO)}&endTime=${encodeURIComponent(endTimeISO)}&technicianId=${encodeURIComponent(selectedTechnician.id)}&technicianName=${encodeURIComponent(selectedTechnician.name)}&jobTypeId=${encodeURIComponent(selectedJobType.id)}`;
-
-    try {
-      const response = await fetch('/api/book', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...formData,
-          startTime: startTimeISO,
-          endTime: endTimeISO,
-          technicianId: selectedTechnician.id,
-          technician: selectedTechnician,
-          jobTypeId: selectedJobType.id,
-          successUrl,
-        }),
-      });
-
-      const data = await response.json() as BookResponse | ErrorResponse;
-      
-      if ('error' in data) {
-        throw new Error(data.error);
-      }
-
-      if (data.sessionUrl) {
-        window.location.href = data.sessionUrl;
-        return;
-      }
-    } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('Failed to submit form. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    setCurrentStep('checkout');
   };
 
   const handleBackClick = () => {
