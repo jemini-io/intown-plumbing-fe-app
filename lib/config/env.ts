@@ -17,7 +17,6 @@ export const env = {
     clientSecret: getEnvVar("SERVICETITAN_CLIENT_SECRET"),
     appKey: getEnvVar("SERVICETITAN_APP_KEY"),
     tenantId: getEnvVar("SERVICETITAN_TENANT_ID"),
-    technicianId: getEnvVar("SERVICETITAN_TECHNICIAN_ID"),
     baseUrl: getEnvVar("SERVICETITAN_BASE_URL"),
   },
 } as const; 
