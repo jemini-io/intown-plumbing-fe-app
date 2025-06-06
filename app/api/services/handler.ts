@@ -5,7 +5,7 @@ import { Appointment } from '../servicetitan-api/types';
 import { ServiceTitanResponse } from '../servicetitan-api/types';
 import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_NAME } from '@/lib/utils/constants';
 
-const { servicetitan: { clientId, clientSecret, appKey, tenantId, technicianId }, environment } = env;
+const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
 interface Technician {
     id: string;
