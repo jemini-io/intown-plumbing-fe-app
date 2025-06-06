@@ -3,7 +3,7 @@ import { env } from "@/lib/config/env";
 import { toZonedTime, format, fromZonedTime } from 'date-fns-tz';
 import { Appointment } from '../servicetitan-api/types';
 import { ServiceTitanResponse } from '../servicetitan-api/types';
-import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_NAME } from '@/lib/utils/constants';
+import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_ID } from '@/lib/utils/constants';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
@@ -263,7 +263,7 @@ async function createJobAppointmentHandler({
             summary: "test invoice test", //TODO: change summary to the summary of the invoice
             items: [
                 {
-                    skuName: VIRTUAL_SERVICE_SKU_NAME, //TODO: change skuName to the sku name of the service
+                    skuId: VIRTUAL_SERVICE_SKU_ID, //TODO: change skuName to the sku name of the service
                     description: "New Service Jemini", //TODO: change description to the description of the service
                     unitPrice: 100, //TODO: change amount to the amount of the service
                     technicianId: technicianId,

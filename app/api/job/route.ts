@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import { createJobAppointmentHandler } from "@/app/api/services/handler";
 import { BookRequest, ErrorResponse } from "@/app/(routes)/video-consultation-form/types";
+import { handleApiError } from "@/lib/utils/api-error-handler";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,8 +28,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(jobResponse);
   } catch (error) {
-    console.error("Error creating job appointment:", error);
-    const errorResponse: ErrorResponse = { error: "Error creating job appointment" };
-    return NextResponse.json(errorResponse, { status: 500 });
+    return handleApiError(error, {
+      message: "Error creating job appointment",
+      logPrefix: "[Job API]"
+    });
   }
 }
