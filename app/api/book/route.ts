@@ -1,3 +1,5 @@
+'use server';
+
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server";
 import Stripe from "stripe";

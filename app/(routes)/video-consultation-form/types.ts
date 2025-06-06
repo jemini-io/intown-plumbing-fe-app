@@ -33,6 +33,10 @@ export interface BookResponse {
   endTime?: string;
 }
 
+export interface EmbeddedCheckoutResponse {
+  clientSecret: string;
+}
+
 export interface ErrorResponse {
   error: string;
 }

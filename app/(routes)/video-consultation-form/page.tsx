@@ -6,6 +6,7 @@ import { useFormStore } from './useFormStore';
 import ServiceStep from './components/ServiceSelectionStep';
 import DateStep from './components/AppointmentDateStep';
 import ContactStep from './components/ContactStep';
+import EmbeddedCheckoutStep from './components/EmbeddedCheckoutStep';
 import ConfirmationStep from './components/ConfirmationStep';
 
 function VideoConsultationFormContent() {
@@ -28,6 +29,8 @@ function VideoConsultationFormContent() {
         return <DateStep />;
       case 'contact':
         return <ContactStep />;
+      case 'checkout':
+        return <EmbeddedCheckoutStep />;
       case 'confirmation':
         return <ConfirmationStep />;
       default:

@@ -17,7 +17,7 @@ interface AvailableTimeSlots {
   timeSlots: TimeSlot[];
 }
 
-export type FormStep = 'service' | 'date' | 'contact' | 'confirmation';
+export type FormStep = 'service' | 'date' | 'contact' | 'checkout' | 'confirmation';
 
 interface FormStore {
   // Step navigation
