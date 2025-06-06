@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { BookRequest, BookResponse, ErrorResponse } from "@/app/(routes)/video-consultation-form/types";
 import { env } from "@/lib/config/env";
 import { getAvailableTimeSlots } from "@/app/api/services/handler";
+import { handleApiError } from "@/lib/utils/api-error-handler";
 
 // Initialize Stripe with your secret key
 const stripe = new Stripe(env.stripe.secretKey);
@@ -46,15 +47,21 @@ export async function POST(req: NextRequest) {
     });
 
     if (!session.url) {
-      const errorResponse: ErrorResponse = { error: "Error creating payment session" };
-      return NextResponse.json(errorResponse, { status: 500 });
+      return handleApiError(
+        new Error("Stripe session created but no URL returned"),
+        {
+          message: "Error creating payment session",
+          logPrefix: "[Book API]"
+        }
+      );
     }
 
     const response: BookResponse = { sessionUrl: session.url };
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error creating Stripe session or scheduling appointment:", error);
-    const errorResponse: ErrorResponse = { error: "Error creating payment session or scheduling appointment" };
-    return NextResponse.json(errorResponse, { status: 500 });
+    return handleApiError(error, {
+      message: "Error creating payment session or scheduling appointment",
+      logPrefix: "[Book API]"
+    });
   }
 }
