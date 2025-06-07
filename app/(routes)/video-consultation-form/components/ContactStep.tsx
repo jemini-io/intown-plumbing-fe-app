@@ -144,6 +144,21 @@ export default function ContactStep() {
             />
           </div>
           <div>
+            <label htmlFor="unit" className="sr-only">
+              Unit
+            </label>
+            <input
+              id="unit"
+              name="unit"
+              type="text"
+              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+              placeholder="Unit"
+              value={formData.unit}
+              onChange={handleChange}
+              disabled={isLoading}
+            />
+          </div>
+          <div>
             <label htmlFor="city" className="sr-only">
               City
             </label>

@@ -27,6 +27,7 @@ interface FormStore {
   // Form data
   formData: FormData & {
     street: string;
+    unit: string;
     city: string;
     state: string;
     zip: string;
@@ -68,6 +69,7 @@ const initialState = {
     phone: '',
     email: '',
     street: '',
+    unit: '',
     city: '',
     state: '',
     zip: '',

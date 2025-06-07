@@ -1,37 +1,16 @@
 import { env } from "@/lib/config/env";
 import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_ID } from '@/lib/utils/constants';
-import { AuthService, CustomerService, InvoiceService, JobService } from "../services/services";
+import { AuthService, InvoiceService, JobService } from "../services/services";
+import { Job, Location, Customer } from "./types";
+import { CustomerService } from "../servicetitan-api/crm/customers";
+import { NewCustomer } from "../servicetitan-api/crm/types";
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
-
-// add types
-interface Job {
-    name: string;
-    startTime: string;
-    endTime: string;
-    technicianId: string;
-    jobTypeId: number;
-}
-
-interface Location {
-    street: string;
-    unit: string;
-    city: string;
-    state: string;
-    zip: string;
-    country: string;
-}
-
-interface Customer {
-    name: string;
-    email: string;
-    phone: string;
-}
 
 export async function createJobAppointment({ job, location, customer }: { job: Job, location: Location, customer: Customer }): Promise<any> {
     const authService = new AuthService(environment);
     const jobService = new JobService(environment);
-    const customerService = new CustomerService(environment);
+    const customerService = new CustomerService();
     const invoiceService = new InvoiceService(environment);
 
     const { startTime, endTime, technicianId, jobTypeId } = job;
@@ -44,72 +23,66 @@ export async function createJobAppointment({ job, location, customer }: { job: J
     // Calculate appointmentStartsBefore
     const appointmentStartsBefore = new Date(new Date(endTime).getTime() + 30 * 60000).toISOString();
 
-    // Create customer data
-    // const customerData = {
-    //     name,
-    //     type: "Residential",
-    //     doNotMail: true,
-    //     doNotService: false,
-    //     // should come from method params
-    //     locations: [{
-    //         name: `${name} Residence`,
-    //         address: {
-    //             street: street,
-    //             unit: unit,
-    //             city: city,
-    //             state: state,
-    //             zip: zip,
-    //             country: country
-    //         },
-    //         contacts: [
-    //             {
-    //                 type: "Phone",
-    //                 value: phone,
-    //                 memo: null
-    //             },
-    //             {
-    //                 type: "Email",
-    //                 value: email,
-    //                 memo: null
-    //             }
-    //         ]
-    //     }],
-    //     address: {
-    //         street: street,
-    //         unit: unit,
-    //         city: city,
-    //         state: state,
-    //         zip: zip,
-    //         country: country
-    //     }
-    // };
-
-
-    // Im trying to refactor this to capture all required information to create the job and customer and stuff with the params.
-    // DAN. you can do this.
-
     // Check if a customer already exists
     const existingCustomers = await customerService.getCustomer(authToken, appKey, tenantId, name, street, zip);
-    let existingCustomer;
+    let stCustomer;
+
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {
         console.log('Customer already exists:', existingCustomers.data[0].id);
-        existingCustomer = existingCustomers.data[0];
+        stCustomer = existingCustomers.data[0];
 
         // Fetch locations for the existing customer
-        const locationsResponse = await customerService.getLocation(authToken, appKey, tenantId, existingCustomer?.id || '');
+        const locationsResponse = await customerService.getLocation(authToken, appKey, tenantId, stCustomer?.id || '');
         if (locationsResponse && locationsResponse.data && locationsResponse.data.length > 0) {
-            existingCustomer.locations = locationsResponse.data;
+            stCustomer.locations = locationsResponse.data;
         } else {
             throw new Error('Customer does not have any locations.');
         }
     } else {
+        const customerData: NewCustomer = {
+            name,
+            type: "Residential",
+            doNotMail: true,
+            doNotService: false,
+            locations: [{
+                name: `${name} Residence`,
+                address: {
+                    street,
+                    unit,
+                    city,
+                    state,
+                    zip,
+                    country
+                },
+                contacts: [
+                    {
+                        type: "Phone",
+                        value: phone,
+                        memo: null
+                    },
+                    {
+                        type: "Email",
+                        value: email,
+                        memo: null
+                    }
+                ]
+            }],
+            address: {
+                street,
+                unit,
+                city,
+                state,
+                zip,
+                country
+            }
+        }
         const customerResponse = await customerService.createCustomer(authToken, appKey, tenantId, customerData);
         console.log("Customer created:", customerResponse.id);
-        existingCustomer = customerResponse;
+        stCustomer = customerResponse;
     }
 
     // Ensure customer has at least one location
-    if (!existingCustomer.locations || existingCustomer.locations.length === 0) {
+    if (!stCustomer.locations || stCustomer.locations.length === 0) {
         throw new Error('Customer does not have any locations.');
     }
 
@@ -122,8 +95,8 @@ export async function createJobAppointment({ job, location, customer }: { job: J
 
     // Create job
     const jobData = {
-        customerId: customer.id,
-        locationId: customer.locations[0].id,
+        customerId: stCustomer.id,
+        locationId: stCustomer.locations[0].id,
         businessUnitId: BUSINESS_UNIT_ID,
         jobTypeId: jobTypeId,
         priority: "Normal", // KEEP for now

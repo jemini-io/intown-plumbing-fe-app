@@ -41,53 +41,11 @@ class AuthService {
     }
 }
 
-class CustomerService {
-    private baseUrl: string;
-
-    constructor(environment: string) {
-        this.baseUrl = environment === 'prod' ? 'https://api.servicetitan.io' : 'https://api-integration.servicetitan.io';
-    }
-
-    async createCustomer(authToken: string, appKey: string, tenantId: string, customerData: object): Promise<any> {
-        const url = `${this.baseUrl}/crm/v2/tenant/${tenantId}/customers`;
-        const headers = {
-            'ST-App-Key': appKey,
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${authToken}`
-        };
-
-        const response = await axios.post(url, customerData, { headers });
-        return response.data;
-    }
-
-    async getCustomer(authToken: string, appKey: string, tenantId: string, name: string, street: string, zip: string): Promise<any> {
-        const url = `${this.baseUrl}/crm/v2/tenant/${tenantId}/customers?name=${encodeURIComponent(name)}&street=${encodeURIComponent(street)}&zip=${encodeURIComponent(zip)}`;
-        const headers = {
-            'ST-App-Key': appKey,
-            'Authorization': `Bearer ${authToken}`
-        };
-
-        const response = await axios.get(url, { headers });
-        return response.data;
-    }
-
-    async getLocation(authToken: string, appKey: string, tenantId: string, customerId: string): Promise<any> {
-        const url = `${this.baseUrl}/crm/v2/tenant/${tenantId}/locations?customerId=${customerId}`;
-        const headers = {
-            'ST-App-Key': appKey,
-            'Authorization': `Bearer ${authToken}`
-        };
-
-        const response = await axios.get(url, { headers });
-        return response.data;
-    }
-}
-
 class JobService {
     private baseUrl: string;
 
     constructor(environment: string) {
-        this.baseUrl = environment === 'prod' ? 'https://api.servicetitan.io' : 'https://api-integration.servicetitan.io';
+        this.baseUrl = env.servicetitan.baseUrl;
     }
 
     async createJob(authToken: string, appKey: string, tenantId: string, jobData: object): Promise<any> {
@@ -292,4 +250,4 @@ class InvoiceService {
         return response.data;
     }
 }
-export { AuthService, CustomerService, JobService, TechnicianService, AppointmentService, InvoiceService }; 
+export { AuthService, JobService, TechnicianService, AppointmentService, InvoiceService }; 

@@ -1,8 +1,8 @@
 'use server';
 
-import { createJobAppointmentHandler } from "@/app/api/services/handler";
+import { createJobAppointment } from "@/app/api/job/createJob";
 
-interface CreateJobData {
+export interface CreateJobData {
   name: string;
   email: string;
   phone: string;
@@ -10,9 +10,15 @@ interface CreateJobData {
   endTime: string;
   technicianId: string;
   jobTypeId: number;
+  street: string;
+  unit: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
 }
 
-interface CreateJobActionResult {
+export interface CreateJobActionResult {
   success: boolean;
   id?: string;
   error?: string;
@@ -25,14 +31,27 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
     }
 
     // Use the handler function to manage job creation
-    const jobResponse = await createJobAppointmentHandler({
-      name: data.name,
-      email: data.email,
-      phone: data.phone,
-      startTime: data.startTime,
-      endTime: data.endTime,
-      technicianId: data.technicianId,
-      jobTypeId: data.jobTypeId
+    const jobResponse = await createJobAppointment({
+      job: {
+        name: data.name,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        technicianId: data.technicianId,
+        jobTypeId: data.jobTypeId
+      },
+      location: {
+        street: data.street,
+        unit: data.unit,
+        city: data.city,
+        state: data.state,
+        zip: data.zip,
+        country: data.country
+      },
+      customer: {
+        name: data.name,
+        email: data.email,
+        phone: data.phone
+      }
     });
 
     return { success: true, id: jobResponse.id };

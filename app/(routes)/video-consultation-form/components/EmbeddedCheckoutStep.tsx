@@ -34,6 +34,12 @@ export default function EmbeddedCheckoutStep() {
         endTime: formData.endTime!,
         technicianId: selectedTechnician.id,
         jobTypeId: selectedJobType.id,
+        street: formData.street,
+        unit: formData.unit,
+        city: formData.city,
+        state: formData.state,
+        zip: formData.zip,
+        country: 'US',
       });
 
       if (!result.success) {

@@ -45,7 +45,5 @@ export async function getJobTypesByBusinessUnit(): Promise<JobType[]> {
     jobType.businessUnitIds.includes(BUSINESS_UNIT_ID)
   );
 
-  console.log(jobTypesByBusinessUnit);
-
   return jobTypesByBusinessUnit;
 }
