@@ -5,6 +5,7 @@ import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
+import { createJobAction } from '@/app/actions/createJobAction';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -24,30 +25,22 @@ export default function EmbeddedCheckoutStep() {
     
     setIsProcessing(true);
     try {
-      // Create the booking after successful payment
-      const response = await fetch('/api/job', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          phone: formData.phone,
-          startTime: formData.startTime!,
-          endTime: formData.endTime!,
-          technicianId: selectedTechnician.id,
-          jobTypeId: selectedJobType.id,
-        }),
+      // Create the booking after successful payment using server action
+      const result = await createJobAction({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        startTime: formData.startTime!,
+        endTime: formData.endTime!,
+        technicianId: selectedTechnician.id,
+        jobTypeId: selectedJobType.id,
       });
 
-      const data = await response.json();
-      
-      if ('error' in data) {
-        throw new Error(data.error);
+      if (!result.success) {
+        throw new Error(result.error || 'Unknown error');
       }
 
-      setJobId(data.id); // Store job ID in zustand
+      setJobId(result.id!); // Store job ID in zustand
       setCurrentStep('confirmation');
     } catch (error) {
       console.error('Booking failed:', error);

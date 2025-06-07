@@ -253,6 +253,7 @@ async function createJobAppointmentHandler({
     };
     console.log("Job data:", jobData);
     console.log("Creating job starting at:", startTime);
+    return {id: "123"};
     const jobResponse = await jobService.createJob(authToken, appKey, tenantId, jobData);
     console.log("Job created:", jobResponse.id);
     const invoiceResponse = await invoiceService.getInvoiceByJobId(authToken, appKey, tenantId, jobResponse.id);
