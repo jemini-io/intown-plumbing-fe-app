@@ -54,7 +54,7 @@ export default function EmbeddedCheckoutStep() {
         endTime: formData.endTime!,
         technicianId: selectedTechnician.id,
         jobTypeId: selectedJobType.serviceTitanId,
-        jobSummary: selectedJobType.displayName + " \n " + details,
+        jobSummary: `Category Selection: "${selectedJobType.displayName}"\nDetails:\n${details}`,
         street: formData.street,
         unit: formData.unit,
         city: formData.city,
