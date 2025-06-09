@@ -15,10 +15,30 @@ export default function EmbeddedCheckoutStep() {
   const { formData, selectedTechnician, selectedJobType, details, setCurrentStep, setJobId } = useFormStore();
 
   useEffect(() => {
-    fetch('/api/create-checkout-session', { method: 'POST' })
+    if (!formData.name || !formData.email || !formData.phone || !formData.startTime || !formData.endTime) {
+      // Don't create checkout session until we have all required data
+      return;
+    }
+
+    const metadata = {
+      email: formData.email,
+      end_time: formData.endTime,
+      name: formData.name,
+      phone: formData.phone,
+      start_time: formData.startTime,
+      type: "emergency_consultation"
+    };
+
+    fetch('/api/create-checkout-session', { 
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ metadata })
+    })
       .then(res => res.json())
       .then(data => setClientSecret(data.clientSecret));
-  }, []);
+  }, [formData]);
 
   const handleComplete = useCallback(async () => {
     if (!selectedTechnician || !selectedJobType) return;

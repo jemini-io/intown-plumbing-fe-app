@@ -7,12 +7,16 @@ const stripe = new Stripe(env.stripe.secretKey);
 
 export async function POST(req: NextRequest) {
   try {
+    const body = await req.json();
+    const { metadata } = body;
+
     const session = await stripe.checkout.sessions.create({
       ui_mode: "embedded",
       payment_method_types: ["card"],
       line_items: [{ price: env.stripe.priceId, quantity: 1 }],
       mode: "payment",
-      redirect_on_completion: "never", // Add this line
+      redirect_on_completion: "never",
+      metadata: metadata || {},
     });
 
     return NextResponse.json({ clientSecret: session.client_secret });
