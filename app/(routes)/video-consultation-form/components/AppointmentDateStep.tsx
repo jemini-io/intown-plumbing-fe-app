@@ -34,6 +34,17 @@ export default function DateStep() {
         }
         const data = await response.json();
         setAvailableTimeSlots(data);
+        
+        // Auto-select the first available date
+        const availableDate = data.find((slot: any) => {
+          const slotDate = new Date(slot.date);
+          const now = new Date();
+          return slotDate >= now && slot.timeSlots.length > 0;
+        });
+        
+        if (availableDate) {
+          setSelectedDate(availableDate.date);
+        }
       } catch (error) {
         console.error('Error fetching time slots:', error);
         setError('Failed to load available time slots. Please try again.');
@@ -43,7 +54,7 @@ export default function DateStep() {
     };
 
     fetchTimeSlots();
-  }, [setAvailableTimeSlots, setIsLoading]);
+  }, [setAvailableTimeSlots, setIsLoading, setSelectedDate]);
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date);
@@ -100,21 +111,39 @@ export default function DateStep() {
     }).format(date) + ' CT';
   };
 
-  // Get min and max dates from available time slots
-  const getDateConstraints = () => {
-    if (availableTimeSlots.length === 0) {
-      return { min: '', max: '' };
+  // Generate calendar dates starting from today
+  const generateCalendarDates = () => {
+    const dates = [];
+    const today = new Date();
+    const availableDates = availableTimeSlots.map(slot => slot.date);
+    
+    // Generate next 30 days
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      const dateString = date.toISOString().split('T')[0];
+      
+      // Check if this date has available slots
+      const hasSlots = availableDates.includes(dateString);
+      const slotsData = availableTimeSlots.find(slot => slot.date === dateString);
+      const hasAvailableSlots = hasSlots && slotsData && slotsData.timeSlots.length > 0;
+      
+      dates.push({
+        date: dateString,
+        dayName: date.toLocaleDateString('en-US', { weekday: 'short' }),
+        dayNumber: date.getDate(),
+        monthName: date.toLocaleDateString('en-US', { month: 'long' }),
+        isAvailable: hasAvailableSlots,
+        isSelected: dateString === selectedDate
+      });
     }
     
-    const dates = availableTimeSlots.map(slot => slot.date).sort();
-    return {
-      min: dates[0],
-      max: dates[dates.length - 1]
-    };
+    return dates;
   };
 
-  const dateConstraints = getDateConstraints();
+  const calendarDates = generateCalendarDates();
   const selectedDateData = availableTimeSlots.find(slot => slot.date === selectedDate);
+  const selectedDateInfo = calendarDates.find(d => d.date === selectedDate);
 
   if (isLoading) {
     return (
@@ -145,25 +174,86 @@ export default function DateStep() {
   return (
     <FormLayout>
       <div className="space-y-6">
-        <div>
-          <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-3">
-            Select Date
-          </label>
-          <input
-            type="date"
-            id="date"
-            value={selectedDate || ''}
-            min={dateConstraints.min}
-            max={dateConstraints.max}
-            onChange={(e) => handleDateChange(e.target.value)}
-            className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
-          />
-          {availableTimeSlots.length > 0 && (
-            <p className="mt-2 text-xs text-gray-500">
-              Available dates: {dateConstraints.min} to {dateConstraints.max}
-            </p>
-          )}
+        {/* Month Header */}
+        <div className="text-center">
+          <h3 className="text-2xl font-light text-gray-600 mb-6">
+            {selectedDateInfo ? selectedDateInfo.monthName : new Date().toLocaleDateString('en-US', { month: 'long' })}
+          </h3>
         </div>
+
+        {/* Horizontal Scrollable Calendar */}
+        <div className="relative">
+          {/* Left Arrow */}
+          <button 
+            onClick={() => {
+              const container = document.querySelector('.date-scroll-container');
+              container?.scrollBy({ left: -200, behavior: 'smooth' });
+            }}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center hover:bg-gray-50"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          
+          {/* Right Arrow */}
+          <button 
+            onClick={() => {
+              const container = document.querySelector('.date-scroll-container');
+              container?.scrollBy({ left: 200, behavior: 'smooth' });
+            }}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center hover:bg-gray-50"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+
+          <div 
+            className="date-scroll-container flex overflow-x-auto gap-4 pb-4 px-10 scrollbar-hide" 
+            style={{ 
+              scrollbarWidth: 'none', 
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch'
+            }}
+          >
+            <style jsx>{`
+              .scrollbar-hide::-webkit-scrollbar {
+                display: none;
+              }
+            `}</style>
+            {calendarDates.map((dateInfo) => (
+              <button
+                key={dateInfo.date}
+                onClick={() => dateInfo.isAvailable ? handleDateChange(dateInfo.date) : null}
+                disabled={!dateInfo.isAvailable}
+                className={`flex-shrink-0 min-w-[64px] w-16 h-20 rounded-lg border-2 flex flex-col items-center justify-center transition-all ${
+                  dateInfo.isSelected
+                    ? 'bg-blue-50 border-blue-500 text-blue-700'
+                    : dateInfo.isAvailable
+                    ? 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                    : 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
+                }`}
+              >
+                <span className="text-xs font-medium mb-1">
+                  {dateInfo.dayName}
+                </span>
+                <span className="text-lg font-semibold">
+                  {dateInfo.dayNumber}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Selected Date Info */}
+        {selectedDate && selectedDateInfo && (
+          <div className="text-center py-2">
+            <p className="text-lg font-medium text-gray-700">
+              Select time for {selectedDateInfo.dayName}, {selectedDateInfo.monthName} {selectedDateInfo.dayNumber}
+            </p>
+          </div>
+        )}
 
         {error && selectedDate && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
@@ -183,9 +273,6 @@ export default function DateStep() {
 
         {selectedDate && selectedDateData && selectedDateData.timeSlots.length > 0 && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-3">
-              Available Time Slots
-            </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {selectedDateData.timeSlots.map((timeSlot) => (
                 <button
