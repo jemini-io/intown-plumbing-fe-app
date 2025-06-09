@@ -126,7 +126,20 @@ export default function DateStep() {
       // Check if this date has available slots
       const hasSlots = availableDates.includes(dateString);
       const slotsData = availableTimeSlots.find(slot => slot.date === dateString);
-      const hasAvailableSlots = hasSlots && slotsData && slotsData.timeSlots.length > 0;
+      
+      // Filter out past time slots for today
+      let availableSlots = slotsData?.timeSlots || [];
+      if (dateString === today.toISOString().split('T')[0]) {
+        const now = new Date();
+        availableSlots = availableSlots.filter(slot => {
+          const [hours, minutes] = slot.time.split(':');
+          const slotTime = new Date(today);
+          slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          return slotTime > now;
+        });
+      }
+      
+      const hasAvailableSlots = hasSlots && availableSlots.length > 0;
       
       dates.push({
         date: dateString,
@@ -274,7 +287,16 @@ export default function DateStep() {
         {selectedDate && selectedDateData && selectedDateData.timeSlots.length > 0 && (
           <div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {selectedDateData.timeSlots.map((timeSlot) => (
+              {selectedDateData.timeSlots.filter(slot => {
+                // Filter out past time slots for today
+                if (selectedDate === new Date().toISOString().split('T')[0]) {
+                  const [hours, minutes] = slot.time.split(':');
+                  const slotTime = new Date();
+                  slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                  return slotTime > new Date();
+                }
+                return true;
+              }).map((timeSlot) => (
                 <button
                   key={timeSlot.time}
                   onClick={() => handleTimeSlotClick(timeSlot)}
