@@ -101,7 +101,7 @@ export default function ServiceStep() {
           </>
         )}
 
-        <h3>Do you have any more details to share?</h3>
+        <h3>What can we help you with?</h3>
         <textarea
           className="details-textarea"
           value={details}

@@ -39,7 +39,7 @@ function VideoConsultationFormContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
       {renderStep()}
     </div>
   );
@@ -48,7 +48,7 @@ function VideoConsultationFormContent() {
 export default function VideoConsultationForm() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
       </div>
     }>
