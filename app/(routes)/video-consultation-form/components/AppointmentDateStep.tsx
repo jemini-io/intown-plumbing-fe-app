@@ -202,33 +202,9 @@ export default function DateStep() {
                 >
                   <div className="text-center">
                     <div className="font-semibold">{formatTime(timeSlot.time)}</div>
-                    <div className="text-xs mt-1 opacity-75">
-                      {timeSlot.technicians.length === 0 
-                        ? 'Unavailable' 
-                        : `${timeSlot.technicians.length} tech${timeSlot.technicians.length > 1 ? 's' : ''} available`
-                      }
-                    </div>
                   </div>
                 </button>
               ))}
-            </div>
-          </div>
-        )}
-
-        {selectedTimeSlot && selectedTechnician && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mr-3">
-                <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-green-900 mb-1">Appointment Selected</p>
-                <p className="text-sm text-green-700">
-                  {formatTime(selectedTimeSlot.time)} with {selectedTechnician.name}
-                </p>
-              </div>
             </div>
           </div>
         )}

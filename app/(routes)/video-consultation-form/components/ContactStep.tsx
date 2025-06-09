@@ -27,7 +27,7 @@ export default function ContactStep() {
       hour: 'numeric',
       minute: 'numeric',
       hour12: true
-    }).format(date) + ' CT';
+    }).format(date);
   };
 
   const formatSelectedTime = () => {
@@ -40,8 +40,14 @@ export default function ContactStep() {
       day: 'numeric'
     }).format(start);
     const technicianName = selectedTechnician ? ` with ${selectedTechnician.name}` : '';
-    const serviceName = selectedJobType ? ` for ${selectedJobType.displayName}` : '';
-    return `${date} ${formatTime(start)} - ${formatTime(end)}${serviceName}${technicianName}`;
+    const serviceName = selectedJobType ? `${selectedJobType.displayName}` : '';
+    return (
+      <div className="text-sm text-blue-700 leading-relaxed">
+        <p>Time: {date} {formatTime(start)} - {formatTime(end)}</p>
+        <p>Service: {serviceName}</p>
+        <p>Technician: {technicianName}</p>
+      </div>
+    );
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -69,7 +75,7 @@ export default function ContactStep() {
               </svg>
             </div>
             <div className="flex-1">
-              <p className="text-sm font-medium text-blue-900 mb-1">Your Appointment</p>
+              <p className="text-sm font-medium text-blue-900 mb-2">Your Appointment</p>
               <p className="text-sm text-blue-700 leading-relaxed">
                 {formatSelectedTime()}
               </p>
