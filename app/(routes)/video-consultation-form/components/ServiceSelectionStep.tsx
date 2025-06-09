@@ -52,25 +52,30 @@ export default function ServiceStep() {
 
   if (isLoadingJobTypes) {
     return (
-      <FormLayout subtitle="What can we do for you?">
-        <div className="flex justify-center items-center py-12">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-indigo-600"></div>
+      <FormLayout>
+        <div className="flex flex-col items-center justify-center py-8 sm:py-12">
+          <div className="animate-spin rounded-full h-12 w-12 sm:h-16 sm:w-16 border-b-2 border-indigo-600 mb-4"></div>
+          <p className="text-center text-gray-600 text-sm sm:text-base">Loading available services...</p>
         </div>
-        <p className="text-center text-gray-600 mt-4">Loading available services...</p>
       </FormLayout>
     );
   }
 
   if (error) {
     return (
-      <FormLayout subtitle="What can we do for you?">
-        <div className="text-center py-12">
-          <p className="text-red-600 mb-4">{error}</p>
+      <FormLayout>
+        <div className="text-center py-8 sm:py-12">
+          <div className="mb-4">
+            <svg className="w-12 h-12 text-red-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <p className="text-red-600 mb-6 text-sm sm:text-base">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium text-sm sm:text-base transition-colors"
           >
-            Retry
+            Try Again
           </button>
         </div>
       </FormLayout>
@@ -78,43 +83,50 @@ export default function ServiceStep() {
   }
 
   return (
-    <FormLayout subtitle="What can we do for you?">
-      <div className="survey-container">
+    <FormLayout>
+      <div className="survey-container space-y-6">
         {availableJobTypes.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">No services available at this time.</p>
+            <p className="text-gray-600 text-sm sm:text-base">No services available at this time.</p>
           </div>
         ) : (
-          <>
-            <div className="button-row">
-              {availableJobTypes.map(jobType => (
-                <button
-                  key={jobType.id}
-                  className={`option-button ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
-                  onClick={() => handleJobTypeClick(jobType)}
-                  title={jobType.displayName}
-                >
-                  {jobType.displayName}
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="button-row">
+            {availableJobTypes.map(jobType => (
+              <button
+                key={jobType.id}
+                className={`option-button ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
+                onClick={() => handleJobTypeClick(jobType)}
+                title={jobType.displayName}
+              >
+                <span className="text-sm sm:text-base leading-tight">{jobType.displayName}</span>
+              </button>
+            ))}
+          </div>
         )}
 
-        <h3>What can we help you with?</h3>
-        <textarea
-          className="details-textarea"
-          value={details}
-          onChange={(e) => setDetails(e.target.value)}
-          placeholder="Enter additional details here..."
-        />
+        <div className="space-y-3">
+          <label htmlFor="details" className="block text-sm font-medium text-gray-700">
+            What can we help you with?
+          </label>
+          <textarea
+            id="details"
+            className="details-textarea"
+            value={details}
+            onChange={(e) => setDetails(e.target.value)}
+            placeholder="Enter additional details here..."
+            rows={4}
+          />
+        </div>
 
         <button 
           className="next-button" 
           onClick={handleNextClick}
           disabled={!selectedJobType}
         >
-          NEXT
+          <span>Next</span>
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
         </button>
       </div>
     </FormLayout>

@@ -41,7 +41,7 @@ export default function ContactStep() {
     }).format(start);
     const technicianName = selectedTechnician ? ` with ${selectedTechnician.name}` : '';
     const serviceName = selectedJobType ? ` for ${selectedJobType.displayName}` : '';
-    return `Selected appointment time: ${date} ${formatTime(start)} - ${formatTime(end)}${serviceName}${technicianName}`;
+    return `${date} ${formatTime(start)} - ${formatTime(end)}${serviceName}${technicianName}`;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,203 +58,237 @@ export default function ContactStep() {
   };
 
   return (
-    <FormLayout subtitle="Provide Your Contact Info">
-      <div className="bg-indigo-50 border-l-4 border-indigo-400 p-4">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="h-5 w-5 text-indigo-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <p className="text-sm text-indigo-700">
-              {formatSelectedTime()}
-            </p>
+    <FormLayout>
+      <div className="space-y-6">
+        {/* Appointment Summary */}
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 mr-3">
+              <svg className="h-5 w-5 text-blue-600 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-blue-900 mb-1">Your Appointment</p>
+              <p className="text-sm text-blue-700 leading-relaxed">
+                {formatSelectedTime()}
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-        <div className="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label htmlFor="name" className="sr-only">
-              Name
-            </label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Name"
-              value={formData.name}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
+        <form className="space-y-6" onSubmit={handleSubmit}>
+          {/* Personal Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Personal Information</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
+                  Full Name *
+                </label>
+                <input
+                  id="name"
+                  name="name"
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-2">
+                  Phone Number *
+                </label>
+                <input
+                  id="phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="(555) 123-4567"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address *
+                </label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  required
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="your.email@example.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label htmlFor="phone" className="sr-only">
-              Phone
-            </label>
-            <input
-              id="phone"
-              name="phone"
-              type="tel"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Phone"
-              value={formData.phone}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
+
+          {/* Address Information */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Service Address</h3>
+            
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="street" className="block text-sm font-medium text-gray-700 mb-2">
+                  Street Address *
+                </label>
+                <input
+                  id="street"
+                  name="street"
+                  type="text"
+                  required
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="123 Main Street"
+                  value={formData.street}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div>
+                <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-2">
+                  Unit/Apartment
+                </label>
+                <input
+                  id="unit"
+                  name="unit"
+                  type="text"
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Apt 2B (optional)"
+                  value={formData.unit}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-2">
+                    City *
+                  </label>
+                  <input
+                    id="city"
+                    name="city"
+                    type="text"
+                    required
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="City"
+                    value={formData.city}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                  />
+                </div>
+                
+                <div>
+                  <label htmlFor="state" className="block text-sm font-medium text-gray-700 mb-2">
+                    State *
+                  </label>
+                  <select
+                    id="state"
+                    name="state"
+                    required
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
+                    value={formData.state}
+                    onChange={handleChange}
+                    disabled={isLoading}
+                  >
+                    <option value="">Select State</option>
+                    {states.map(state => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              
+              <div className="sm:w-1/2">
+                <label htmlFor="zip" className="block text-sm font-medium text-gray-700 mb-2">
+                  ZIP Code *
+                </label>
+                <input
+                  id="zip"
+                  name="zip"
+                  type="text"
+                  pattern="\d{5}"
+                  required
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="12345"
+                  value={formData.zip}
+                  onChange={handleChange}
+                  disabled={isLoading}
+                />
+              </div>
+            </div>
           </div>
-          <div>
-            <label htmlFor="email" className="sr-only">
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Email"
-              value={formData.email}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-          </div>
-        </div>
-        <br />
-        <div className="rounded-md shadow-sm -space-y-px">
-          <div>
-            <label htmlFor="street" className="sr-only">
-              Street Address
-            </label>
-            <input
-              id="street"
-              name="street"
-              type="text"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Street Address"
-              value={formData.street}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-          </div>
-          <div>
-            <label htmlFor="unit" className="sr-only">
-              Unit
-            </label>
-            <input
-              id="unit"
-              name="unit"
-              type="text"
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Unit"
-              value={formData.unit}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-          </div>
-          <div>
-            <label htmlFor="city" className="sr-only">
-              City
-            </label>
-            <input
-              id="city"
-              name="city"
-              type="text"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="City"
-              value={formData.city}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-          </div>
-          <div>
-            <label htmlFor="state" className="sr-only">
-              State
-            </label>
-            <select
-              id="state"
-              name="state"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              value={formData.state}
-              onChange={handleChange}
-              disabled={isLoading}
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <button
+              type="button"
+              onClick={handleBackClick}
+              className="w-full sm:w-auto px-6 py-3 border-2 border-gray-300 rounded-lg text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
-              <option value="">Select State</option>
-              {states.map(state => (
-                <option key={state} value={state}>{state}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label htmlFor="zip" className="sr-only">
-              Zip Code
-            </label>
-            <input
-              id="zip"
-              name="zip"
-              type="text"
-              pattern="\d{5}"
-              required
-              className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-              placeholder="Zip Code"
-              value={formData.zip}
-              onChange={handleChange}
-              disabled={isLoading}
-            />
-          </div>
-        </div>
-
-        <div className="flex space-x-4">
-          <button
-            type="button"
-            onClick={handleBackClick}
-            className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            Back
-          </button>
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
-                Processing...
-              </>
-            ) : (
-              'Submit'
-            )}
-          </button>
-        </div>
-      </form>
+                Back
+              </span>
+            </button>
+            
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full sm:flex-1 px-6 py-3 border border-transparent rounded-lg text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Processing...
+                </span>
+              ) : (
+                <span className="flex items-center justify-center gap-2">
+                  Continue to Payment
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </FormLayout>
   );
 } 

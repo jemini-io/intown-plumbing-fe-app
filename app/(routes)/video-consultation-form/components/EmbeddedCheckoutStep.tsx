@@ -55,14 +55,22 @@ export default function EmbeddedCheckoutStep() {
     } finally {
       setIsProcessing(false);
     }
-  }, [formData, selectedTechnician, selectedJobType, setCurrentStep, setJobId]);
+  }, [formData, selectedTechnician, selectedJobType, details, setCurrentStep, setJobId]);
 
   if (isProcessing) {
     return (
-      <FormLayout subtitle="Creating Appointment">
-        <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4"></div>
-          <p>Finalizing your appointment...</p>
+      <FormLayout>
+        <div className="text-center py-12">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin h-16 w-16 border-4 border-blue-200 border-t-blue-600 rounded-full mb-6"></div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Processing Payment</h3>
+            <p className="text-sm text-gray-600">Finalizing your appointment...</p>
+            <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 w-full max-w-sm">
+              <p className="text-xs text-blue-700 text-center">
+                Please don't close this window while we process your request.
+              </p>
+            </div>
+          </div>
         </div>
       </FormLayout>
     );
@@ -70,26 +78,57 @@ export default function EmbeddedCheckoutStep() {
 
   if (!clientSecret) {
     return (
-      <FormLayout subtitle="Loading Payment">
-        <div className="text-center py-8">
-          <div className="animate-spin h-8 w-8 border-2 border-indigo-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+      <FormLayout>
+        <div className="text-center py-12">
+          <div className="flex flex-col items-center">
+            <div className="animate-spin h-12 w-12 border-4 border-blue-200 border-t-blue-600 rounded-full mb-4"></div>
+            <p className="text-sm text-gray-600">Preparing secure payment...</p>
+          </div>
         </div>
       </FormLayout>
     );
   }
 
   return (
-    <FormLayout subtitle="Complete Payment">
-      <button onClick={() => setCurrentStep('contact')} className="mb-4 text-indigo-600 hover:text-indigo-800">
-        ← Back to Contact Info
-      </button>
-      
-      <EmbeddedCheckoutProvider
-        stripe={stripePromise}
-        options={{ clientSecret, onComplete: handleComplete }}
-      >
-        <EmbeddedCheckout />
-      </EmbeddedCheckoutProvider>
+    <FormLayout>
+      <div className="space-y-6">
+        <div className="flex justify-start">
+          <button 
+            onClick={() => setCurrentStep('contact')} 
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back to Contact Info
+          </button>
+        </div>
+
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 mr-3">
+              <svg className="w-5 h-5 text-green-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-green-900 mb-1">Secure Payment</p>
+              <p className="text-sm text-green-700">
+                Your payment information is protected by industry-standard encryption.
+              </p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+          <EmbeddedCheckoutProvider
+            stripe={stripePromise}
+            options={{ clientSecret, onComplete: handleComplete }}
+          >
+            <EmbeddedCheckout />
+          </EmbeddedCheckoutProvider>
+        </div>
+      </div>
     </FormLayout>
   );
 } 
