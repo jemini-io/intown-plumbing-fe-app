@@ -12,7 +12,7 @@ const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 export default function EmbeddedCheckoutStep() {
   const [clientSecret, setClientSecret] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const { formData, selectedTechnician, selectedJobType, setCurrentStep, setJobId } = useFormStore();
+  const { formData, selectedTechnician, selectedJobType, details, setCurrentStep, setJobId } = useFormStore();
 
   useEffect(() => {
     fetch('/api/create-checkout-session', { method: 'POST' })
@@ -33,7 +33,8 @@ export default function EmbeddedCheckoutStep() {
         startTime: formData.startTime!,
         endTime: formData.endTime!,
         technicianId: selectedTechnician.id,
-        jobTypeId: selectedJobType.id,
+        jobTypeId: selectedJobType.serviceTitanId,
+        jobSummary: selectedJobType.displayName + " \n " + details,
         street: formData.street,
         unit: formData.unit,
         city: formData.city,

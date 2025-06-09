@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 import { getJobTypesByBusinessUnit } from '@/app/api/booking/job-types/getJobTypes';
+import { SERVICE_TO_JOB_TYPES_MAPPING } from '@/lib/utils/constants';
 
 export default function ServiceStep() {
   const [isLoadingJobTypes, setIsLoadingJobTypes] = useState(true);
@@ -25,7 +26,8 @@ export default function ServiceStep() {
       try {
         setIsLoadingJobTypes(true);
         setError(null);
-        const jobTypes = await getJobTypesByBusinessUnit();
+        // const jobTypes = await getJobTypesByBusinessUnit();
+        const jobTypes = SERVICE_TO_JOB_TYPES_MAPPING;
         setAvailableJobTypes(jobTypes);
         console.log('Fetched job types:', jobTypes);
       } catch (error) {
@@ -90,9 +92,9 @@ export default function ServiceStep() {
                   key={jobType.id}
                   className={`option-button ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
                   onClick={() => handleJobTypeClick(jobType)}
-                  title={jobType.summary || jobType.name}
+                  title={jobType.displayName}
                 >
-                  {jobType.name}
+                  {jobType.displayName}
                 </button>
               ))}
             </div>

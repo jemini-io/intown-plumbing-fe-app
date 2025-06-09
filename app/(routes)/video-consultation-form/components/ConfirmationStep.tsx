@@ -76,7 +76,7 @@ export default function ConfirmationStep() {
                   )}
                   {selectedJobType && (
                     <p>
-                      <strong>Service:</strong> {selectedJobType.name}
+                      <strong>Service:</strong> {selectedJobType.displayName}
                     </p>
                   )}
                 </div>

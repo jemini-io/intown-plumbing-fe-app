@@ -6,6 +6,10 @@ import { JobType } from "@/app/api/servicetitan-api/types";
 import { env } from "@/lib/config/env";
 import { BUSINESS_UNIT_ID } from "@/lib/utils/constants";
 
+/**
+ * This is not used right now as we're doing a static mapping.
+ * Once we have an admin console this may be used to help admins map services.
+ */
 export async function getJobTypesByBusinessUnit(): Promise<JobType[]> {
   const authService = new AuthService(env.environment);
   const authToken = await authService.getAuthToken(

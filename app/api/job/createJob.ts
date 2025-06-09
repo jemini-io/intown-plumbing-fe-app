@@ -13,7 +13,7 @@ export async function createJobAppointment({ job, location, customer }: { job: J
     const customerService = new CustomerService();
     const invoiceService = new InvoiceService(environment);
 
-    const { startTime, endTime, technicianId, jobTypeId } = job;
+    const { startTime, endTime, technicianId, jobTypeId, summary } = job;
     const { street, unit, city, state, zip, country } = location;
     const { name, email, phone } = customer;
 
@@ -108,7 +108,7 @@ export async function createJobAppointment({ job, location, customer }: { job: J
             arrivalWindowEnd: endTime,
             technicianIds: [technicianId]
         }],
-        summary: "Jemini test of services" //TODO: Make this dynamic
+        summary: summary
     };
     console.log("Job data:", jobData);
     console.log("Creating job starting at:", startTime);

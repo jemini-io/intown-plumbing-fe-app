@@ -40,7 +40,7 @@ export default function ContactStep() {
       day: 'numeric'
     }).format(start);
     const technicianName = selectedTechnician ? ` with ${selectedTechnician.name}` : '';
-    const serviceName = selectedJobType ? ` for ${selectedJobType.name}` : '';
+    const serviceName = selectedJobType ? ` for ${selectedJobType.displayName}` : '';
     return `Selected appointment time: ${date} ${formatTime(start)} - ${formatTime(end)}${serviceName}${technicianName}`;
   };
 

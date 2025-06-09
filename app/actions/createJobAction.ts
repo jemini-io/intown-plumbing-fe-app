@@ -10,6 +10,7 @@ export interface CreateJobData {
   endTime: string;
   technicianId: string;
   jobTypeId: number;
+  jobSummary: string;
   street: string;
   unit: string;
   city: string;
@@ -37,7 +38,8 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
         startTime: data.startTime,
         endTime: data.endTime,
         technicianId: data.technicianId,
-        jobTypeId: data.jobTypeId
+        jobTypeId: data.jobTypeId,
+        summary: data.jobSummary,
       },
       location: {
         street: data.street,

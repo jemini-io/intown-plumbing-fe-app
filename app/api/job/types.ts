@@ -4,6 +4,7 @@ export interface Job {
     endTime: string;
     technicianId: string;
     jobTypeId: number;
+    summary: string;
 }
 
 export interface Location {

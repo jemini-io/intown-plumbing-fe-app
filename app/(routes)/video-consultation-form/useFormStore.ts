@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { FormData } from './types';
-import { JobType } from '@/app/api/servicetitan-api/types';
+// import { JobType } from '@/app/api/servicetitan-api/types';
+import { ServiceToJobTypeMapping } from '@/lib/utils/constants';
 
 interface Technician {
   id: string;
@@ -35,11 +36,11 @@ interface FormStore {
   setFormData: (data: Partial<FormData & { street: string; city: string; state: string; zip: string; }>) => void;
   
   // Job type selection
-  availableJobTypes: JobType[];
-  selectedJobType: JobType | null;
+  availableJobTypes: ServiceToJobTypeMapping[];
+  selectedJobType: ServiceToJobTypeMapping | null;
   details: string;
-  setAvailableJobTypes: (jobTypes: JobType[]) => void;
-  setSelectedJobType: (jobType: JobType | null) => void;
+  setAvailableJobTypes: (jobTypes: ServiceToJobTypeMapping[]) => void;
+  setSelectedJobType: (jobType: ServiceToJobTypeMapping | null) => void;
   setDetails: (details: string) => void;
   
   // Time slots and technician selection
