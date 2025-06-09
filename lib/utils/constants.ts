@@ -24,7 +24,7 @@ export const SERVICE_TO_JOB_TYPES_MAPPING = [
   {
     id: 2,
     displayName: "Help! Emergency!",
-    serviceTitanId: 76820748,
+    serviceTitanId: 76820749,
     serviceTitanName: "Virtual Consultation - Service Request",
   },
   {
