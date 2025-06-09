@@ -19,19 +19,19 @@ export const SERVICE_TO_JOB_TYPES_MAPPING = [
     id: 1,
     displayName: "Help me with a repair",
     serviceTitanId: 76820748,
-    serviceTitanName: "Virtual Consultation - Quote Request",
+    serviceTitanName: "Virtual Consultation - Service Request",
   },
   {
     id: 2,
     displayName: "Help! Emergency!",
-    serviceTitanId: 76820749,
+    serviceTitanId: 76820748,
     serviceTitanName: "Virtual Consultation - Service Request",
   },
   {
     id: 3,
     displayName: "I need a quote",
     serviceTitanId: 76820749,
-    serviceTitanName: "Virtual Consultation - Service Request",
+    serviceTitanName: "Virtual Consultation - Quote Request",
   },
   
 ];

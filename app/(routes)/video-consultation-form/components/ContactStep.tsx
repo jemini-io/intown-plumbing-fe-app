@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 
@@ -11,6 +11,11 @@ const states = [
 export default function ContactStep() {
   const [isLoading, setIsLoading] = useState(false);
   const { formData, selectedTechnician, selectedJobType, setFormData, setCurrentStep } = useFormStore();
+
+  // Scroll to top when component mounts
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
