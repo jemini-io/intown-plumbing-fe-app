@@ -6,6 +6,7 @@ import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 import { createJobAction } from '@/app/actions/createJobAction';
+import { sendConsultationNotification } from '@/app/actions/sendNotification';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -37,7 +38,20 @@ export default function EmbeddedCheckoutStep() {
       body: JSON.stringify({ metadata })
     })
       .then(res => res.json())
-      .then(data => setClientSecret(data.clientSecret));
+      .then(data => {
+        setClientSecret(data.clientSecret);
+        
+        // // Send notification after successful checkout session creation
+        // if (formData.startTime) {
+        //   const startDate = new Date(formData.startTime);
+        //   sendConsultationNotification({
+        //     name: formData.name,
+        //     date: startDate.toLocaleDateString(),
+        //     time: startDate.toLocaleTimeString(),
+        //     phoneNumber: formData.phone
+        //   });
+        // }
+      });
   }, [formData]);
 
   const handleComplete = useCallback(async () => {
