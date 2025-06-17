@@ -87,7 +87,7 @@ export default function DateStep() {
     setSelectedTechnician(selectedTech);
     
     // Set start and end times
-    const selectedDateObj = new Date(selectedDate + 'T' + timeSlot.time);
+    const selectedDateObj = new Date(timeSlot.time);
     const endTime = new Date(selectedDateObj.getTime() + THIRTY_MINUTES);
     
     setFormData({
