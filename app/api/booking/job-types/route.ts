@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
-import { getJobTypesByBusinessUnit } from "@/app/api/booking/job-types/getJobTypes";
+import { getJobTypesByServiceTitanIds } from "@/app/api/booking/job-types/getJobTypes";
 import { handleApiError } from "@/lib/utils/api-error-handler";
+import { NextResponse } from "next/server";
 
 export async function GET() {
   try {
-    const jobTypes = await getJobTypesByBusinessUnit();
+    const jobTypes = await getJobTypesByServiceTitanIds();
     return NextResponse.json(jobTypes);
   } catch (err) {
     return handleApiError(err, {

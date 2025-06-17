@@ -1,4 +1,4 @@
-export interface ServiceTitanResponse<T> {
+export interface ServiceTitanQueryResponse<T> {
     page: number;
     pageSize: number;
     hasMore: boolean;

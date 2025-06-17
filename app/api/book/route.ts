@@ -5,7 +5,6 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { BookRequest, BookResponse, ErrorResponse } from "@/app/(routes)/video-consultation-form/types";
 import { env } from "@/lib/config/env";
-import { getAvailableTimeSlots } from "@/app/api/services/handler";
 import { handleApiError } from "@/lib/utils/api-error-handler";
 
 // Initialize Stripe with your secret key

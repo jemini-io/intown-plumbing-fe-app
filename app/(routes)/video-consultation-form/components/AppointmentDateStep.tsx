@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 import { THIRTY_MINUTES } from '@/lib/utils/constants';
+import { getAvailableAppointmentsAction } from '@/app/actions/getAvailableAppointments';
 
 export default function DateStep() {
   const {
@@ -12,7 +13,7 @@ export default function DateStep() {
     selectedTimeSlot,
     selectedTechnician,
     isLoading,
-    formData,
+    selectedJobType,
     setAvailableTimeSlots,
     setSelectedDate,
     setSelectedTimeSlot,
@@ -28,15 +29,18 @@ export default function DateStep() {
     const fetchTimeSlots = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch('/api/appointments');
-        if (!response.ok) {
-          throw new Error('Failed to fetch time slots');
+        setError(null);
+        
+        const result = await getAvailableAppointmentsAction(selectedJobType);
+        
+        if (!result.success) {
+          throw new Error(result.error);
         }
-        const data = await response.json();
-        setAvailableTimeSlots(data);
+        
+        setAvailableTimeSlots(result.data || []);
         
         // Auto-select the first available date
-        const availableDate = data.find((slot: any) => {
+        const availableDate = result.data?.find((slot: any) => {
           const slotDate = new Date(slot.date);
           const now = new Date();
           return slotDate >= now && slot.timeSlots.length > 0;
@@ -53,8 +57,10 @@ export default function DateStep() {
       }
     };
 
-    fetchTimeSlots();
-  }, [setAvailableTimeSlots, setIsLoading, setSelectedDate]);
+    if (selectedJobType) {
+      fetchTimeSlots();
+    }
+  }, [setAvailableTimeSlots, setIsLoading, setSelectedDate, selectedJobType]);
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date);

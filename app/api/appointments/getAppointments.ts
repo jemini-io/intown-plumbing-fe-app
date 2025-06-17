@@ -1,8 +1,10 @@
-import { AuthService, TechnicianService, AppointmentService } from './services';
+import { AuthService, TechnicianService, AppointmentService } from '../services/services';
 import { env } from "@/lib/config/env";
 import { toZonedTime, format } from 'date-fns-tz';
 import { Appointment } from '../servicetitan-api/types';
-import { ServiceTitanResponse } from '../servicetitan-api/types';
+import { ServiceTitanQueryResponse } from '../servicetitan-api/types';
+import { TECHNICIAN_TO_SKILLS_MAPPING } from '@/lib/utils/constants';
+import { JobTypesService } from '../servicetitan-api/job-planning-management/job-types';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
@@ -28,13 +30,19 @@ const convertToCT = (dateString: string) => {
     return toZonedTime(date, timeZone);
 };
 
+export interface JobType {
+    serviceTitanId: number;
+}
+
 /**
  * Need to get all technicians in the "Virtual Service" business unit
+ * Accepts job details: skills and serviceTitanId
  */
-async function getAvailableTimeSlots(): Promise<DateEntry[]> {
+export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry[]> {
     const authService = new AuthService(environment);
     const technicianService = new TechnicianService(environment);
     const appointmentService = new AppointmentService(environment);
+    const jobTypeService = new JobTypesService();
 
     // Get today's date in YYYY-MM-DD format
     const today = new Date();
@@ -43,20 +51,23 @@ async function getAvailableTimeSlots(): Promise<DateEntry[]> {
     // Get auth token
     const authToken = await authService.getAuthToken(clientId, clientSecret);
 
-    // NEW: Fetch all technicians
+    // Fetch all technicians
     const allTechsResponse = await technicianService.getAllTechnicians(authToken, appKey, tenantId);
     const allTechs = allTechsResponse.data || allTechsResponse; // adjust if API returns .data
 
-    // Hardcoded business unit ID for filtering
-    // TODO: Make this an environment variable
-    const VIRTUAL_SERVICE_BU_ID = 76816943;
+    // Fetch job type
+    const jobTypeResponse = await jobTypeService.getJobType(authToken, appKey, tenantId, jobType.serviceTitanId);
 
-    // Filter technicians for the business unit
-    const filteredTechs = allTechs.filter((tech: any) =>
-        tech.businessUnitId === VIRTUAL_SERVICE_BU_ID
-    );
+    // filter techs for matching skills
+    const filteredTechs = allTechs.filter((tech: any) => {
+        const skills = TECHNICIAN_TO_SKILLS_MAPPING.find((mapping) => mapping.technicianId === tech.id)?.skills;
+        return skills?.some((skill) => jobTypeResponse.skills.includes(skill));
+    });
 
-    console.log(filteredTechs.length, "should be 2", filteredTechs.map((tech: any) => tech.name));
+    console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech: any) => tech.name).join(', ')}`);
+    // log first tech
+    console.log(filteredTechs[0].name);
+
 
     // For each technician, fetch shifts and appointments, then aggregate
     const availableTimeSlots: DateEntry[] = [];
@@ -76,7 +87,7 @@ async function getAvailableTimeSlots(): Promise<DateEntry[]> {
 
         // Fetch appointments for this technician
         const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, todayStr, tech.id);
-        const {data: appointments} = appointmentsResponse as ServiceTitanResponse<Appointment>;
+        const {data: appointments} = appointmentsResponse as ServiceTitanQueryResponse<Appointment>;
 
         // Process available time slots for this technician
         filteredShifts.forEach((shift: any) => {
@@ -133,5 +144,3 @@ async function getAvailableTimeSlots(): Promise<DateEntry[]> {
 
     return availableTimeSlots;
 }
-
-export { getAvailableTimeSlots }; 

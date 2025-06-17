@@ -4,13 +4,13 @@ import { AuthService } from "@/app/api/services/services";
 import { JobTypesService } from "@/app/api/servicetitan-api/job-planning-management/job-types";
 import { JobType } from "@/app/api/servicetitan-api/types";
 import { env } from "@/lib/config/env";
-import { BUSINESS_UNIT_ID } from "@/lib/utils/constants";
+import { BUSINESS_UNIT_ID, SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/constants";
+
 
 /**
- * This is not used right now as we're doing a static mapping.
- * Once we have an admin console this may be used to help admins map services.
+ * Get Job Types by Service Titan ID from the constants file
  */
-export async function getJobTypesByBusinessUnit(): Promise<JobType[]> {
+export async function getJobTypesByServiceTitanIds(): Promise<JobType[]> {
   const authService = new AuthService(env.environment);
   const authToken = await authService.getAuthToken(
     env.servicetitan.clientId,
@@ -19,35 +19,26 @@ export async function getJobTypesByBusinessUnit(): Promise<JobType[]> {
 
   const jobTypesService = new JobTypesService();
 
-  let allJobTypes: JobType[] = [];
-  let page = 1;
-  const pageSize = 100;
-  let totalCount = 0;
+  const uniqueServiceTitanIds = Array.from(new Set(SERVICE_TO_JOB_TYPES_MAPPING.map((service) => service.serviceTitanId)));
 
-  do {
-    console.log(`Fetching page ${page} of job types`);
-    const jobTypes = await jobTypesService.getJobTypes(
-      authToken,
-      env.servicetitan.appKey,
-      env.servicetitan.tenantId,
-      {
-        includeTotal: true,
-        page,
-        pageSize,
-      }
-    );
-
-    if (jobTypes.data && Array.isArray(jobTypes.data)) {
-      allJobTypes = allJobTypes.concat(jobTypes.data);
+  // Fetch job types with the specific ID
+  const jobTypes = await jobTypesService.getJobTypes(
+    authToken,
+    env.servicetitan.appKey,
+    env.servicetitan.tenantId,
+    {
+      ids: uniqueServiceTitanIds,
+      includeTotal: true,
+      active: true
     }
-
-    totalCount = jobTypes.totalCount || 0;
-    page += 1;
-  } while (allJobTypes.length < totalCount);
-
-  const jobTypesByBusinessUnit = allJobTypes.filter((jobType: JobType) =>
-    jobType.businessUnitIds.includes(BUSINESS_UNIT_ID)
   );
 
-  return jobTypesByBusinessUnit;
+  if (!jobTypes.data || !Array.isArray(jobTypes.data)) {
+    return [];
+  }
+
+  // Filter by business unit
+  return jobTypes.data.filter((jobType: JobType) =>
+    jobType.businessUnitIds.includes(BUSINESS_UNIT_ID)
+  );
 }

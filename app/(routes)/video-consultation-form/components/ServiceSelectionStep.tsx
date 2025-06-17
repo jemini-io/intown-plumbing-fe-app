@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
-import { getJobTypesByBusinessUnit } from '@/app/api/booking/job-types/getJobTypes';
 import { SERVICE_TO_JOB_TYPES_MAPPING } from '@/lib/utils/constants';
 
 export default function ServiceStep() {
