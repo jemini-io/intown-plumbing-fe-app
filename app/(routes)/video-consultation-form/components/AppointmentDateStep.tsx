@@ -40,8 +40,8 @@ export default function DateStep() {
         setAvailableTimeSlots(result.data || []);
         
         // Auto-select the first available date
-        const availableDate = result.data?.find((slot: any) => {
-          const slotDate = new Date(slot.date);
+        const availableDate = result.data?.find((slot) => {
+          const slotDate = new Date(slot.timeSlots[0].time)
           const now = new Date();
           return slotDate >= now && slot.timeSlots.length > 0;
         });
@@ -106,15 +106,14 @@ export default function DateStep() {
     setCurrentStep('service');
   };
 
+  // Just show time in local time
   const formatTime = (time: string) => {
-    const [hours, minutes] = time.split(':');
-    const date = new Date();
-    date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-    return new Intl.DateTimeFormat('en-US', {
+    const date = new Date(time);
+    return date.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: 'numeric',
       hour12: true
-    }).format(date) + ' CT';
+    });
   };
 
   // Generate calendar dates starting from today
@@ -127,7 +126,7 @@ export default function DateStep() {
     for (let i = 0; i < 30; i++) {
       const date = new Date(today);
       date.setDate(today.getDate() + i);
-      const dateString = date.toISOString().split('T')[0];
+      const dateString = date.toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
       
       // Check if this date has available slots
       const hasSlots = availableDates.includes(dateString);
@@ -135,12 +134,10 @@ export default function DateStep() {
       
       // Filter out past time slots for today
       let availableSlots = slotsData?.timeSlots || [];
-      if (dateString === today.toISOString().split('T')[0]) {
+      if (dateString === today.toLocaleDateString('en-US', { timeZone: 'America/Chicago' })) {
         const now = new Date();
         availableSlots = availableSlots.filter(slot => {
-          const [hours, minutes] = slot.time.split(':');
-          const slotTime = new Date(today);
-          slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+          const slotTime = new Date(slot.time);
           return slotTime > now;
         });
       }

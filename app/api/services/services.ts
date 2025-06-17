@@ -128,17 +128,6 @@ class TechnicianService {
             }
         }
     }
-
-    async getTechShifts(authToken: string, appKey: string, tenantId: string, technicianId: string, startsOnOrAfter: string): Promise<any> {
-        const url = `${this.baseUrl}/dispatch/v2/tenant/${tenantId}/technician-shifts?technicianId=${technicianId}&startsOnOrAfter=${startsOnOrAfter}`;
-        const headers = {
-            'ST-App-Key': appKey,
-            'Authorization': `Bearer ${authToken}`
-        };
-
-        const response = await axios.get(url, { headers });
-        return response.data;
-    }
 }
 
 class AppointmentService {

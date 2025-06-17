@@ -1,11 +1,11 @@
 'use server';
 
-import { getAvailableTimeSlots } from '@/app/api/appointments/getAppointments';
+import { DateEntry, getAvailableTimeSlots } from '@/app/api/appointments/getAppointments';
 import { ServiceToJobTypeMapping } from '@/lib/utils/constants';
 
 export interface GetAvailableAppointmentsResponse {
   success: boolean;
-  data?: any[];
+  data?: DateEntry[];
   error?: string;
 }
 

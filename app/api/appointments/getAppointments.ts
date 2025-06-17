@@ -1,10 +1,10 @@
 import { AuthService, TechnicianService, AppointmentService } from '../services/services';
 import { env } from "@/lib/config/env";
-import { toZonedTime, format } from 'date-fns-tz';
 import { Appointment } from '../servicetitan-api/types';
 import { ServiceTitanQueryResponse } from '../servicetitan-api/types';
 import { TECHNICIAN_TO_SKILLS_MAPPING } from '@/lib/utils/constants';
 import { JobTypesService } from '../servicetitan-api/job-planning-management/job-types';
+import { TechnicianShiftsService } from '../servicetitan-api/dispatch/technician-shifts';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
@@ -14,21 +14,14 @@ interface Technician {
 }
 
 interface TimeSlot {
-    time: string;
+    time: string; // UTC ISO String
     technicians: Technician[];
 }
 
-interface DateEntry {
-    date: string;
+export interface DateEntry {
+    date: string; // CT Date String like "6/17/2025"
     timeSlots: TimeSlot[];
 }
-
-// Convert shift and appointment times to CT
-const convertToCT = (dateString: string) => {
-    const date = new Date(dateString);
-    const timeZone = 'America/Chicago';
-    return toZonedTime(date, timeZone);
-};
 
 export interface JobType {
     serviceTitanId: number;
@@ -41,21 +34,17 @@ export interface JobType {
 export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry[]> {
     const authService = new AuthService(environment);
     const technicianService = new TechnicianService(environment);
+    const technicianShiftsService = new TechnicianShiftsService();
     const appointmentService = new AppointmentService(environment);
     const jobTypeService = new JobTypesService();
 
-    // Get today's date in YYYY-MM-DD format
-    const today = new Date();
-    const todayStr = today.toISOString().split('T')[0];
+    const now = new Date();
 
-    // Get auth token
     const authToken = await authService.getAuthToken(clientId, clientSecret);
 
-    // Fetch all technicians
     const allTechsResponse = await technicianService.getAllTechnicians(authToken, appKey, tenantId);
     const allTechs = allTechsResponse.data || allTechsResponse; // adjust if API returns .data
 
-    // Fetch job type
     const jobTypeResponse = await jobTypeService.getJobType(authToken, appKey, tenantId, jobType.serviceTitanId);
 
     // filter techs for matching skills
@@ -68,60 +57,63 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     // log first tech
     console.log(filteredTechs[0].name);
 
-
     // For each technician, fetch shifts and appointments, then aggregate
     const availableTimeSlots: DateEntry[] = [];
 
     for (const tech of filteredTechs) {
         // Fetch shifts for this technician
-        const shiftsResponse = await technicianService.getTechShifts(authToken, appKey, tenantId, tech.id, todayStr);
+        const twoWeeksFromNow = new Date(now);
+        twoWeeksFromNow.setDate(now.getDate() + 14);
+
+        const startOfToday = new Date(now);
+        startOfToday.setHours(0, 0, 0, 0);
+        const shiftsResponse = await technicianShiftsService.getTechnicianShifts(authToken, appKey, tenantId, {
+            technicianId: tech.id,
+            startsOnOrAfter: startOfToday.toISOString(),
+            endsOnOrBefore: twoWeeksFromNow.toISOString()
+        });
         const shifts = shiftsResponse.data;
 
-        // Filter shifts for the next 2 weeks, including today
-        const twoWeeksFromNow = new Date(today);
-        twoWeeksFromNow.setDate(today.getDate() + 14);
-        const filteredShifts = shifts.filter((shift: any) => {
-            const shiftDate = new Date(shift.start);
-            return shiftDate.toISOString().split('T')[0] >= todayStr && shiftDate <= twoWeeksFromNow;
-        });
-
         // Fetch appointments for this technician
-        const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, todayStr, tech.id);
+        const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, now.toISOString(), tech.id);
         const {data: appointments} = appointmentsResponse as ServiceTitanQueryResponse<Appointment>;
 
         // Process available time slots for this technician
-        filteredShifts.forEach((shift: any) => {
-            const shiftDate = new Date(shift.start).toISOString().split('T')[0];
-            const shiftStart = convertToCT(shift.start);
-            const shiftEnd = convertToCT(shift.end);
+        shifts.forEach((shift) => {
+            const shiftStart = new Date(shift.start);
+            const shiftEnd = new Date(shift.end);
             let currentTime = new Date(shiftStart);
 
             while (currentTime < shiftEnd) {
-                const currentTimeStr = format(currentTime, 'HH:mm', { timeZone: 'America/Chicago' });
                 const nextTime = new Date(currentTime);
                 nextTime.setMinutes(currentTime.getMinutes() + 30);
 
                 // Check if the current time block is available
                 const isAvailable = !appointments.some((appointment) => {
-                    const appointmentStart = convertToCT(appointment.start);
-                    const appointmentEnd = convertToCT(appointment.end);
+                    const appointmentStart = new Date(appointment.start);
+                    const appointmentEnd = new Date(appointment.end);
                     return currentTime >= appointmentStart && currentTime < appointmentEnd;
                 });
 
                 // Add time slot if available and meets the criteria
-                const oneHourFromNow = new Date(today.getTime() + 60 * 60 * 1000);
-                if (isAvailable && (shiftDate !== todayStr || currentTime > oneHourFromNow)) {
+                const oneHourFromNow = new Date(now.getTime() + 60 * 60 * 1000);
+                if (isAvailable && currentTime > oneHourFromNow) {
+                    // Get the date part in UTC
+                    const zeroHourDate = new Date(currentTime);
+                    // Convert to CT
+                    const dateStr = zeroHourDate.toLocaleDateString('en-US', { timeZone: 'America/Chicago' });
+                    
                     // Find or create the date entry
-                    let dateEntry = availableTimeSlots.find(slot => slot.date === shiftDate);
+                    let dateEntry = availableTimeSlots.find(slot => slot.date === dateStr);
                     if (!dateEntry) {
-                        dateEntry = { date: shiftDate, timeSlots: [] };
+                        dateEntry = { date: dateStr, timeSlots: [] };
                         availableTimeSlots.push(dateEntry);
                     }
 
                     // Find or create the time slot entry
-                    let timeSlotEntry = dateEntry.timeSlots.find(slot => slot.time === currentTimeStr);
+                    let timeSlotEntry = dateEntry.timeSlots.find(slot => slot.time === currentTime.toISOString());
                     if (!timeSlotEntry) {
-                        timeSlotEntry = { time: currentTimeStr, technicians: [] };
+                        timeSlotEntry = { time: currentTime.toISOString(), technicians: [] };
                         dateEntry.timeSlots.push(timeSlotEntry);
                     }
 
@@ -139,7 +131,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
 
     // Sort time slots within each date
     availableTimeSlots.forEach(dateEntry => {
-        dateEntry.timeSlots.sort((a, b) => a.time.localeCompare(b.time));
+        dateEntry.timeSlots.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
     });
 
     return availableTimeSlots;
