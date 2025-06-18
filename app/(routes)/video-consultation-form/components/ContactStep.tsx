@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 
@@ -10,6 +11,8 @@ const states = [
 
 export default function ContactStep() {
   const [isLoading, setIsLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState('');
+  const [displayPhone, setDisplayPhone] = useState('');
   const { formData, selectedTechnician, selectedJobType, setFormData, setCurrentStep } = useFormStore();
 
   // Scroll to top when component mounts
@@ -17,9 +20,57 @@ export default function ContactStep() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
+  // Initialize display phone when component mounts
+  useEffect(() => {
+    setDisplayPhone(formData.phone);
+  }, [formData.phone]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ [name]: value });
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    
+    // Store the raw input in form data
+    setFormData({ phone: value });
+    setPhoneError('');
+    
+    // Try to format for display
+    try {
+      if (value && isValidPhoneNumber(value, 'US')) {
+        const phoneNumber = parsePhoneNumber(value, 'US');
+        const formatted = phoneNumber.formatNational(); // (555) 123-4567 format
+        setDisplayPhone(formatted);
+      } else {
+        setDisplayPhone(value);
+      }
+    } catch (error) {
+      setDisplayPhone(value);
+    }
+  };
+
+  const handlePhoneBlur = () => {
+    // When user finishes typing, format the display
+    try {
+      if (formData.phone && isValidPhoneNumber(formData.phone, 'US')) {
+        const phoneNumber = parsePhoneNumber(formData.phone, 'US');
+        const formatted = phoneNumber.formatNational();
+        setDisplayPhone(formatted);
+      }
+    } catch (error) {
+      // Keep original if formatting fails
+    }
+  };
+
+  const formatPhoneForSubmission = (phone: string): string => {
+    try {
+      const phoneNumber = parsePhoneNumber(phone, 'US');
+      return phoneNumber.format('E.164'); // Returns +15551234567 format
+    } catch (error) {
+      return phone; // Fallback to original if parsing fails
+    }
   };
 
   const formatTime = (date: Date) => {
@@ -57,10 +108,22 @@ export default function ContactStep() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTechnician || !selectedJobType || !formData.name || !formData.email || !formData.phone) {
+    
+    // Validate phone number
+    if (!formData.phone || !isValidPhoneNumber(formData.phone, 'US')) {
+      setPhoneError('Please enter a valid US phone number');
+      return;
+    }
+
+    if (!selectedTechnician || !selectedJobType || !formData.name || !formData.email) {
       alert('Please fill in all required fields.');
       return;
     }
+
+    // Format phone number for submission (E.164 format)
+    const formattedPhone = formatPhoneForSubmission(formData.phone);
+    setFormData({ phone: formattedPhone });
+    
     setCurrentStep('checkout');
   };
 
@@ -120,12 +183,18 @@ export default function ContactStep() {
                   name="phone"
                   type="tel"
                   required
-                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    phoneError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="(555) 123-4567"
-                  value={formData.phone}
-                  onChange={handleChange}
+                  value={displayPhone}
+                  onChange={handlePhoneChange}
+                  onBlur={handlePhoneBlur}
                   disabled={isLoading}
                 />
+                {phoneError && (
+                  <p className="mt-1 text-sm text-red-600">{phoneError}</p>
+                )}
               </div>
               
               <div>

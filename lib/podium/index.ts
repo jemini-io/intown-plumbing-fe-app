@@ -11,7 +11,8 @@ export { podiumClient } from './client'
 export { 
   createOrUpdateContact, 
 } from './contacts'
-export { 
-  sendPodiumMessage, 
+export {
+  sendPodiumMessage,
   sendTextMessage,
-} from './messages' 
+  sendAppointmentConfirmation,
+} from "./messages"; 

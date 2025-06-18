@@ -2,7 +2,6 @@
 
 import { createJobAppointment } from "@/app/api/job/createJob";
 import { sendAppointmentConfirmation } from "@/lib/podium";
-import { SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/constants";
 
 export interface CreateJobData {
   name: string;
