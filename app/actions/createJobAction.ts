@@ -2,6 +2,7 @@
 
 import { createJobAppointment } from "@/app/api/job/createJob";
 import { sendAppointmentConfirmation } from "@/lib/podium";
+import { createConsultationMeeting, updateServiceTitanWithMeetingDetails, WherebyMeeting } from "@/lib/whereby";
 
 export interface CreateJobData {
   name: string;
@@ -25,6 +26,8 @@ export interface CreateJobActionResult {
   id?: string;
   error?: string;
   notificationSent?: boolean;
+  meetingCreated?: boolean;
+  meetingDetails?: WherebyMeeting | null;
 }
 
 export async function createJobAction(data: CreateJobData): Promise<CreateJobActionResult> {
@@ -72,10 +75,31 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       // Don't fail the entire job creation if notification fails
     }
 
+    // Create Whereby meeting
+    let meetingCreated = false;
+    let meetingDetails = null;
+    try {
+      meetingDetails = await createConsultationMeeting(
+        data.startTime,
+        data.endTime,
+        data.name
+      );
+      meetingCreated = true;
+      
+      // Stub: Update ServiceTitan with meeting details
+      await updateServiceTitanWithMeetingDetails(jobResponse.id, meetingDetails);
+      
+    } catch (meetingError) {
+      console.error("[createJobAction] Error creating Whereby meeting:", meetingError);
+      // Don't fail the entire job creation if meeting creation fails
+    }
+
     return { 
       success: true, 
       id: jobResponse.id,
-      notificationSent 
+      notificationSent,
+      meetingCreated,
+      meetingDetails
     };
   } catch (error) {
     console.error("[createJobAction] Error creating job appointment:", JSON.stringify(error, null, 2));

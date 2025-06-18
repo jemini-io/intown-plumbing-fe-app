@@ -19,4 +19,7 @@ export const env = {
     tenantId: getEnvVar("SERVICETITAN_TENANT_ID"),
     baseUrl: getEnvVar("SERVICETITAN_BASE_URL"),
   },
+  whereby: {
+    apiToken: getEnvVar("WHEREBY_API_TOKEN"),
+  },
 } as const; 
