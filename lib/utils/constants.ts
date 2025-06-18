@@ -67,3 +67,11 @@ export const TECHNICIAN_TO_SKILLS_MAPPING: TechnicianToSkillsMapping[] = [
     skills: ["Virtual Service"],
   },
 ];
+
+// Custom Fields Mapping
+// (76823347) -> Customer Join Link
+// (76823352) -> Technician Join Link
+export const CUSTOM_FIELDS_MAPPING = {
+  customerJoinLink: 76823347,
+  technicianJoinLink: 76823352,
+};

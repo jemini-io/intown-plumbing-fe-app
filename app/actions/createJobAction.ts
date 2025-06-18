@@ -2,7 +2,11 @@
 
 import { createJobAppointment } from "@/app/api/job/createJob";
 import { sendAppointmentConfirmation } from "@/lib/podium";
-import { createConsultationMeeting, updateServiceTitanWithMeetingDetails, WherebyMeeting } from "@/lib/whereby";
+import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
+import { AuthService, JobService } from "@/app/api/services/services";
+import { ServiceTitanCustomFieldModel, ServiceTitanUpdateJobRequest } from "@/app/api/servicetitan-api/types";
+import { CUSTOM_FIELDS_MAPPING } from "@/lib/utils/constants";
+import { env } from "@/lib/config/env";
 
 export interface CreateJobData {
   name: string;
@@ -28,6 +32,51 @@ export interface CreateJobActionResult {
   notificationSent?: boolean;
   meetingCreated?: boolean;
   meetingDetails?: WherebyMeeting | null;
+}
+
+async function updateJobWithMeetingDetails(
+  jobId: string,
+  meetingDetails: WherebyMeeting
+): Promise<void> {
+  const authService = new AuthService(env.environment);
+  const jobService = new JobService(env.environment);
+  
+  // Get auth token
+  const authToken = await authService.getAuthToken(
+    env.servicetitan.clientId,
+    env.servicetitan.clientSecret
+  );
+
+  // Prepare custom fields data with proper typing
+  const customFields: ServiceTitanCustomFieldModel[] = [
+    {
+      typeId: CUSTOM_FIELDS_MAPPING.customerJoinLink,
+      value: meetingDetails.roomUrl || null
+    },
+    {
+      typeId: CUSTOM_FIELDS_MAPPING.technicianJoinLink,
+      value: meetingDetails.hostRoomUrl || null
+    }
+  ];
+
+  // Update the job with custom fields - strongly typed
+  const updateData: ServiceTitanUpdateJobRequest = {
+    customFields
+  };
+
+  await jobService.updateJob(
+    authToken,
+    env.servicetitan.appKey,
+    env.servicetitan.tenantId,
+    jobId,
+    updateData
+  );
+
+  console.log(`[createJobAction] Successfully updated ServiceTitan job ${jobId} with meeting details:`, {
+    meetingId: meetingDetails.meetingId,
+    customerJoinLink: meetingDetails.roomUrl,
+    technicianJoinLink: meetingDetails.hostRoomUrl,
+  });
 }
 
 export async function createJobAction(data: CreateJobData): Promise<CreateJobActionResult> {
@@ -86,8 +135,8 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       );
       meetingCreated = true;
       
-      // Stub: Update ServiceTitan with meeting details
-      await updateServiceTitanWithMeetingDetails(jobResponse.id, meetingDetails);
+      // Update ServiceTitan with meeting details
+      await updateJobWithMeetingDetails(jobResponse.id, meetingDetails);
       
     } catch (meetingError) {
       console.error("[createJobAction] Error creating Whereby meeting:", meetingError);

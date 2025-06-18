@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { env } from "@/lib/config/env"; // Adjust the path as necessary
+import { ServiceTitanUpdateJobRequest } from '../servicetitan-api/types';
 
 // Use the environment variable from the imported config
 const { environment } = env;
@@ -57,6 +58,24 @@ class JobService {
         };
 
         const response = await axios.post(url, jobData, { headers });
+        return response.data;
+    }
+
+    async updateJob(
+        authToken: string, 
+        appKey: string, 
+        tenantId: string, 
+        jobId: string, 
+        jobData: ServiceTitanUpdateJobRequest
+    ): Promise<any> {
+        const url = `${this.baseUrl}/jpm/v2/tenant/${tenantId}/jobs/${jobId}`;
+        const headers = {
+            'ST-App-Key': appKey,
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        };
+
+        const response = await axios.patch(url, jobData, { headers });
         return response.data;
     }
 

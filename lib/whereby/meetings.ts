@@ -40,37 +40,6 @@ export async function createConsultationMeeting(
   }
 }
 
-// Stub function for future ServiceTitan integration
-export async function updateServiceTitanWithMeetingDetails(
-  jobId: string,
-  meetingDetails: WherebyMeeting
-): Promise<void> {
-  // TODO: Implement ServiceTitan custom fields update
-  // This could be either on the job or appointment level
-  // You'll need to decide which makes more sense for your workflow
-  
-  console.log(`[Whereby] Stub: Would update ServiceTitan job ${jobId} with meeting details:`, {
-    meetingId: meetingDetails.meetingId,
-    roomUrl: meetingDetails.roomUrl,
-    hostRoomUrl: meetingDetails.hostRoomUrl,
-    viewerRoomUrl: meetingDetails.viewerRoomUrl,
-    startDate: meetingDetails.startDate,
-    endDate: meetingDetails.endDate,
-    roomName: meetingDetails.roomName,
-  });
-  
-  // Example of what this might look like:
-  // await serviceTitanClient.updateJobCustomFields(jobId, {
-  //   wherebyMeetingId: meetingDetails.meetingId,
-  //   wherebyRoomUrl: meetingDetails.roomUrl,
-  //   wherebyHostRoomUrl: meetingDetails.hostRoomUrl,
-  //   wherebyViewerRoomUrl: meetingDetails.viewerRoomUrl,
-  //   wherebyStartDate: meetingDetails.startDate,
-  //   wherebyEndDate: meetingDetails.endDate,
-  //   wherebyRoomName: meetingDetails.roomName,
-  // });
-}
-
 export async function getMeeting(meetingId: string): Promise<WherebyMeeting> {
   try {
     const response = await wherebyClient.getMeeting(meetingId, ['hostRoomUrl']);

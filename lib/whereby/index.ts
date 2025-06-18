@@ -1,6 +1,5 @@
 export { 
   createConsultationMeeting, 
-  updateServiceTitanWithMeetingDetails,
   getMeeting,
   deleteMeeting
 } from './meetings';
