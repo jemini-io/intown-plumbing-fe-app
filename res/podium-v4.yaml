@@ -1,0 +1,5831 @@
+openapi: 3.0.0
+info:
+  title: Podium API - V4
+  version: 1.0.0
+  description: ''
+servers:
+  - url: '{{baseUrl}}'
+  - url: api.podium.com
+paths:
+  /v4/appointments:
+    parameters: []
+    post:
+      summary: Create an appointment.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      assignedUser:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      contactName:
+                        type: string
+                      contactPhoneNumber:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      datetime:
+                        type: string
+                        format: date-time
+                      durationMin:
+                        type: integer
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      note:
+                        type: string
+                      status:
+                        type: string
+                      type:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                contactName:
+                  type: string
+                contactPhoneNumber:
+                  type: string
+                datetime:
+                  type: string
+                  format: date-time
+                locationUid:
+                  type: string
+                assignedUserUid:
+                  type: string
+                durationMin:
+                  type: integer
+                note:
+                  type: string
+                status:
+                  type: string
+                type:
+                  type: string
+  /v4/campaign_interactions:
+    parameters: []
+    get:
+      summary: List campaigns interactions
+      parameters:
+        - name: limit
+          in: query
+          required: false
+          example: '10'
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        default:
+          headers: {}
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        campaign:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                        contact:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                        conversation:
+                          type: object
+                          properties:
+                            uid:
+                              nullable: true
+                        createdAt:
+                          type: string
+                          format: date-time
+                        interactionType:
+                          type: string
+                        location:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                        uid:
+                          type: string
+                        updatedAt:
+                          type: string
+                          format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      previousCursor:
+                        nullable: true
+                      totalItems:
+                        nullable: true
+                      url:
+                        type: string
+  /v4/campaigns:
+    parameters: []
+    get:
+      summary: List all campaigns.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        createdAt:
+                          type: string
+                          format: date-time
+                        endedAt:
+                          nullable: true
+                        locations:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              uid:
+                                type: string
+                        message:
+                          nullable: true
+                        name:
+                          type: string
+                        organization:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                        startedAt:
+                          type: string
+                          format: date-time
+                        status:
+                          type: string
+                        uid:
+                          type: string
+                        updatedAt:
+                          type: string
+                          format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '401':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+    post:
+      summary: Create a campaign
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      endedAt:
+                        nullable: true
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      message:
+                        nullable: true
+                      name:
+                        type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      startedAt:
+                        nullable: true
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '401':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                includeActiveConversations:
+                  type: boolean
+                locations:
+                  type: array
+                  items:
+                    type: string
+                recentlySentSubscriberOverride:
+                  type: boolean
+                name:
+                  type: string
+                status:
+                  type: string
+  /v4/campaigns/00000000-0000-0000-0000-000000000000:
+    parameters: []
+    delete:
+      summary: Delete a campaign
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      endedAt:
+                        nullable: true
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      message:
+                        nullable: true
+                      name:
+                        type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      startedAt:
+                        nullable: true
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '401':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                includeActiveConversations:
+                  type: boolean
+                locations:
+                  type: array
+                  items:
+                    type: string
+                recentlySentSubscriberOverride:
+                  type: boolean
+                name:
+                  type: string
+                status:
+                  type: string
+    get:
+      summary: Get a campaign
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      endedAt:
+                        nullable: true
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      message:
+                        nullable: true
+                      name:
+                        type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      startedAt:
+                        nullable: true
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '401':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+    put:
+      summary: Update a campaign
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      endedAt:
+                        nullable: true
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      message:
+                        nullable: true
+                      name:
+                        type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      startedAt:
+                        type: string
+                        format: date-time
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '401':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                includeActiveConversations:
+                  type: boolean
+                locations:
+                  type: array
+                  items:
+                    type: string
+                recentlySentSubscriberOverride:
+                  type: boolean
+                name:
+                  type: string
+                status:
+                  type: string
+  /v4/campaigns/00000000-0000-0000-0000-000000000000/messages:
+    parameters: []
+    post:
+      summary: Create a message for a given campaign
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attachmentUrl:
+                        type: string
+                        format: uri
+                      body:
+                        type: string
+                      contact:
+                        type: object
+                        properties:
+                          externalIdentifier:
+                            type: string
+                          name:
+                            type: string
+                          uid:
+                            type: string
+                      contactName:
+                        type: string
+                      conversation:
+                        type: object
+                        properties:
+                          assignedUserUid:
+                            type: string
+                          channel:
+                            type: object
+                            properties:
+                              identifier:
+                                type: string
+                                format: email
+                              type:
+                                type: string
+                          startedAt:
+                            type: string
+                            format: date-time
+                          uid:
+                            type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      failureReason:
+                        type: string
+                      location:
+                        type: object
+                        properties:
+                          organizationUid:
+                            type: string
+                          uid:
+                            type: string
+                      sender:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      senderUid:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channelIdentifier:
+                  type: string
+                  format: email
+  /v4/campaigns/{uid}/messages:
+    parameters: []
+    post:
+      summary: Create message for campaign
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attachmentUrl:
+                        type: string
+                        format: uri
+                      body:
+                        type: string
+                      contact:
+                        type: object
+                        properties:
+                          externalIdentifier:
+                            type: string
+                          name:
+                            type: string
+                          uid:
+                            type: string
+                      contactName:
+                        type: string
+                      conversation:
+                        type: object
+                        properties:
+                          assignedUserUid:
+                            type: string
+                          channel:
+                            type: object
+                            properties:
+                              identifier:
+                                type: string
+                                format: email
+                              type:
+                                type: string
+                          startedAt:
+                            type: string
+                            format: date-time
+                          uid:
+                            type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      failureReason:
+                        type: string
+                      location:
+                        type: object
+                        properties:
+                          organizationUid:
+                            type: string
+                          uid:
+                            type: string
+                      sender:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      senderUid:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  type: string
+                channel:
+                  type: object
+                  properties:
+                    identifier:
+                      type: string
+                      format: email
+                    type:
+                      type: string
+                locationUid:
+                  type: string
+                contactName:
+                  type: string
+                senderName:
+                  type: string
+                subject:
+                  type: string
+  /v4/contact_attributes:
+    parameters: []
+    get:
+      summary: List contact attributes
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        createdAt:
+                          type: string
+                          format: date-time
+                        dataType:
+                          type: string
+                        isEncrypted:
+                          type: boolean
+                        label:
+                          type: string
+                        ownerResource:
+                          type: object
+                          properties:
+                            type:
+                              type: string
+                            uid:
+                              type: string
+                        uid:
+                          type: string
+                        updatedAt:
+                          type: string
+                          format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+    post:
+      summary: Create a contact attribute
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      dataType:
+                        type: string
+                      isEncrypted:
+                        type: boolean
+                      label:
+                        type: string
+                      ownerResource:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          uid:
+                            type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isEncrypted:
+                  type: boolean
+                dataType:
+                  type: string
+                label:
+                  type: string
+                ownerResourceType:
+                  type: string
+  /v4/contact_attributes/00000000-0000-0000-0000-000000000000:
+    parameters: []
+    delete:
+      summary: Create a contact attribute Copy
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      dataType:
+                        type: string
+                      isEncrypted:
+                        type: boolean
+                      label:
+                        type: string
+                      ownerResource:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          uid:
+                            type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isEncrypted:
+                  type: boolean
+                dataType:
+                  type: string
+                label:
+                  type: string
+                ownerResourceType:
+                  type: string
+    get:
+      summary: Gets a contact attribute by uid
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      dataType:
+                        type: string
+                      isEncrypted:
+                        type: boolean
+                      label:
+                        type: string
+                      ownerResource:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          uid:
+                            type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+    patch:
+      summary: Gets a contact attribute by uid Copy
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      dataType:
+                        type: string
+                      isEncrypted:
+                        type: boolean
+                      label:
+                        type: string
+                      ownerResource:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                          uid:
+                            type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                isEncrypted:
+                  type: boolean
+                dataType:
+                  type: string
+                label:
+                  type: string
+                ownerResourceType:
+                  type: string
+  /v4/contact_tags:
+    parameters: []
+    get:
+      summary: List tags for organization
+      parameters: []
+      responses:
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+        default:
+          headers: {}
+          description: List tags for organization
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        createdAt:
+                          type: string
+                          format: date-time
+                        description:
+                          type: string
+                        label:
+                          type: string
+                        organization:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                        uid:
+                          type: string
+                        updatedAt:
+                          type: string
+                          format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+    post:
+      summary: Create a contat tag for org
+      parameters: []
+      responses:
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+        default:
+          headers: {}
+          description: List tags for organization
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      description:
+                        type: string
+                      label:
+                        type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                label:
+                  type: string
+  /v4/contact_tags/00000000-0000-0000-0000-000000000000:
+    parameters: []
+    get:
+      summary: Get a contact tag for org
+      parameters: []
+      responses:
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+        default:
+          headers: {}
+          description: List tags for organization
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      description:
+                        type: string
+                      label:
+                        type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+    patch:
+      summary: Get a contact tag for org Copy
+      parameters: []
+      responses:
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: string
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+                    format: uri
+        default:
+          headers: {}
+          description: List tags for organization
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      description:
+                        type: string
+                      label:
+                        type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                label:
+                  type: string
+  /v4/contacts:
+    parameters: []
+    get:
+      summary: List all contacts
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: List all contacts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attributes:
+                          type: array
+                          items: {}
+                        conversations:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              uid:
+                                type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        emails:
+                          type: array
+                          items: {}
+                        locations:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              uid:
+                                type: string
+                        name:
+                          type: string
+                        organization:
+                          nullable: true
+                        phoneNumbers:
+                          type: array
+                          items:
+                            type: string
+                            format: utc-millisec
+                        tags:
+                          type: array
+                          items: {}
+                        uid:
+                          nullable: true
+                        updatedAt:
+                          type: string
+                          format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      url:
+                        type: string
+    post:
+      summary: Create contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Create a contact
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      identifier:
+                        type: string
+                        format: utc-millisec
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                locations:
+                  type: array
+                  items:
+                    type: string
+                email:
+                  type: string
+                  format: email
+                name:
+                  type: string
+                phoneNumber:
+                  type: string
+                  format: utc-millisec
+  /v4/contacts/john.doe@podium.com:
+    parameters: []
+    delete:
+      summary: Create contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Delete a contact
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      identifier:
+                        type: string
+                        format: email
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: email
+  /v4/contacts/dan@jemini.io:
+    parameters: []
+    get:
+      summary: Retrieve contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Retrieve a contact
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attributes:
+                        type: array
+                        items: {}
+                      conversations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      createdAt:
+                        nullable: true
+                      emails:
+                        type: array
+                        items:
+                          type: string
+                          format: email
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      name:
+                        type: string
+                        format: color
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      phoneNumbers:
+                        type: array
+                        items:
+                          type: string
+                          format: utc-millisec
+                      tags:
+                        type: array
+                        items: {}
+                      uid:
+                        nullable: true
+                      updatedAt:
+                        nullable: true
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: email
+  /v4/contacts/+1801000000:
+    parameters: []
+    patch:
+      summary: Update a contact
+      parameters: []
+      responses:
+        '202':
+          headers: {}
+          description: Update a contact
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      identifier:
+                        type: string
+                        format: utc-millisec
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                conversationUid:
+                  type: string
+                email:
+                  type: string
+                  format: email
+  /v4/contacts/+1801000000/attributes/00000000-0000-0000-0000-000000000000:
+    parameters: []
+    post:
+      summary: Add contact attribute to contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Add contact attribute to contact
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      identifier:
+                        type: string
+                        format: utc-millisec
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                value:
+                  type: string
+    patch:
+      summary: Update contact attribute inside contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Update contact attribute for contact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                conversationUid:
+                  type: string
+  /v4/contacts/john.doe@podium.com//attributes/{uid}:
+    parameters: []
+    delete:
+      summary: Remove attribute from contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Remove attribute from contact
+  /v4/contacts/john.doe@podium.com/tags/00000000-0000-0000-0000-000000000000:
+    parameters: []
+    post:
+      summary: Add existing tag to contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Add tag to contact
+    delete:
+      summary: Remove tag from contact
+      parameters: []
+      responses:
+        default:
+          headers: {}
+          description: Remove tag from contact
+  /v4/conversations:
+    parameters: []
+    get:
+      summary: List conversations.
+      parameters:
+        - name: cursor
+          in: query
+          required: false
+          description: Retrieves the page of items that comes after the `cursor`.
+          example: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Max number of items to return per request. Defaults to `10`.
+          example: '10'
+          schema:
+            type: integer
+        - name: locationUid
+          in: query
+          required: false
+          description: Podium unique identifier for location.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      assignedUserUid:
+                        type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      closed:
+                        type: boolean
+                      contactName:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      lastItemAt:
+                        type: string
+                        format: date-time
+                      locationUid:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/conversations/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for conversation.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a conversation.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      assignedUserUid:
+                        type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      closed:
+                        type: boolean
+                      contactName:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      lastItemAt:
+                        type: string
+                        format: date-time
+                      locationUid:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+    put:
+      summary: Update a conversation.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      assignedUserUid:
+                        type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      closed:
+                        type: boolean
+                      contactName:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      lastItemAt:
+                        type: string
+                        format: date-time
+                      locationUid:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                assignedUserUid:
+                  type: string
+                closed:
+                  type: boolean
+  /v4/conversations/{uid}/lead_writeback:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Conversation uid of the lead.
+        example: nisi dolor sed ullamco
+        schema:
+          type: string
+    post:
+      summary: Writeback lead
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      conversation:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/conversations/{uid}/notes:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for conversation.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    post:
+      summary: Create a note for given conversation.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      body:
+                        type: string
+                      conversation:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      organization:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      senderName:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  type: string
+                senderName:
+                  type: string
+  /v4/feedback:
+    parameters: []
+    get:
+      summary: List all feedback surveys.
+      parameters:
+        - name: createdAt[gt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[gte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: Max number of items to return per request. Defaults to `10`.
+          example: '10'
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          required: false
+          description: Retrieves the page of items that comes after the `cursor`.
+          example: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        adjustedScore:
+                          type: integer
+                        archived:
+                          type: boolean
+                        attributions:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                              userName:
+                                type: string
+                              userUid:
+                                type: string
+                        channel:
+                          type: object
+                          properties:
+                            identifier:
+                              type: string
+                              format: email
+                            type:
+                              type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        currentStep:
+                          type: string
+                        customerName:
+                          type: string
+                        firstResponseReceivedAt:
+                          type: string
+                          format: date-time
+                        flowUid:
+                          type: string
+                        location:
+                          type: object
+                          properties:
+                            organizationUid:
+                              type: string
+                            uid:
+                              type: string
+                        messages:
+                          type: array
+                          items:
+                            type: string
+                        score:
+                          type: integer
+                        uid:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      previousCursor:
+                        type: string
+                      totalItems:
+                        type: integer
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+    post:
+      summary: Create a feedback survey.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '202':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customerName:
+                  type: string
+                locationUid:
+                  type: string
+                phoneNumber:
+                  type: string
+                flowUid:
+                  type: string
+  /v4/messages:
+    parameters: []
+    post:
+      summary: Send a message
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attachmentUrl:
+                        type: string
+                        format: uri
+                      body:
+                        type: string
+                      contact:
+                        type: object
+                        properties:
+                          externalIdentifier:
+                            type: string
+                          name:
+                            type: string
+                          uid:
+                            type: string
+                      contactName:
+                        type: string
+                      conversation:
+                        type: object
+                        properties:
+                          assignedUserUid:
+                            type: string
+                          channel:
+                            type: object
+                            properties:
+                              identifier:
+                                type: string
+                                format: email
+                              type:
+                                type: string
+                          startedAt:
+                            type: string
+                            format: date-time
+                          uid:
+                            type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      failureReason:
+                        type: string
+                      location:
+                        type: object
+                        properties:
+                          organizationUid:
+                            type: string
+                          uid:
+                            type: string
+                      sender:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      senderUid:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                body:
+                  type: string
+                channel:
+                  type: object
+                  properties:
+                    identifier:
+                      type: string
+                      format: utc-millisec
+                    type:
+                      type: string
+                locationUid:
+                  type: string
+                subject:
+                  type: string
+  /v4/invoices:
+    parameters: []
+    get:
+      summary: Get all invoices.
+      parameters:
+        - name: locationUid
+          in: query
+          required: false
+          description: Podium unique identifier for location.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: datePaid
+          in: query
+          required: false
+          description: >-
+            Return invoices with a payment whose `createdAt` is greater or equal
+            to this date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: dateRefunded
+          in: query
+          required: false
+          description: >-
+            Return invoices with a refund whose `createdAt` is greater or equal
+            to this date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: dateCreated
+          in: query
+          required: false
+          description: Return invoices whose `createdAt` is greater or equal to this date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: Max number of items to return per request. Defaults to `10`.
+          example: '10'
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          required: false
+          description: Retrieves the page of items that comes after or before the `cursor`.
+          example: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        canceledAt:
+                          type: string
+                          format: date-time
+                        canceledNote:
+                          type: string
+                        channel:
+                          type: object
+                          properties:
+                            identifier:
+                              type: string
+                              format: email
+                            type:
+                              type: string
+                        conversationUid:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        currencyRef:
+                          type: string
+                        customerName:
+                          type: string
+                        invoiceNumber:
+                          type: string
+                        lineItems:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              amount:
+                                type: integer
+                              description:
+                                type: string
+                        location:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                        paidAt:
+                          type: string
+                          format: date-time
+                        paymentNet:
+                          type: integer
+                        payments:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              bankAccountLast4:
+                                type: string
+                                format: utc-millisec
+                              bankAccountName:
+                                type: string
+                              cardBrand:
+                                type: string
+                              cardLast4:
+                                type: string
+                                format: utc-millisec
+                              createdAt:
+                                type: string
+                                format: date-time
+                              fee:
+                                type: integer
+                              interchangeFee:
+                                type: integer
+                              refunds:
+                                type: array
+                                items:
+                                  type: object
+                                  properties:
+                                    amount:
+                                      type: integer
+                                    createdAt:
+                                      type: string
+                                      format: date-time
+                                    notes:
+                                      type: array
+                                      items:
+                                        type: string
+                                    reason:
+                                      type: string
+                                    settledAt:
+                                      type: string
+                                      format: date-time
+                                    status:
+                                      type: string
+                              settledAt:
+                                type: string
+                                format: date-time
+                              status:
+                                type: string
+                              uid:
+                                type: string
+                        readerUid:
+                          type: string
+                        requester:
+                          type: string
+                        status:
+                          type: string
+                        uid:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      previousCursor:
+                        type: string
+                      totalItems:
+                        type: integer
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+    post:
+      summary: Create an invoice.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      canceledAt:
+                        type: string
+                        format: date-time
+                      canceledNote:
+                        type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      conversationUid:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      currencyRef:
+                        type: string
+                      customerName:
+                        type: string
+                      invoiceNumber:
+                        type: string
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            amount:
+                              type: integer
+                            description:
+                              type: string
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      paidAt:
+                        type: string
+                        format: date-time
+                      paymentNet:
+                        type: integer
+                      payments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bankAccountLast4:
+                              type: string
+                              format: utc-millisec
+                            bankAccountName:
+                              type: string
+                            cardBrand:
+                              type: string
+                            cardLast4:
+                              type: string
+                              format: utc-millisec
+                            createdAt:
+                              type: string
+                              format: date-time
+                            fee:
+                              type: integer
+                            interchangeFee:
+                              type: integer
+                            refunds:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  amount:
+                                    type: integer
+                                  createdAt:
+                                    type: string
+                                    format: date-time
+                                  notes:
+                                    type: array
+                                    items:
+                                      type: string
+                                  reason:
+                                    type: string
+                                  settledAt:
+                                    type: string
+                                    format: date-time
+                                  status:
+                                    type: string
+                            settledAt:
+                              type: string
+                              format: date-time
+                            status:
+                              type: string
+                            uid:
+                              type: string
+                      readerUid:
+                        type: string
+                      requester:
+                        type: string
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                channelIdentifier:
+                  type: string
+                  format: email
+                customerName:
+                  type: string
+                lineItems:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      amount:
+                        type: integer
+                      description:
+                        type: string
+                locationUid:
+                  type: string
+                accountUid:
+                  type: string
+                invoiceNumber:
+                  type: string
+                readerUid:
+                  type: string
+  /v4/invoices/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for invoice.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get an invoice.
+      parameters:
+        - name: locationUid
+          in: query
+          required: false
+          description: (Required) Podium unique identifier for location.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      canceledAt:
+                        type: string
+                        format: date-time
+                      canceledNote:
+                        type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      conversationUid:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      currencyRef:
+                        type: string
+                      customerName:
+                        type: string
+                      invoiceNumber:
+                        type: string
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            amount:
+                              type: integer
+                            description:
+                              type: string
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      paidAt:
+                        type: string
+                        format: date-time
+                      paymentNet:
+                        type: integer
+                      payments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bankAccountLast4:
+                              type: string
+                              format: utc-millisec
+                            bankAccountName:
+                              type: string
+                            cardBrand:
+                              type: string
+                            cardLast4:
+                              type: string
+                              format: utc-millisec
+                            createdAt:
+                              type: string
+                              format: date-time
+                            fee:
+                              type: integer
+                            interchangeFee:
+                              type: integer
+                            refunds:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  amount:
+                                    type: integer
+                                  createdAt:
+                                    type: string
+                                    format: date-time
+                                  notes:
+                                    type: array
+                                    items:
+                                      type: string
+                                  reason:
+                                    type: string
+                                  settledAt:
+                                    type: string
+                                    format: date-time
+                                  status:
+                                    type: string
+                            settledAt:
+                              type: string
+                              format: date-time
+                            status:
+                              type: string
+                            uid:
+                              type: string
+                      readerUid:
+                        type: string
+                      requester:
+                        type: string
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/invoices/{uid}/cancel:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for invoice.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    post:
+      summary: Cancel an invoice.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      canceledAt:
+                        type: string
+                        format: date-time
+                      canceledNote:
+                        type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      conversationUid:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      currencyRef:
+                        type: string
+                      customerName:
+                        type: string
+                      invoiceNumber:
+                        type: string
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            amount:
+                              type: integer
+                            description:
+                              type: string
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      paidAt:
+                        type: string
+                        format: date-time
+                      paymentNet:
+                        type: integer
+                      payments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bankAccountLast4:
+                              type: string
+                              format: utc-millisec
+                            bankAccountName:
+                              type: string
+                            cardBrand:
+                              type: string
+                            cardLast4:
+                              type: string
+                              format: utc-millisec
+                            createdAt:
+                              type: string
+                              format: date-time
+                            fee:
+                              type: integer
+                            interchangeFee:
+                              type: integer
+                            refunds:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  amount:
+                                    type: integer
+                                  createdAt:
+                                    type: string
+                                    format: date-time
+                                  notes:
+                                    type: array
+                                    items:
+                                      type: string
+                                  reason:
+                                    type: string
+                                  settledAt:
+                                    type: string
+                                    format: date-time
+                                  status:
+                                    type: string
+                            settledAt:
+                              type: string
+                              format: date-time
+                            status:
+                              type: string
+                            uid:
+                              type: string
+                      readerUid:
+                        type: string
+                      requester:
+                        type: string
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                locationUid:
+                  type: string
+                note:
+                  type: string
+  /v4/invoices/{uid}/refund:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for invoice.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    post:
+      summary: Refund an invoice
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      canceledAt:
+                        type: string
+                        format: date-time
+                      canceledNote:
+                        type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      conversationUid:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      currencyRef:
+                        type: string
+                      customerName:
+                        type: string
+                      invoiceNumber:
+                        type: string
+                      lineItems:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            amount:
+                              type: integer
+                            description:
+                              type: string
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      paidAt:
+                        type: string
+                        format: date-time
+                      paymentNet:
+                        type: integer
+                      payments:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            bankAccountLast4:
+                              type: string
+                              format: utc-millisec
+                            bankAccountName:
+                              type: string
+                            cardBrand:
+                              type: string
+                            cardLast4:
+                              type: string
+                              format: utc-millisec
+                            createdAt:
+                              type: string
+                              format: date-time
+                            fee:
+                              type: integer
+                            interchangeFee:
+                              type: integer
+                            refunds:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  amount:
+                                    type: integer
+                                  createdAt:
+                                    type: string
+                                    format: date-time
+                                  notes:
+                                    type: array
+                                    items:
+                                      type: string
+                                  reason:
+                                    type: string
+                                  settledAt:
+                                    type: string
+                                    format: date-time
+                                  status:
+                                    type: string
+                            settledAt:
+                              type: string
+                              format: date-time
+                            status:
+                              type: string
+                            uid:
+                              type: string
+                      readerUid:
+                        type: string
+                      requester:
+                        type: string
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                locationUid:
+                  type: string
+                paymentUid:
+                  type: string
+                reason:
+                  type: string
+                note:
+                  type: string
+  /v4/payments/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for payment.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a payment.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      bankAccountLast4:
+                        type: string
+                        format: utc-millisec
+                      bankAccountName:
+                        type: string
+                      cardBrand:
+                        type: string
+                      cardLast4:
+                        type: string
+                        format: utc-millisec
+                      createdAt:
+                        type: string
+                        format: date-time
+                      fee:
+                        type: integer
+                      interchangeFee:
+                        type: integer
+                      settledAt:
+                        type: string
+                        format: date-time
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/readers/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for reader.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a card reader.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      label:
+                        type: string
+                      locationUid:
+                        type: string
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/refunds:
+    parameters: []
+    post:
+      summary: Create a refund.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      amount:
+                        type: integer
+                      cardBrand:
+                        type: string
+                      cardLast4:
+                        type: string
+                        format: utc-millisec
+                      createdAt:
+                        type: string
+                        format: date-time
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      notes:
+                        type: array
+                        items:
+                          type: string
+                      reason:
+                        type: string
+                      settledAt:
+                        type: string
+                        format: date-time
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                channelIdentifier:
+                  type: string
+                  format: email
+                customerName:
+                  type: string
+                locationUid:
+                  type: string
+                readerUid:
+                  type: string
+                reason:
+                  type: string
+                accountUid:
+                  type: string
+  /v4/refunds/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for refund.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a refund.
+      parameters:
+        - name: locationUid
+          in: query
+          required: false
+          description: (Required) Podium unique identifier for location.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      amount:
+                        type: integer
+                      cardBrand:
+                        type: string
+                      cardLast4:
+                        type: string
+                        format: utc-millisec
+                      createdAt:
+                        type: string
+                        format: date-time
+                      location:
+                        type: object
+                        properties:
+                          uid:
+                            type: string
+                      notes:
+                        type: array
+                        items:
+                          type: string
+                      reason:
+                        type: string
+                      settledAt:
+                        type: string
+                        format: date-time
+                      status:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/reviews:
+    parameters: []
+    get:
+      summary: List all reviews.
+      parameters:
+        - name: createdAt[gt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[gte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: Max number of items to return per request. Defaults to `10`.
+          example: '10'
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          required: false
+          description: Retrieves the page of items that comes after the `cursor`.
+          example: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attributions:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              apiClientUid:
+                                type: string
+                              reviewInvitationUid:
+                                type: string
+                              userUid:
+                                type: string
+                        author:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              format: utc-millisec
+                            name:
+                              type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        isRecommendation:
+                          type: boolean
+                        locations:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              uid:
+                                type: string
+                        needsResponse:
+                          type: boolean
+                        responses:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              body:
+                                type: string
+                              createdAt:
+                                type: string
+                                format: date-time
+                              siteAuthorName:
+                                type: string
+                        review:
+                          type: object
+                          properties:
+                            body:
+                              type: string
+                            rating:
+                              type: integer
+                            siteName:
+                              type: string
+                            siteReviewId:
+                              type: string
+                            url:
+                              type: string
+                              format: uri
+                        uid:
+                          type: string
+                        updatedAt:
+                          type: string
+                          format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      previousCursor:
+                        type: string
+                      totalItems:
+                        type: integer
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/reviews/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for review.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a review.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attributions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            apiClientUid:
+                              type: string
+                            reviewInvitationUid:
+                              type: string
+                            userUid:
+                              type: string
+                      author:
+                        type: object
+                        properties:
+                          id:
+                            type: string
+                            format: utc-millisec
+                          name:
+                            type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      isRecommendation:
+                        type: boolean
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      needsResponse:
+                        type: boolean
+                      responses:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            body:
+                              type: string
+                            createdAt:
+                              type: string
+                              format: date-time
+                            siteAuthorName:
+                              type: string
+                      review:
+                        type: object
+                        properties:
+                          body:
+                            type: string
+                          rating:
+                            type: integer
+                          siteName:
+                            type: string
+                          siteReviewId:
+                            type: string
+                          url:
+                            type: string
+                            format: uri
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/reviews/invites:
+    parameters: []
+    get:
+      summary: List all review invites.
+      parameters:
+        - name: createdAt[gt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[gte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: senderUid
+          in: query
+          required: false
+          description: Filter by the senderUid
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: limit
+          in: query
+          required: false
+          description: Max number of items to return per request. Defaults to `10`.
+          example: '10'
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          required: false
+          description: Retrieves the page of items that comes after the `cursor`.
+          example: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        attributions:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              reviewAuthor:
+                                type: string
+                              reviewBody:
+                                type: string
+                              reviewPublishedAt:
+                                type: string
+                                format: date-time
+                              reviewRating:
+                                type: integer
+                              reviewUid:
+                                type: string
+                              siteName:
+                                type: string
+                        channel:
+                          type: object
+                          properties:
+                            identifier:
+                              type: string
+                              format: email
+                            type:
+                              type: string
+                        conversationItemUid:
+                          type: string
+                        createdAt:
+                          type: string
+                          format: date-time
+                        customerName:
+                          type: string
+                        deliveryStatus:
+                          type: string
+                        languages:
+                          type: array
+                          items:
+                            type: string
+                        linkClicked:
+                          type: boolean
+                        linkClickedAt:
+                          type: string
+                          format: date-time
+                        location:
+                          type: object
+                          properties:
+                            organizationUid:
+                              type: string
+                            uid:
+                              type: string
+                        sender:
+                          type: object
+                          properties:
+                            name:
+                              type: string
+                            sentThrough:
+                              type: string
+                            type:
+                              type: string
+                            uid:
+                              type: string
+                        shortUrl:
+                          type: string
+                          format: uri
+                        test:
+                          type: boolean
+                        uid:
+                          type: string
+                        url:
+                          type: string
+                          format: uri
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      previousCursor:
+                        type: string
+                      totalItems:
+                        type: integer
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+    post:
+      summary: Create a review invite link.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attributions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            reviewAuthor:
+                              type: string
+                            reviewBody:
+                              type: string
+                            reviewPublishedAt:
+                              type: string
+                              format: date-time
+                            reviewRating:
+                              type: integer
+                            reviewUid:
+                              type: string
+                            siteName:
+                              type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      conversationItemUid:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      customerName:
+                        type: string
+                      deliveryStatus:
+                        type: string
+                      languages:
+                        type: array
+                        items:
+                          type: string
+                      linkClicked:
+                        type: boolean
+                      linkClickedAt:
+                        type: string
+                        format: date-time
+                      location:
+                        type: object
+                        properties:
+                          organizationUid:
+                            type: string
+                          uid:
+                            type: string
+                      sender:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          sentThrough:
+                            type: string
+                          type:
+                            type: string
+                          uid:
+                            type: string
+                      shortUrl:
+                        type: string
+                        format: uri
+                      test:
+                        type: boolean
+                      uid:
+                        type: string
+                      url:
+                        type: string
+                        format: uri
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                locationUid:
+                  type: string
+                email:
+                  type: string
+                phoneNumber:
+                  type: string
+  /v4/reviews/invites/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for review invite.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a review invite.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      attributions:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            reviewAuthor:
+                              type: string
+                            reviewBody:
+                              type: string
+                            reviewPublishedAt:
+                              type: string
+                              format: date-time
+                            reviewRating:
+                              type: integer
+                            reviewUid:
+                              type: string
+                            siteName:
+                              type: string
+                      channel:
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                            format: email
+                          type:
+                            type: string
+                      conversationItemUid:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      customerName:
+                        type: string
+                      deliveryStatus:
+                        type: string
+                      languages:
+                        type: array
+                        items:
+                          type: string
+                      linkClicked:
+                        type: boolean
+                      linkClickedAt:
+                        type: string
+                        format: date-time
+                      location:
+                        type: object
+                        properties:
+                          organizationUid:
+                            type: string
+                          uid:
+                            type: string
+                      sender:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                          sentThrough:
+                            type: string
+                          type:
+                            type: string
+                          uid:
+                            type: string
+                      shortUrl:
+                        type: string
+                        format: uri
+                      test:
+                        type: boolean
+                      uid:
+                        type: string
+                      url:
+                        type: string
+                        format: uri
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/reviews/sites/summary:
+    parameters: []
+    get:
+      summary: Summary of all connected review sites.
+      parameters:
+        - name: createdAt[gt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[gte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: locationUids
+          in: query
+          required: false
+          description: List of locations to filter the results by.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: userUid
+          in: query
+          required: false
+          description: Filter on the user uid that the reviews are attributed to.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        averageRating:
+                          type: number
+                        reviewCount:
+                          type: integer
+                        siteName:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/reviews/summary:
+    parameters: []
+    get:
+      summary: Summary of all reviews
+      parameters:
+        - name: createdAt[gt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[gte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: locationUids
+          in: query
+          required: false
+          description: List of locations to filter the results by.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: userUid
+          in: query
+          required: false
+          description: Filter on the user uid that the reviews are attributed to.
+          example: 00000000-0000-0000-0000-000000000000
+          schema:
+            type: integer
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        averageRating:
+                          type: number
+                        locationUid:
+                          type: string
+                        reviewCount:
+                          type: integer
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/webhooks:
+    parameters: []
+    post:
+      summary: Create a webhook.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      disabled:
+                        type: boolean
+                      eventTypes:
+                        type: array
+                        items:
+                          type: string
+                      locationUid:
+                        type: string
+                      organizationUid:
+                        type: string
+                      secret:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      url:
+                        type: string
+                        format: uri
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventTypes:
+                  type: array
+                  items:
+                    type: string
+                url:
+                  type: string
+                  format: uri
+                locationUid:
+                  type: string
+                organizationUid:
+                  type: string
+                secret:
+                  type: string
+  /v4/webhooks/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for webhook.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    delete:
+      summary: Delete a webhook.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      disabled:
+                        type: boolean
+                      eventTypes:
+                        type: array
+                        items:
+                          type: string
+                      locationUid:
+                        type: string
+                      organizationUid:
+                        type: string
+                      secret:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      url:
+                        type: string
+                        format: uri
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+    get:
+      summary: Get a webhook.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      disabled:
+                        type: boolean
+                      eventTypes:
+                        type: array
+                        items:
+                          type: string
+                      locationUid:
+                        type: string
+                      organizationUid:
+                        type: string
+                      secret:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      url:
+                        type: string
+                        format: uri
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+    put:
+      summary: Update a webhook.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      createdAt:
+                        type: string
+                        format: date-time
+                      disabled:
+                        type: boolean
+                      eventTypes:
+                        type: array
+                        items:
+                          type: string
+                      locationUid:
+                        type: string
+                      organizationUid:
+                        type: string
+                      secret:
+                        type: string
+                      uid:
+                        type: string
+                      updatedAt:
+                        type: string
+                        format: date-time
+                      url:
+                        type: string
+                        format: uri
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                disabled:
+                  type: boolean
+                eventTypes:
+                  type: array
+                  items:
+                    type: string
+                secret:
+                  type: string
+                url:
+                  type: string
+                  format: uri
+  /v4/dataFeeds/{uid}/events:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for data feed.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    post:
+      summary: Process an event through a data feed.
+      parameters:
+        - name: Content-Type
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      dataFeedUid:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                appointment:
+                  type: object
+                  properties:
+                    endDateTimeInUtc:
+                      type: string
+                      format: date-time
+                    endLocalDateTime:
+                      type: string
+                      format: date-time
+                    isCancelled:
+                      type: boolean
+                    isVideoVisit:
+                      type: boolean
+                    paymentTypeName:
+                      type: string
+                    paymentTypeSoId:
+                      type: string
+                    purposeId:
+                      type: string
+                    purposeName:
+                      type: string
+                    startDateTimeInUtc:
+                      type: string
+                      format: date-time
+                    startLocalDateTime:
+                      type: string
+                      format: date-time
+                    statusId:
+                      type: string
+                      format: utc-millisec
+                    statusName:
+                      type: string
+                    typeId:
+                      type: string
+                    typeName:
+                      type: string
+                contact:
+                  type: object
+                  properties:
+                    cellPhone:
+                      type: string
+                      format: utc-millisec
+                    email:
+                      type: string
+                      format: email
+                    firstName:
+                      type: string
+                    lastName:
+                      type: string
+                employee:
+                  type: object
+                  properties:
+                    email:
+                      type: string
+                      format: email
+                    name:
+                      type: string
+                location:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                payment:
+                  type: object
+                  properties:
+                    amount:
+                      type: string
+                    description:
+                      type: string
+                    invoice:
+                      type: string
+                      format: utc-millisec
+  /v4/locations:
+    parameters: []
+    get:
+      summary: List all locations.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: String you would like to search for in the `searchFields` parameter.
+          example: nisi dolor sed ullamco
+          schema:
+            type: string
+        - name: searchFields
+          in: query
+          required: false
+          description: >-
+            A list of the fields where you want to search for the `search`
+            parameters. e.g. ?searchFields[]=name&searchFields[]=displayname
+          example: name
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Max number of items to return per request. Defaults to `10`.
+          example: '10'
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          required: false
+          description: Retrieves the page of items that comes after the `cursor`.
+          example: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        address:
+                          type: string
+                        archived:
+                          type: boolean
+                        displayName:
+                          type: string
+                        name:
+                          type: string
+                        organizationUid:
+                          type: string
+                        podiumPhoneNumber:
+                          type: string
+                          format: utc-millisec
+                        uid:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      previousCursor:
+                        type: string
+                      totalItems:
+                        type: integer
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/locations/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for location.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a location.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      address:
+                        type: string
+                      archived:
+                        type: boolean
+                      displayName:
+                        type: string
+                      name:
+                        type: string
+                      organizationUid:
+                        type: string
+                      podiumPhoneNumber:
+                        type: string
+                        format: utc-millisec
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/organizations/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for organization.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get an organization.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      archived:
+                        type: boolean
+                      businessName:
+                        type: string
+                      createdAt:
+                        type: string
+                        format: date-time
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/users:
+    parameters: []
+    get:
+      summary: List all users.
+      parameters:
+        - name: search
+          in: query
+          required: false
+          description: String you would like to search for in the `searchFields` parameter.
+          example: nisi dolor sed ullamco
+          schema:
+            type: string
+        - name: createdAt[gt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[gte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lt]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: createdAt[lte]
+          in: query
+          required: false
+          description: Filter on the `createdAt` date.
+          example: '2015-01-23T23:50:07Z'
+          schema:
+            type: integer
+        - name: searchFields
+          in: query
+          required: false
+          description: >-
+            A list of the fields where you want to search for the `search`
+            parameters. e.g. ?searchFields[]=name&searchFields[]=displayname
+          example: fullName
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          description: Max number of items to return per request. Defaults to `10`.
+          example: '10'
+          schema:
+            type: integer
+        - name: cursor
+          in: query
+          required: false
+          description: Retrieves the page of items that comes after the `cursor`.
+          example: MDAwMDAwMDAtMDAwMC0wMDAwLTAwMDAtMDAwMDAwMDAwMDAw
+          schema:
+            type: string
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        archived:
+                          type: boolean
+                        createdAt:
+                          type: string
+                          format: date-time
+                        email:
+                          type: string
+                          format: email
+                        firstName:
+                          type: string
+                        lastName:
+                          type: string
+                        locations:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              uid:
+                                type: string
+                        phone:
+                          type: string
+                          format: utc-millisec
+                        role:
+                          type: string
+                        uid:
+                          type: string
+                  metadata:
+                    type: object
+                    properties:
+                      nextCursor:
+                        type: string
+                      previousCursor:
+                        type: string
+                      totalItems:
+                        type: integer
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string
+  /v4/users/{uid}:
+    parameters:
+      - name: uid
+        in: path
+        required: true
+        description: (Required) Podium unique identifier for user.
+        example: 00000000-0000-0000-0000-000000000000
+        schema:
+          type: integer
+    get:
+      summary: Get a user.
+      parameters:
+        - name: Accept
+          in: header
+          required: false
+          example: application/json
+          schema:
+            type: string
+      responses:
+        '200':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Successful response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      archived:
+                        type: boolean
+                      createdAt:
+                        type: string
+                        format: date-time
+                      email:
+                        type: string
+                        format: email
+                      firstName:
+                        type: string
+                      lastName:
+                        type: string
+                      locations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            uid:
+                              type: string
+                      phone:
+                        type: string
+                        format: utc-millisec
+                      role:
+                        type: string
+                      uid:
+                        type: string
+                  metadata:
+                    type: object
+                    properties:
+                      url:
+                        type: string
+                        format: uri
+        '500':
+          headers:
+            Content-Type:
+              schema:
+                type: string
+              example: application/json
+          description: Error response.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  code:
+                    type: integer
+                  message:
+                    type: string
+                  moreInfo:
+                    type: string

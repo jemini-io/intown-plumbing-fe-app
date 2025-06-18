@@ -7,6 +7,8 @@ export const BUSINESS_UNIT_ID = 4282891;
 // "Direct Web Traffic" campaign
 export const CAMPAIGN_ID = 46989774;
 
+export const PODIUM_LOCATION_ID = "ce0abd8b-af60-587f-bef5-aea4b16ccb2a";
+
 export interface ServiceToJobTypeMapping {
   id: number;
   displayName: string;

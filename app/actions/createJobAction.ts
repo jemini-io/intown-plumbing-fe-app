@@ -1,6 +1,8 @@
 'use server';
 
 import { createJobAppointment } from "@/app/api/job/createJob";
+import { sendAppointmentConfirmation } from "@/lib/podium";
+import { SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/constants";
 
 export interface CreateJobData {
   name: string;
@@ -23,6 +25,7 @@ export interface CreateJobActionResult {
   success: boolean;
   id?: string;
   error?: string;
+  notificationSent?: boolean;
 }
 
 export async function createJobAction(data: CreateJobData): Promise<CreateJobActionResult> {
@@ -56,7 +59,25 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       }
     });
 
-    return { success: true, id: jobResponse.id };
+    // Send confirmation notification via Podium
+    let notificationSent = false;
+    try {
+      await sendAppointmentConfirmation(
+        data.phone,
+        new Date(data.startTime),
+        data.name
+      );
+      notificationSent = true;
+    } catch (notificationError) {
+      console.error("[createJobAction] Error sending Podium notification:", notificationError);
+      // Don't fail the entire job creation if notification fails
+    }
+
+    return { 
+      success: true, 
+      id: jobResponse.id,
+      notificationSent 
+    };
   } catch (error) {
     console.error("[createJobAction] Error creating job appointment:", JSON.stringify(error, null, 2));
     return { success: false, error: "Error creating job appointment" };
