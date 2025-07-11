@@ -4,7 +4,7 @@ import { createJobAppointment } from "@/app/api/job/createJob";
 import { sendAppointmentConfirmation } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
 import { AuthService, JobService } from "@/app/api/services/services";
-import { ServiceTitanCustomFieldModel, ServiceTitanUpdateJobRequest } from "@/app/api/servicetitan-api/types";
+import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
 import { CUSTOM_FIELDS_MAPPING } from "@/lib/utils/constants";
 import { env } from "@/lib/config/env";
 
@@ -48,7 +48,7 @@ async function updateJobWithMeetingDetails(
   );
 
   // Prepare custom fields data with proper typing
-  const customFields: ServiceTitanCustomFieldModel[] = [
+  const customFields: Jpm_V2_CustomFieldModel[] = [
     {
       typeId: CUSTOM_FIELDS_MAPPING.customerJoinLink,
       value: meetingDetails.roomUrl || null
@@ -60,7 +60,7 @@ async function updateJobWithMeetingDetails(
   ];
 
   // Update the job with custom fields - strongly typed
-  const updateData: ServiceTitanUpdateJobRequest = {
+  const updateData: Jpm_V2_UpdateJobRequest = {
     customFields
   };
 

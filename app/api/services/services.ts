@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { env } from "@/lib/config/env"; // Adjust the path as necessary
-import { ServiceTitanUpdateJobRequest } from '../servicetitan-api/types';
+import { Jpm_V2_UpdateJobRequest } from '@/lib/servicetitan/generated/jpm';
 
 // Use the environment variable from the imported config
 const { environment } = env;
@@ -66,7 +66,7 @@ class JobService {
         appKey: string, 
         tenantId: string, 
         jobId: string, 
-        jobData: ServiceTitanUpdateJobRequest
+        jobData: Jpm_V2_UpdateJobRequest
     ): Promise<any> {
         const url = `${this.baseUrl}/jpm/v2/tenant/${tenantId}/jobs/${jobId}`;
         const headers = {
@@ -258,4 +258,89 @@ class InvoiceService {
         return response.data;
     }
 }
-export { AuthService, JobService, TechnicianService, AppointmentService, InvoiceService }; 
+
+class CustomerService {
+    private baseUrl: string;
+
+    constructor() {
+        this.baseUrl = env.servicetitan.baseUrl;
+    }
+
+    async getCustomer(authToken: string, appKey: string, tenantId: string, name: string, street: string, zip: string): Promise<any> {
+        const url = `${this.baseUrl}/crm/v2/tenant/${tenantId}/customers?name=${encodeURIComponent(name)}&street=${encodeURIComponent(street)}&zip=${encodeURIComponent(zip)}`;
+        const headers = {
+            'ST-App-Key': appKey,
+            'Authorization': `Bearer ${authToken}`
+        };
+
+        try {
+            const response = await axios.get(url, { headers });
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                console.error(`[CustomerService.getCustomer] HTTP ${error.response.status}: ${error.response.statusText}`);
+                console.error('Response data:', error.response.data);
+                throw new Error(`Failed to get customer: ${error.response.status} ${error.response.statusText} - ${JSON.stringify(error.response.data)}`);
+            } else if (error.request) {
+                console.error(`[CustomerService.getCustomer] No response received:`, error.request);
+                throw new Error('No response received from server while getting customer.');
+            } else {
+                console.error(`[CustomerService.getCustomer] Error:`, error.message);
+                throw new Error(`Error while getting customer: ${error.message}`);
+            }
+        }
+    }
+
+    async createCustomer(authToken: string, appKey: string, tenantId: string, customerData: any): Promise<any> {
+        const url = `${this.baseUrl}/crm/v2/tenant/${tenantId}/customers`;
+        const headers = {
+            'ST-App-Key': appKey,
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${authToken}`
+        };
+
+        try {
+            const response = await axios.post(url, customerData, { headers });
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                console.error(`[CustomerService.createCustomer] HTTP ${error.response.status}: ${error.response.statusText}`);
+                console.error('Response data:', error.response.data);
+                throw new Error(`Failed to create customer: ${error.response.status} ${error.response.statusText} - ${JSON.stringify(error.response.data)}`);
+            } else if (error.request) {
+                console.error(`[CustomerService.createCustomer] No response received:`, error.request);
+                throw new Error('No response received from server while creating customer.');
+            } else {
+                console.error(`[CustomerService.createCustomer] Error:`, error.message);
+                throw new Error(`Error while creating customer: ${error.message}`);
+            }
+        }
+    }
+
+    async getLocation(authToken: string, appKey: string, tenantId: string, customerId: string): Promise<any> {
+        const url = `${this.baseUrl}/crm/v2/tenant/${tenantId}/customers/${customerId}/locations`;
+        const headers = {
+            'ST-App-Key': appKey,
+            'Authorization': `Bearer ${authToken}`
+        };
+
+        try {
+            const response = await axios.get(url, { headers });
+            return response.data;
+        } catch (error: any) {
+            if (error.response) {
+                console.error(`[CustomerService.getLocation] HTTP ${error.response.status}: ${error.response.statusText}`);
+                console.error('Response data:', error.response.data);
+                throw new Error(`Failed to get customer locations: ${error.response.status} ${error.response.statusText} - ${JSON.stringify(error.response.data)}`);
+            } else if (error.request) {
+                console.error(`[CustomerService.getLocation] No response received:`, error.request);
+                throw new Error('No response received from server while getting customer locations.');
+            } else {
+                console.error(`[CustomerService.getLocation] Error:`, error.message);
+                throw new Error(`Error while getting customer locations: ${error.message}`);
+            }
+        }
+    }
+}
+
+export { AuthService, JobService, TechnicianService, AppointmentService, InvoiceService, CustomerService }; 

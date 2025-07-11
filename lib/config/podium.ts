@@ -4,6 +4,7 @@ export const PODIUM_CONFIG = {
   clientId: process.env.PODIUM_CLIENT_ID!,
   clientSecret: process.env.PODIUM_CLIENT_SECRET!,
   refreshToken: process.env.PODIUM_REFRESH_TOKEN!,
+  redirectUri: process.env.PODIUM_REDIRECT_URI!,
 }
 
 // Validate required environment variables

@@ -1,10 +1,8 @@
 import { AuthService, TechnicianService, AppointmentService } from '../services/services';
+import { ServiceTitanClient } from '@/lib/servicetitan';
 import { env } from "@/lib/config/env";
-import { Appointment } from '../servicetitan-api/types';
-import { ServiceTitanQueryResponse } from '../servicetitan-api/types';
+import { Jpm_V2_AppointmentResponse, PaginatedResponse_Of_Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
 import { TECHNICIAN_TO_SKILLS_MAPPING } from '@/lib/utils/constants';
-import { JobTypesService } from '../servicetitan-api/job-planning-management/job-types';
-import { TechnicianShiftsService } from '../servicetitan-api/dispatch/technician-shifts';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
@@ -34,9 +32,13 @@ export interface JobType {
 export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry[]> {
     const authService = new AuthService(environment);
     const technicianService = new TechnicianService(environment);
-    const technicianShiftsService = new TechnicianShiftsService();
     const appointmentService = new AppointmentService(environment);
-    const jobTypeService = new JobTypesService();
+    
+    const client = new ServiceTitanClient({
+        authToken: await authService.getAuthToken(clientId, clientSecret),
+        appKey,
+        tenantId
+    });
 
     const now = new Date();
 
@@ -45,7 +47,10 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     const allTechsResponse = await technicianService.getAllTechnicians(authToken, appKey, tenantId);
     const allTechs = allTechsResponse.data || allTechsResponse; // adjust if API returns .data
 
-    const jobTypeResponse = await jobTypeService.getJobType(authToken, appKey, tenantId, jobType.serviceTitanId);
+    const jobTypeResponse = await client.jpm.JobTypesService.jobTypesGet({
+        tenant: parseInt(tenantId),
+        id: jobType.serviceTitanId
+    });
 
     // filter techs for matching skills
     const filteredTechs = allTechs.filter((tech: any) => {
@@ -67,7 +72,8 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
 
         const startOfToday = new Date(now);
         startOfToday.setHours(0, 0, 0, 0);
-        const shiftsResponse = await technicianShiftsService.getTechnicianShifts(authToken, appKey, tenantId, {
+        const shiftsResponse = await client.dispatch.TechnicianShiftsService.technicianShiftsGetList({
+            tenant: parseInt(tenantId),
             technicianId: tech.id,
             startsOnOrAfter: startOfToday.toISOString(),
             endsOnOrBefore: twoWeeksFromNow.toISOString()
@@ -76,10 +82,10 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
 
         // Fetch appointments for this technician
         const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, now.toISOString(), tech.id);
-        const {data: appointments} = appointmentsResponse as ServiceTitanQueryResponse<Appointment>;
+        const {data: appointments} = appointmentsResponse as PaginatedResponse_Of_Jpm_V2_AppointmentResponse;
 
         // Process available time slots for this technician
-        shifts.forEach((shift) => {
+        shifts.forEach((shift: any) => {
             const shiftStart = new Date(shift.start);
             const shiftEnd = new Date(shift.end);
             let currentTime = new Date(shiftStart);
@@ -89,7 +95,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
                 nextTime.setMinutes(currentTime.getMinutes() + 30);
 
                 // Check if the current time block is available
-                const isAvailable = !appointments.some((appointment) => {
+                const isAvailable = !appointments.some((appointment: Jpm_V2_AppointmentResponse) => {
                     const appointmentStart = new Date(appointment.start);
                     const appointmentEnd = new Date(appointment.end);
                     return currentTime >= appointmentStart && currentTime < appointmentEnd;

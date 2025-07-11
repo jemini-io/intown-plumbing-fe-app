@@ -1,17 +1,22 @@
 import { env } from "@/lib/config/env";
 import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_ID } from '@/lib/utils/constants';
 import { AuthService, InvoiceService, JobService } from "../services/services";
+import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Job, Location, Customer } from "./types";
-import { CustomerService } from "../servicetitan-api/crm/customers";
-import { NewCustomer } from "../servicetitan-api/crm/types";
+import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan";
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
 export async function createJobAppointment({ job, location, customer }: { job: Job, location: Location, customer: Customer }): Promise<any> {
     const authService = new AuthService(environment);
     const jobService = new JobService(environment);
-    const customerService = new CustomerService();
     const invoiceService = new InvoiceService(environment);
+    
+    const client = new ServiceTitanClient({
+        authToken: await authService.getAuthToken(clientId, clientSecret),
+        appKey,
+        tenantId
+    });
 
     const { startTime, endTime, technicianId, jobTypeId, summary } = job;
     const { street, unit, city, state, zip, country } = location;
@@ -24,7 +29,12 @@ export async function createJobAppointment({ job, location, customer }: { job: J
     const appointmentStartsBefore = new Date(new Date(endTime).getTime() + 30 * 60000).toISOString();
 
     // Check if a customer already exists
-    const existingCustomers = await customerService.getCustomer(authToken, appKey, tenantId, name, street, zip);
+    const existingCustomers = await client.crm.CustomersService.customersGetList({
+        tenant: parseInt(tenantId),
+        name: name,
+        street: street,
+        zip: zip
+    });
     let stCustomer;
 
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {
@@ -32,14 +42,18 @@ export async function createJobAppointment({ job, location, customer }: { job: J
         stCustomer = existingCustomers.data[0];
 
         // Fetch locations for the existing customer
-        const locationsResponse = await customerService.getLocation(authToken, appKey, tenantId, stCustomer?.id || '');
+        const locationsResponse = await client.crm.LocationsService.locationsGetList({
+            tenant: parseInt(tenantId),
+            customerId: stCustomer?.id || 0
+        });
         if (locationsResponse && locationsResponse.data && locationsResponse.data.length > 0) {
-            stCustomer.locations = locationsResponse.data;
+            // Add locations to the customer object
+            stCustomer = { ...stCustomer, locations: locationsResponse.data };
         } else {
             throw new Error('Customer does not have any locations.');
         }
     } else {
-        const customerData: NewCustomer = {
+        const customerData: Crm_V2_Customers_CreateCustomerRequest = {
             name,
             type: "Residential",
             doNotMail: true,
@@ -76,7 +90,10 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                 country
             }
         }
-        const customerResponse = await customerService.createCustomer(authToken, appKey, tenantId, customerData);
+        const customerResponse = await client.crm.CustomersService.customersCreate({
+            tenant: parseInt(tenantId),
+            requestBody: customerData
+        });
         console.log("Customer created:", customerResponse.id);
         stCustomer = customerResponse;
     }
