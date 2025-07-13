@@ -1,11 +1,11 @@
-export interface Booking {
+export interface Job {
   id: number
   startTime: string
   endTime: string
-  bookingType: string
+  jobType: string
   status: string
   customer: Customer
-  notes?: BookingNote[]
+  notes?: JobNote[]
 }
 
 export interface Customer {
@@ -16,7 +16,7 @@ export interface Customer {
   email?: string
 }
 
-export interface BookingNote {
+export interface JobNote {
   id: number
   text: string
   timestamp: string
@@ -29,8 +29,8 @@ export interface TimeWindow {
 }
 
 export interface NotificationMetrics {
-  totalBookings: number
-  eligibleBookings: number
+  totalJobs: number
+  eligibleJobs: number
   notificationsSent: number
   errors: number
   dryRun: boolean
@@ -50,8 +50,8 @@ export interface NoteResult {
   error?: string
 }
 
-export interface BookingQueryFilters {
-  bookingType: string
+export interface JobQueryFilters {
+  jobType: string
   startTimeFrom: string
   startTimeTo: string
   status?: string[]

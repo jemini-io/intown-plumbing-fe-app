@@ -1,7 +1,9 @@
+// const THREE_DAYS_IN_MINUTES = 3 * 24 * 60
+
 export const NOTIFICATION_CONFIG = {
   // Core settings
   TIME_WINDOW_MINUTES: 5,
-  BOOKING_TYPE: process.env.BOOKING_TYPE || 'video-consultation',
+  JOB_TYPE_FILTER: process.env.JOB_TYPE_FILTER || 'Virtual Consultation',
   REMINDER_NOTE_TEXT: 'Consultation reminder sent to customer.',
   
   // Environment flags

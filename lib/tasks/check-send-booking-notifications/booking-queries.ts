@@ -1,17 +1,12 @@
+import { AuthService } from '../../../app/api/services/services'
+import { env } from '../../config/env'
 import { ServiceTitanClient } from '../../servicetitan/client'
 import { NOTIFICATION_CONFIG } from './config'
 import { logger } from './logger'
-import { Booking, TimeWindow, BookingQueryFilters } from './types'
-
-// Initialize ServiceTitan client
-const serviceTitanClient = new ServiceTitanClient({
-  authToken: '', // Will be set by auth flow
-  appKey: NOTIFICATION_CONFIG.ST_CLIENT_ID!,
-  tenantId: process.env.ST_TENANT_ID || '0'
-})
+import { Job, TimeWindow } from './types'
 
 /**
- * Calculate time window for booking queries (±5 minutes from now)
+ * Calculate time window for job queries (±5 minutes from now)
  */
 export function calculateTimeWindow(): TimeWindow {
   const now = new Date()
@@ -24,200 +19,256 @@ export function calculateTimeWindow(): TimeWindow {
 }
 
 /**
- * Query bookings within the specified time window
+ * Query jobs within the specified time window
  */
-export async function queryBookingsInTimeWindow(timeWindow: TimeWindow): Promise<Booking[]> {
+export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Job[]> {
   try {
-    logger.info('Querying bookings in time window', {
+    logger.info('Querying jobs in time window', {
       start: timeWindow.start.toISOString(),
       end: timeWindow.end.toISOString(),
-      bookingType: NOTIFICATION_CONFIG.BOOKING_TYPE
+      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
     })
 
-    // Get bookings from ServiceTitan
-    const response = await serviceTitanClient.crm.BookingsService.bookingsGetList({
-      tenant: parseInt(process.env.ST_TENANT_ID || '0'),
+    // Get auth token
+    const authService = new AuthService(env.environment)
+    const authToken = await authService.getAuthToken(
+      env.servicetitan.clientId,
+      env.servicetitan.clientSecret
+    )
+
+    // Create authenticated ServiceTitan client
+    const serviceTitanClient = new ServiceTitanClient({
+      authToken,
+      appKey: env.servicetitan.appKey,
+      tenantId: env.servicetitan.tenantId
+    })
+
+    // Get jobs from ServiceTitan JPM service
+    const response = await serviceTitanClient.jpm.JobsService.jobsGetList({
+      tenant: parseInt(env.servicetitan.tenantId),
+      firstAppointmentStartsOnOrAfter: timeWindow.start.toISOString(),
+      firstAppointmentStartsBefore: timeWindow.end.toISOString(),
       page: 1,
       pageSize: 100, // Adjust based on expected volume
-      includeTotal: true,
-      createdOnOrAfter: timeWindow.start.toISOString(),
-      createdBefore: timeWindow.end.toISOString()
+      includeTotal: true
     })
 
     if (!response.data || !Array.isArray(response.data)) {
-      logger.warn('No bookings found or invalid response format')
+      logger.warn('No jobs found or invalid response format')
       return []
     }
 
-    // Filter by booking type and enrich with customer data
-    const enrichedBookings = await Promise.all(
+    // Filter jobs by appointment time and job type, then enrich with customer data
+    const enrichedJobs = await Promise.all(
       response.data
-        .filter(booking => booking.externalId === NOTIFICATION_CONFIG.BOOKING_TYPE)
-        .map(async (booking) => {
+        .filter(async (job) => {
+          // First check if job has appointments in our time window
+          const appointments = await getJobAppointments(job.id, serviceTitanClient)
+          const hasAppointmentInWindow = appointments.some(appointment => {
+            const appointmentStart = new Date(appointment.start)
+            return appointmentStart >= timeWindow.start && appointmentStart <= timeWindow.end
+          })
+          
+          if (!hasAppointmentInWindow) return false
+          
+          // Then check if job type matches our filter (case-insensitive)
+          const jobType = await getJobType(job.jobTypeId, serviceTitanClient)
+          return jobType?.name?.toLowerCase().includes(NOTIFICATION_CONFIG.JOB_TYPE_FILTER.toLowerCase())
+        })
+        .map(async (job) => {
           try {
-            // Get customer details for this booking
-            const customer = await getCustomerForBooking(booking.id)
+            // Get appointments for this job
+            const appointments = await getJobAppointments(job.id, serviceTitanClient)
+            const appointmentInWindow = appointments.find(appointment => {
+              const appointmentStart = new Date(appointment.start)
+              return appointmentStart >= timeWindow.start && appointmentStart <= timeWindow.end
+            })
             
-            // Get notes for this booking
-            const notes = await getBookingNotes(booking.id)
+            if (!appointmentInWindow) return null
+            
+            // Get customer details for this job
+            const customer = await getCustomerForJob(job.customerId, serviceTitanClient)
+            
+            // Get notes for this job
+            const notes = await getJobNotes(job.id, serviceTitanClient)
+            
+            // Get job type
+            const jobType = await getJobType(job.jobTypeId, serviceTitanClient)
             
             return {
-              id: booking.id,
-              startTime: booking.start,
-              endTime: booking.start, // ServiceTitan doesn't provide end time in booking response
-              bookingType: booking.externalId,
-              status: booking.status,
+              id: job.id,
+              startTime: appointmentInWindow.start,
+              endTime: appointmentInWindow.end,
+              jobType: jobType?.name || 'Unknown',
+              status: job.jobStatus,
               customer,
               notes
-            } as Booking
+            } as Job
           } catch (error) {
-            logger.error('Failed to enrich booking data', error, { bookingId: booking.id })
+            logger.error('Failed to enrich job data', error, { jobId: job.id })
             return null
           }
         })
     )
 
-    const validBookings = enrichedBookings.filter(booking => booking !== null) as Booking[]
+    const validJobs = enrichedJobs.filter(job => job !== null) as Job[]
     
-    logger.info('Found bookings for notification processing', {
+    logger.info('Found jobs for notification processing', {
       total: response.data.length,
-      filtered: validBookings.length,
-      bookingType: NOTIFICATION_CONFIG.BOOKING_TYPE
+      filtered: validJobs.length,
+      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
     })
 
-    return validBookings
+    return validJobs
 
   } catch (error) {
-    logger.error('Failed to query bookings', error)
+    logger.error('Failed to query jobs', error)
     throw error
   }
 }
 
 /**
- * Get customer details for a booking
+ * Get appointments for a job
  */
-async function getCustomerForBooking(bookingId: number) {
+async function getJobAppointments(jobId: number, serviceTitanClient: ServiceTitanClient) {
   try {
-    // Get booking contacts
-    const contactsResponse = await serviceTitanClient.crm.BookingsService.bookingsGetContactList({
-      id: bookingId,
-      tenant: parseInt(process.env.ST_TENANT_ID || '0'),
+    const response = await serviceTitanClient.jpm.AppointmentsService.appointmentsGetList({
+      tenant: parseInt(env.servicetitan.tenantId),
+      jobId: jobId,
       page: 1,
       pageSize: 10
     })
-
-    if (!contactsResponse.data || contactsResponse.data.length === 0) {
-      throw new Error('No contacts found for booking')
-    }
-
-    // Get the primary contact (first one)
-    const contact = contactsResponse.data[0]
     
-    // Note: The booking contact response doesn't include customerId directly
-    // We need to get the customer ID from the booking itself or use a different approach
-    // For now, we'll need to implement this differently based on the actual ServiceTitan API structure
-    
-    logger.warn('Customer ID retrieval from booking contact not yet implemented', { 
-      bookingId, 
-      contactId: contact.id 
-    })
-    
-    // TODO: Implement proper customer ID retrieval
-    // This might require using the booking's customer relationship or a different API endpoint
-    throw new Error('Customer ID retrieval not implemented')
-    
-    // TODO: Implement proper customer data retrieval
-    // For now, return placeholder data
-    return {
-      id: 0,
-      firstName: 'Unknown',
-      lastName: 'Customer',
-      phone: contact.value,
-      email: undefined
-    }
-
+    return response.data || []
   } catch (error) {
-    logger.error('Failed to get customer for booking', error, { bookingId })
-    throw error
+    logger.error('Failed to get job appointments', error, { jobId })
+    return []
   }
 }
 
 /**
- * Get customer's phone number
+ * Get job type details
  */
-async function getCustomerPhoneNumber(customerId: number): Promise<string> {
+async function getJobType(jobTypeId: number, serviceTitanClient: ServiceTitanClient) {
   try {
+    const response = await serviceTitanClient.jpm.JobTypesService.jobTypesGet({
+      tenant: parseInt(env.servicetitan.tenantId),
+      id: jobTypeId
+    })
+    
+    return response
+  } catch (error) {
+    logger.error('Failed to get job type', error, { jobTypeId })
+    return null
+  }
+}
+
+/**
+ * Get customer details for a job
+ */
+async function getCustomerForJob(customerId: number, serviceTitanClient: ServiceTitanClient) {
+  try {
+    // Get customer details
+    const customerResponse = await serviceTitanClient.crm.CustomersService.customersGet({
+      id: customerId,
+      tenant: parseInt(env.servicetitan.tenantId)
+    })
+
+    // Get customer contacts
     const contactsResponse = await serviceTitanClient.crm.CustomersService.customersGetContactList({
       id: customerId,
-      tenant: parseInt(process.env.ST_TENANT_ID || '0'),
+      tenant: parseInt(env.servicetitan.tenantId),
       page: 1,
       pageSize: 10
     })
 
-    if (!contactsResponse.data || contactsResponse.data.length === 0) {
-      throw new Error('No contacts found for customer')
-    }
-
-    // Find the primary phone contact
-    const phoneContact = contactsResponse.data.find(contact => 
+    const phoneContact = contactsResponse.data?.find(contact => 
       contact.type === 'Phone' || contact.type === 'MobilePhone'
     )
 
-    if (!phoneContact) {
-      throw new Error('No phone number found for customer')
+    return {
+      id: customerResponse.id,
+      firstName: customerResponse.name,
+      lastName: '',
+      phone: phoneContact?.value || '',
+      email: contactsResponse.data?.find(contact => contact.type === 'Email')?.value
     }
 
-    return phoneContact.value
-
   } catch (error) {
-    logger.error('Failed to get customer phone number', error, { customerId })
+    logger.error('Failed to get customer for job', error, { customerId })
     throw error
   }
 }
 
 /**
- * Get notes for a booking
+ * Get notes for a job
  */
-async function getBookingNotes(bookingId: number) {
+async function getJobNotes(jobId: number, serviceTitanClient: ServiceTitanClient) {
   try {
-    // Note: ServiceTitan CRM API doesn't seem to have a direct endpoint for booking notes
-    // We might need to use a different approach or check if notes are available through a different endpoint
-    // For now, return empty array - this will need to be implemented based on actual ServiceTitan API structure
+    const response = await serviceTitanClient.jpm.JobsService.jobsGetNotes({
+      tenant: parseInt(env.servicetitan.tenantId),
+      id: jobId,
+      page: 1,
+      pageSize: 50
+    })
     
-    logger.warn('Booking notes retrieval not yet implemented', { bookingId })
-    return []
-
+    return response.data?.map((note, index) => ({
+      id: index,
+      text: note.text,
+      timestamp: note.createdOn,
+      createdBy: note.createdById || 'Unknown'
+    })) || []
   } catch (error) {
-    logger.error('Failed to get booking notes', error, { bookingId })
+    logger.error('Failed to get job notes', error, { jobId })
     return []
   }
 }
 
 /**
- * Add a note to a booking
+ * Add a note to a job
  */
-export async function addBookingNote(bookingId: number, noteText: string) {
+export async function addJobNote(jobId: number, noteText: string) {
   try {
-    // Note: This will need to be implemented based on actual ServiceTitan API structure
-    // For now, log the action
-    logger.info('Would add booking note', {
-      bookingId,
-      noteText,
-      dryRun: NOTIFICATION_CONFIG.DRY_RUN
-    })
-
     if (NOTIFICATION_CONFIG.DRY_RUN) {
+      logger.info('DRY RUN: Would add job note', {
+        jobId,
+        noteText
+      })
       return { success: true, dryRun: true }
     }
 
-    // TODO: Implement actual note creation
-    // This might require using a different ServiceTitan API endpoint
-    // or a different approach to adding notes to bookings
+    // Get auth token
+    const authService = new AuthService(env.environment)
+    const authToken = await authService.getAuthToken(
+      env.servicetitan.clientId,
+      env.servicetitan.clientSecret
+    )
+
+    // Create authenticated ServiceTitan client
+    const serviceTitanClient = new ServiceTitanClient({
+      authToken,
+      appKey: env.servicetitan.appKey,
+      tenantId: env.servicetitan.tenantId
+    })
+
+    // Add note to job
+    await serviceTitanClient.jpm.JobsService.jobsCreateNote({
+      id: jobId,
+      tenant: parseInt(env.servicetitan.tenantId),
+      requestBody: {
+        text: noteText
+      }
+    })
+    
+    logger.info('Added job note', {
+      jobId,
+      noteText
+    })
 
     return { success: true }
 
   } catch (error) {
-    logger.error('Failed to add booking note', error, { bookingId, noteText })
+    logger.error('Failed to add job note', error, { jobId, noteText })
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 } 

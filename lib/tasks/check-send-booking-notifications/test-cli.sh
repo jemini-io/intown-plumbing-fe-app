@@ -14,21 +14,9 @@ NC='\033[0m' # No Color
 
 # Default values
 DRY_RUN=true
-BOOKING_TYPE="video-consultation"
+JOB_TYPE_FILTER="Virtual Consultation"
 NODE_ENV="development"
 VERBOSE=false
-
-# Set default environment variables if not already set
-export ST_TENANT_ID=${ST_TENANT_ID:-"12345"}
-export ST_CLIENT_ID=${ST_CLIENT_ID:-"test-client-id"}
-export ST_CLIENT_SECRET=${ST_CLIENT_SECRET:-"test-client-secret"}
-export ST_BASE_URL=${ST_BASE_URL:-"https://api.servicetitan.com"}
-export PODIUM_API_KEY=${PODIUM_API_KEY:-"test-api-key"}
-export PODIUM_LOCATION_ID=${PODIUM_LOCATION_ID:-"test-location-id"}
-export PODIUM_CLIENT_ID=${PODIUM_CLIENT_ID:-"test-client-id"}
-export PODIUM_CLIENT_SECRET=${PODIUM_CLIENT_SECRET:-"test-client-secret"}
-export PODIUM_REFRESH_TOKEN=${PODIUM_REFRESH_TOKEN:-"test-refresh-token"}
-export PODIUM_REDIRECT_URI=${PODIUM_REDIRECT_URI:-"http://localhost:3000/auth/callback"}
 
 # Script directory
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,7 +32,7 @@ show_help() {
     echo "  -h, --help              Show this help message"
     echo "  -d, --dry-run           Run in dry run mode (default: true)"
     echo "  -p, --production        Run in production mode (sends actual SMS)"
-    echo "  -b, --booking-type TYPE Set booking type (default: video-consultation)"
+    echo "  -b, --job-type-filter TYPE Set job type filter (default: Virtual Consultation)"
     echo "  -v, --verbose           Enable verbose output"
     echo "  -c, --check-env         Check environment variables"
     echo "  -t, --test              Run quick test with sample data"
@@ -56,7 +44,7 @@ show_help() {
     echo "Examples:"
     echo "  $0 --dry-run                    # Test without sending SMS"
     echo "  $0 --production                 # Run in production mode"
-    echo "  $0 --booking-type consultation  # Test with different booking type"
+    echo "  $0 --job-type-filter 'Video Consultation'  # Test with different job type filter"
     echo "  $0 --check-env                  # Validate environment setup"
     echo ""
 }
@@ -135,12 +123,24 @@ run_quick_test() {
     
     # Set test environment variables
     export DRY_RUN=true
-    export BOOKING_TYPE="test-consultation"
+    export JOB_TYPE_FILTER="test-consultation"
     export NODE_ENV="test"
+    
+    # Set default environment variables if not already set
+    export ST_TENANT_ID=${ST_TENANT_ID:-"12345"}
+    export ST_CLIENT_ID=${ST_CLIENT_ID:-"test-client-id"}
+    export ST_CLIENT_SECRET=${ST_CLIENT_SECRET:-"test-client-secret"}
+    export ST_BASE_URL=${ST_BASE_URL:-"https://api.servicetitan.com"}
+    export PODIUM_API_KEY=${PODIUM_API_KEY:-"test-api-key"}
+    export PODIUM_LOCATION_ID=${PODIUM_LOCATION_ID:-"test-location-id"}
+    export PODIUM_CLIENT_ID=${PODIUM_CLIENT_ID:-"test-client-id"}
+    export PODIUM_CLIENT_SECRET=${PODIUM_CLIENT_SECRET:-"test-client-secret"}
+    export PODIUM_REFRESH_TOKEN=${PODIUM_REFRESH_TOKEN:-"test-refresh-token"}
+    export PODIUM_REDIRECT_URI=${PODIUM_REDIRECT_URI:-"http://localhost:3000/auth/callback"}
     
     echo -e "${YELLOW}Test Configuration:${NC}"
     echo "  DRY_RUN: $DRY_RUN"
-    echo "  BOOKING_TYPE: $BOOKING_TYPE"
+    echo "  JOB_TYPE_FILTER: $JOB_TYPE_FILTER"
     echo "  NODE_ENV: $NODE_ENV"
     echo ""
     
@@ -161,12 +161,24 @@ run_task() {
     
     # Set environment variables
     export DRY_RUN="$DRY_RUN"
-    export BOOKING_TYPE="$BOOKING_TYPE"
+    export JOB_TYPE_FILTER="$JOB_TYPE_FILTER"
     export NODE_ENV="$NODE_ENV"
+    
+    # Set default environment variables if not already set
+    export ST_TENANT_ID=${ST_TENANT_ID:-"12345"}
+    export ST_CLIENT_ID=${ST_CLIENT_ID:-"test-client-id"}
+    export ST_CLIENT_SECRET=${ST_CLIENT_SECRET:-"test-client-secret"}
+    export ST_BASE_URL=${ST_BASE_URL:-"https://api.servicetitan.com"}
+    export PODIUM_API_KEY=${PODIUM_API_KEY:-"test-api-key"}
+    export PODIUM_LOCATION_ID=${PODIUM_LOCATION_ID:-"test-location-id"}
+    export PODIUM_CLIENT_ID=${PODIUM_CLIENT_ID:-"test-client-id"}
+    export PODIUM_CLIENT_SECRET=${PODIUM_CLIENT_SECRET:-"test-client-secret"}
+    export PODIUM_REFRESH_TOKEN=${PODIUM_REFRESH_TOKEN:-"test-refresh-token"}
+    export PODIUM_REDIRECT_URI=${PODIUM_REDIRECT_URI:-"http://localhost:3000/auth/callback"}
     
     echo -e "${YELLOW}Configuration:${NC}"
     echo "  DRY_RUN: $DRY_RUN"
-    echo "  BOOKING_TYPE: $BOOKING_TYPE"
+    echo "  JOB_TYPE_FILTER: $JOB_TYPE_FILTER"
     echo "  NODE_ENV: $NODE_ENV"
     echo "  VERBOSE: $VERBOSE"
     echo ""
@@ -182,7 +194,7 @@ run_task() {
     echo -e "${BLUE}Executing task...${NC}"
     echo ""
     
-    if npx tsx index.ts; then
+    if npx tsx index.ts | jq '.'; then
         echo -e "${GREEN}✅ Task completed successfully!${NC}"
     else
         echo -e "${RED}❌ Task failed!${NC}"
@@ -206,8 +218,8 @@ while [[ $# -gt 0 ]]; do
             NODE_ENV="production"
             shift
             ;;
-        -b|--booking-type)
-            BOOKING_TYPE="$2"
+        -b|--job-type-filter)
+            JOB_TYPE_FILTER="$2"
             shift 2
             ;;
         -v|--verbose)

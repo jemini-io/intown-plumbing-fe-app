@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test:whereby": "dotenv -e .env -- tsx test/test-whereby.ts",
+    "test:booking-notifications": "dotenv -e .env -- lib/tasks/check-send-booking-notifications/test-cli.sh --dry-run",
     "generate:sdk": "tsx scripts/generate-sdk/generate.ts",
     "clean:sdk": "rm -rf lib/servicetitan/generated"
   },

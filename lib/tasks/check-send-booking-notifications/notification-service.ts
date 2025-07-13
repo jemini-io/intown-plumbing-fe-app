@@ -28,18 +28,19 @@ function formatSMSMessage(booking: Booking, customer: Customer): string {
  */
 export async function sendConsultationReminder(booking: Booking, customer: Customer): Promise<SMSResult> {
   try {
+    const message = formatSMSMessage(booking, customer)
+    const customerName = `${customer.firstName} ${customer.lastName}`.trim() || 'Customer'
+
     if (NOTIFICATION_CONFIG.DRY_RUN) {
       logger.info('DRY RUN: Would send SMS', {
         bookingId: booking.id,
         customerId: customer.id,
         phone: customer.phone,
-        message: formatSMSMessage(booking, customer)
+        message,
+        customerName
       })
       return { success: true, dryRun: true }
     }
-
-    const message = formatSMSMessage(booking, customer)
-    const customerName = `${customer.firstName} ${customer.lastName}`.trim() || 'Customer'
 
     // Send SMS via Podium
     const result = await sendTextMessage(

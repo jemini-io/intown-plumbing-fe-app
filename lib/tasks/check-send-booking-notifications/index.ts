@@ -1,6 +1,6 @@
 import { NOTIFICATION_CONFIG, validateConfig } from './config'
 import { logger } from './logger'
-import { calculateTimeWindow, queryBookingsInTimeWindow, addBookingNote } from './booking-queries'
+import { calculateTimeWindow, queryJobsInTimeWindow, addJobNote } from './booking-queries'
 import { sendConsultationReminder, isEligibleForNotification } from './notification-service'
 import { NotificationMetrics } from './types'
 
@@ -16,45 +16,47 @@ function chunk<T>(array: T[], size: number): T[][] {
 }
 
 /**
- * Process a batch of bookings
+ * Process a batch of jobs
  */
-async function processBookingBatch(bookings: any[], metrics: NotificationMetrics) {
-  const promises = bookings.map(async (booking) => {
+async function processJobBatch(jobs: any[], metrics: NotificationMetrics) {
+  const promises = jobs.map(async (job) => {
     try {
-      if (isEligibleForNotification(booking)) {
-        metrics.eligibleBookings++
+      if (isEligibleForNotification(job)) {
+        metrics.eligibleJobs++
         
-        // Send SMS
-        const smsResult = await sendConsultationReminder(booking, booking.customer)
+        // Send SMS (will be logged only in dry run)
+        const smsResult = await sendConsultationReminder(job, job.customer)
         
-        // Add note if SMS was successful
+        // Add note if SMS was successful (will be logged only in dry run)
         if (smsResult.success) {
-          const noteResult = await addBookingNote(booking.id, NOTIFICATION_CONFIG.REMINDER_NOTE_TEXT)
+          const noteResult = await addJobNote(job.id, NOTIFICATION_CONFIG.REMINDER_NOTE_TEXT)
           
           if (noteResult.success) {
             metrics.notificationsSent++
-            logger.info('Notification sent successfully', {
-              bookingId: booking.id,
-              customerId: booking.customer.id,
-              dryRun: NOTIFICATION_CONFIG.DRY_RUN
+            logger.info('Notification processed successfully', {
+              jobId: job.id,
+              customerId: job.customer.id,
+              dryRun: NOTIFICATION_CONFIG.DRY_RUN,
+              smsSent: !smsResult.dryRun,
+              noteAdded: !noteResult.dryRun
             })
           } else {
             logger.error('Failed to add notification note', {
-              bookingId: booking.id,
+              jobId: job.id,
               error: noteResult.error
             })
           }
         } else {
           logger.error('Failed to send SMS', {
-            bookingId: booking.id,
+            jobId: job.id,
             error: smsResult.error
           })
         }
       }
     } catch (error) {
       metrics.errors++
-      logger.error('Failed to process booking', error, {
-        bookingId: booking.id
+      logger.error('Failed to process job', error, {
+        jobId: job.id
       })
     }
   })
@@ -63,13 +65,13 @@ async function processBookingBatch(bookings: any[], metrics: NotificationMetrics
 }
 
 /**
- * Main function to check and send booking notifications
+ * Main function to check and send job notifications
  */
-export async function checkAndSendBookingNotifications() {
+export async function checkAndSendJobNotifications() {
   const startTime = Date.now()
   const metrics: NotificationMetrics = {
-    totalBookings: 0,
-    eligibleBookings: 0,
+    totalJobs: 0,
+    eligibleJobs: 0,
     notificationsSent: 0,
     errors: 0,
     dryRun: NOTIFICATION_CONFIG.DRY_RUN
@@ -79,32 +81,32 @@ export async function checkAndSendBookingNotifications() {
     // Validate configuration
     validateConfig()
     
-    logger.info('Starting booking notification task', {
+    logger.info('Starting job notification task', {
       dryRun: NOTIFICATION_CONFIG.DRY_RUN,
-      bookingType: NOTIFICATION_CONFIG.BOOKING_TYPE,
+      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER,
       timeWindowMinutes: NOTIFICATION_CONFIG.TIME_WINDOW_MINUTES
     })
 
     // 1. Get current time window (±5 minutes)
     const timeWindow = calculateTimeWindow()
     
-    // 2. Query bookings with custom type in time window
-    const bookings = await queryBookingsInTimeWindow(timeWindow)
-    metrics.totalBookings = bookings.length
+    // 2. Query jobs with appointment time in time window
+    const jobs = await queryJobsInTimeWindow(timeWindow)
+    metrics.totalJobs = jobs.length
     
-    if (bookings.length === 0) {
-      logger.info('No bookings found in time window', {
+    if (jobs.length === 0) {
+      logger.info('No jobs found in time window', {
         start: timeWindow.start.toISOString(),
         end: timeWindow.end.toISOString()
       })
       return metrics
     }
     
-    // 3. Process bookings in batches
-    const batches = chunk(bookings, 10) // Process 10 at a time
+    // 3. Process jobs in batches
+    const batches = chunk(jobs, 10) // Process 10 at a time
     
     for (const batch of batches) {
-      await processBookingBatch(batch, metrics)
+      await processJobBatch(batch, metrics)
     }
     
     // 4. Log final metrics
@@ -129,7 +131,7 @@ export async function checkAndSendBookingNotifications() {
  * Entry point for the cron job
  */
 if (require.main === module) {
-  checkAndSendBookingNotifications()
+  checkAndSendJobNotifications()
     .then((metrics) => {
       logger.info('Cron job completed successfully', metrics)
       process.exit(0)
