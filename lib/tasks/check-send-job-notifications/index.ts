@@ -1,6 +1,6 @@
 import { NOTIFICATION_CONFIG, validateConfig } from './config'
 import { logger } from './logger'
-import { calculateTimeWindow, queryJobsInTimeWindow, addJobNote } from './booking-queries'
+import { calculateTimeWindow, queryJobsInTimeWindow, addJobNote } from './job-queries'
 import { sendConsultationReminder, isEligibleForNotification } from './notification-service'
 import { NotificationMetrics } from './types'
 
