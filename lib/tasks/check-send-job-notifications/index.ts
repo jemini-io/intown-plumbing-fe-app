@@ -2,7 +2,7 @@ import { NOTIFICATION_CONFIG, validateConfig } from './config'
 import { logger } from './logger'
 import { calculateTimeWindow, queryJobsInTimeWindow, addJobNote } from './job-queries'
 import { sendConsultationReminder, isEligibleForNotification } from './notification-service'
-import { NotificationMetrics } from './types'
+import { EnrichedJob, NotificationMetrics } from './types'
 
 /**
  * Utility function to chunk array into batches
@@ -18,7 +18,7 @@ function chunk<T>(array: T[], size: number): T[][] {
 /**
  * Process a batch of jobs
  */
-async function processJobBatch(jobs: any[], metrics: NotificationMetrics) {
+async function processJobBatch(jobs: EnrichedJob[], metrics: NotificationMetrics) {
   const promises = jobs.map(async (job) => {
     try {
       if (isEligibleForNotification(job)) {

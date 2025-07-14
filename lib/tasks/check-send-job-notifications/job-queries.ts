@@ -3,7 +3,8 @@ import { env } from '../../config/env'
 import { ServiceTitanClient } from '../../servicetitan/client'
 import { NOTIFICATION_CONFIG } from './config'
 import { logger } from './logger'
-import { Job, TimeWindow } from './types'
+import { TimeWindow, EnrichedJob } from './types'
+import { Jpm_V2_JobResponse } from '../../servicetitan/generated/jpm/models/Jpm_V2_JobResponse'
 
 /**
  * Calculate time window for job queries (±5 minutes from now)
@@ -21,7 +22,7 @@ export function calculateTimeWindow(): TimeWindow {
 /**
  * Query jobs within the specified time window
  */
-export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Job[]> {
+export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<EnrichedJob[]> {
   try {
     logger.info('Querying jobs in time window', {
       start: timeWindow.start.toISOString(),
@@ -58,61 +59,45 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Job
       return []
     }
 
-    // Filter jobs by appointment time and job type, then enrich with customer data
+    // Filter jobs by appointment time and job type, then enrich with customer and notes
     const enrichedJobs = await Promise.all(
-      response.data
-        .filter(async (job) => {
-          // First check if job has appointments in our time window
+      response.data.map(async (job: Jpm_V2_JobResponse): Promise<EnrichedJob | null> => {
+        try {
+          // Get appointments for this job
           const appointments = await getJobAppointments(job.id, serviceTitanClient)
-          const hasAppointmentInWindow = appointments.some(appointment => {
+          const appointmentInWindow = appointments.find(appointment => {
             const appointmentStart = new Date(appointment.start)
             return appointmentStart >= timeWindow.start && appointmentStart <= timeWindow.end
           })
-          
-          if (!hasAppointmentInWindow) return false
-          
-          // Then check if job type matches our filter (case-insensitive)
+          if (!appointmentInWindow) return null
+
+          // Get customer details for this job
+          const customer = await getCustomerForJob(job.customerId, serviceTitanClient)
+
+          // Get notes for this job
+          const notes = await getJobNotes(job.id, serviceTitanClient)
+
+          // Get job type
           const jobType = await getJobType(job.jobTypeId, serviceTitanClient)
-          return jobType?.name?.toLowerCase().includes(NOTIFICATION_CONFIG.JOB_TYPE_FILTER.toLowerCase())
-        })
-        .map(async (job) => {
-          try {
-            // Get appointments for this job
-            const appointments = await getJobAppointments(job.id, serviceTitanClient)
-            const appointmentInWindow = appointments.find(appointment => {
-              const appointmentStart = new Date(appointment.start)
-              return appointmentStart >= timeWindow.start && appointmentStart <= timeWindow.end
-            })
-            
-            if (!appointmentInWindow) return null
-            
-            // Get customer details for this job
-            const customer = await getCustomerForJob(job.customerId, serviceTitanClient)
-            
-            // Get notes for this job
-            const notes = await getJobNotes(job.id, serviceTitanClient)
-            
-            // Get job type
-            const jobType = await getJobType(job.jobTypeId, serviceTitanClient)
-            
-            return {
-              id: job.id,
-              startTime: appointmentInWindow.start,
-              endTime: appointmentInWindow.end,
-              jobType: jobType?.name || 'Unknown',
-              status: job.jobStatus,
-              customer,
-              notes
-            } as Job
-          } catch (error) {
-            logger.error('Failed to enrich job data', error, { jobId: job.id })
-            return null
+
+          // Return the job object, adding customer, notes, and startTime for downstream use
+          return {
+            ...job,
+            startTime: appointmentInWindow.start,
+            endTime: appointmentInWindow.end,
+            jobType: jobType?.name || 'Unknown',
+            customer,
+            notes
           }
-        })
+        } catch (error) {
+          logger.error('Failed to enrich job data', error, { jobId: job.id })
+          return null
+        }
+      })
     )
 
-    const validJobs = enrichedJobs.filter(job => job !== null) as Job[]
-    
+    const validJobs: EnrichedJob[] = enrichedJobs.filter((job) => job !== null)
+
     logger.info('Found jobs for notification processing', {
       total: response.data.length,
       filtered: validJobs.length,
@@ -216,7 +201,7 @@ async function getJobNotes(jobId: number, serviceTitanClient: ServiceTitanClient
       id: index,
       text: note.text,
       timestamp: note.createdOn,
-      createdBy: note.createdById || 'Unknown'
+      createdBy: note.createdById ? String(note.createdById) : 'Unknown'
     })) || []
   } catch (error) {
     logger.error('Failed to get job notes', error, { jobId })

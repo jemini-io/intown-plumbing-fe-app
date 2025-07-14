@@ -1,12 +1,4 @@
-export interface Job {
-  id: number
-  startTime: string
-  endTime: string
-  jobType: string
-  status: string
-  customer: Customer
-  notes?: JobNote[]
-}
+import { Jpm_V2_JobResponse } from '../../servicetitan/generated/jpm/models/Jpm_V2_JobResponse'
 
 export interface Customer {
   id: number
@@ -48,6 +40,14 @@ export interface NoteResult {
   success: boolean
   dryRun?: boolean
   error?: string
+}
+
+export interface EnrichedJob extends Jpm_V2_JobResponse {
+  startTime: string;
+  endTime: string;
+  jobType: string;
+  customer: Customer;
+  notes: JobNote[];
 }
 
 export interface JobQueryFilters {

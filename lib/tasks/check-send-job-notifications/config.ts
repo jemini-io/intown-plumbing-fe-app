@@ -1,8 +1,10 @@
-// const THREE_DAYS_IN_MINUTES = 3 * 24 * 60
+const THREE_DAYS_IN_MINUTES = 3 * 24 * 60
+const FIVE_IN_MINUTES = 5
+const TIME_WINDOW_MINUTES = FIVE_IN_MINUTES
 
 export const NOTIFICATION_CONFIG = {
   // Core settings
-  TIME_WINDOW_MINUTES: 5,
+  TIME_WINDOW_MINUTES: TIME_WINDOW_MINUTES,
   JOB_TYPE_FILTER: process.env.JOB_TYPE_FILTER || 'Virtual Consultation',
   REMINDER_NOTE_TEXT: 'Consultation reminder sent to customer.',
   
