@@ -33,7 +33,8 @@ export async function createJobAppointment({ job, location, customer }: { job: J
         tenant: parseInt(tenantId),
         name: name,
         street: street,
-        zip: zip
+        zip: zip,
+        phone: phone,
     });
     let stCustomer;
 
@@ -88,7 +89,19 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                 state,
                 zip,
                 country
-            }
+            },
+            contacts: [
+                {
+                    type: "Phone",
+                    value: phone,
+                    memo: null
+                },
+                {
+                    type: "Email",
+                    value: email,
+                    memo: null
+                }
+            ]
         }
         const customerResponse = await client.crm.CustomersService.customersCreate({
             tenant: parseInt(tenantId),
