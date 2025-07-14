@@ -37,7 +37,7 @@ export async function sendConsultationReminder(job: Jpm_V2_JobResponse, customer
         jobId: job.id,
         customerId: customer.id,
         phone: customer.phone,
-        message,
+        text: message,
         customerName
       });
       return { success: true, dryRun: true };
@@ -54,10 +54,9 @@ export async function sendConsultationReminder(job: Jpm_V2_JobResponse, customer
       jobId: job.id,
       customerId: customer.id,
       phone: customer.phone,
-      messageId: result.data.uid
     });
 
-    return { success: true, messageId: result.data.uid };
+    return { success: true, messageId: 'unknown' };
 
   } catch (error) {
     logger.error('Failed to send SMS', error, {
@@ -90,13 +89,17 @@ export function isEligibleForNotification(job: EnrichedJob): boolean {
     note.text === NOTIFICATION_CONFIG.REMINDER_NOTE_TEXT
   );
 
+  // check if phone number exists
+  const phoneNumberExists = job.customer.phone !== null && job.customer.phone !== undefined && job.customer.phone !== '';
+
   logger.info('Checking notification eligibility', {
     jobId: job.id,
     withinTimeWindow,
     hasNotificationNote,
     timeDiffMinutes: Math.round(timeDiff),
-    eligible: withinTimeWindow && !hasNotificationNote
+    phoneNumberExists,
+    eligible: withinTimeWindow && !hasNotificationNote && phoneNumberExists
   });
 
-  return withinTimeWindow && !hasNotificationNote;
+  return withinTimeWindow && !hasNotificationNote && phoneNumberExists;
 } 

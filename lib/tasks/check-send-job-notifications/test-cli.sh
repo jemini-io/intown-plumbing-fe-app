@@ -13,7 +13,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Default values
-DRY_RUN=true
+DRY_RUN=false
 JOB_TYPE_FILTER="Virtual Consultation"
 NODE_ENV="development"
 VERBOSE=false
@@ -194,7 +194,7 @@ run_task() {
     echo -e "${BLUE}Executing task...${NC}"
     echo ""
     
-    if npx tsx index.ts | jq '.'; then
+    if npx tsx index.ts; then
         echo -e "${GREEN}✅ Task completed successfully!${NC}"
     else
         echo -e "${RED}❌ Task failed!${NC}"

@@ -7,6 +7,43 @@ import {
 import { createOrUpdateContact } from "./contacts";
 import { PODIUM_LOCATION_ID } from "../utils/constants";
 
+/**
+ * Format phone number to E.164 format for consistent API usage
+ * @param phone - Phone number string
+ * @returns Formatted phone number in E.164 format (+15551234567)
+ */
+export function formatPhoneForSubmission(phone: string): string {
+  try {
+    // Simple regex-based formatting for common US phone number patterns
+    const cleaned = phone.replace(/\D/g, ''); // Remove all non-digits
+    
+    // If it's already in E.164 format (starts with +1), return as is
+    if (phone.startsWith('+1') && phone.length === 12) {
+      return phone;
+    }
+    
+    // If it's a 10-digit US number, add +1
+    if (cleaned.length === 10) {
+      return `+1${cleaned}`;
+    }
+    
+    // If it's an 11-digit number starting with 1, add +
+    if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      return `+${cleaned}`;
+    }
+    
+    // If it's already in E.164 format without +, add it
+    if (cleaned.length === 11 && cleaned.startsWith('1')) {
+      return `+${cleaned}`;
+    }
+    
+    // Fallback: return original if we can't parse it
+    return phone;
+  } catch (error) {
+    return phone; // Fallback to original if parsing fails
+  }
+}
+
 export interface SendMessageData {
   phoneNumber: string;
   body: string;
@@ -20,7 +57,7 @@ export interface SendMessageData {
 /**
  * Send a text message to a contact
  */
-export async function sendPodiumMessage(data: SendMessageData) {
+async function sendPodiumMessage(data: SendMessageData) {
   // Ensure the contact exists and get their info
   await createOrUpdateContact({
     phoneNumber: data.phoneNumber,
@@ -56,9 +93,12 @@ export async function sendTextMessage(
   message: string,
   contactName: string
 ): Promise<PodiumMessageResponse> {
+  // Format phone number for consistent API usage
+  const formattedPhone = formatPhoneForSubmission(phoneNumber);
+
   // Send the message
   return sendPodiumMessage({
-    phoneNumber: phoneNumber,
+    phoneNumber: formattedPhone,
     body: message,
     locationUid: PODIUM_LOCATION_ID,
     contactName: contactName,

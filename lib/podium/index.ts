@@ -12,7 +12,6 @@ export {
   createOrUpdateContact, 
 } from './contacts'
 export {
-  sendPodiumMessage,
   sendTextMessage,
   sendAppointmentConfirmation,
 } from "./messages"; 
