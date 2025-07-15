@@ -55,6 +55,8 @@ export default function ConfirmationStep() {
           <Image
             src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZGttZ29obDZxc3FvZ2Jud2xxODVrejhnbHR6c2psMzZnbTA3cWhqOSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/HOsHtiVdeypFxOhLAf/giphy.gif"
             alt="Success celebration"
+            width={200}
+            height={200}
             className="w-full h-32 sm:h-40 object-cover rounded-lg"
           />
         </div>
