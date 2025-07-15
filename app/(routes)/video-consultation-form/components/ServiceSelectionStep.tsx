@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
 import { SERVICE_TO_JOB_TYPES_MAPPING } from '@/lib/utils/constants';
@@ -8,6 +8,9 @@ import { SERVICE_TO_JOB_TYPES_MAPPING } from '@/lib/utils/constants';
 export default function ServiceStep() {
   const [isLoadingJobTypes, setIsLoadingJobTypes] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [hoveredJobTypeId, setHoveredJobTypeId] = useState<number | null>(null);
+  const [openTooltipId, setOpenTooltipId] = useState<number | null>(null);
+  const tooltipTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const {
     availableJobTypes,
@@ -47,6 +50,16 @@ export default function ServiceStep() {
     if (selectedJobType) {
       setCurrentStep('date');
     }
+  };
+
+  // Helper to handle touch/tap for tooltips
+  const handleTooltipToggle = (jobTypeId: number) => {
+    setOpenTooltipId(prev => (prev === jobTypeId ? null : jobTypeId));
+  };
+
+  // Helper to close tooltip on blur (keyboard)
+  const handleTooltipBlur = () => {
+    tooltipTimeout.current = setTimeout(() => setOpenTooltipId(null), 100);
   };
 
   if (isLoadingJobTypes) {
@@ -91,14 +104,50 @@ export default function ServiceStep() {
         ) : (
           <div className="button-row">
             {availableJobTypes.map(jobType => (
-              <button
-                key={jobType.id}
-                className={`option-button ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
-                onClick={() => handleJobTypeClick(jobType)}
-                title={jobType.displayName}
-              >
-                <span className="text-sm sm:text-base leading-tight">{jobType.displayName}</span>
-              </button>
+              <div key={jobType.id} className="inline-block mr-2 mb-2">
+                <div className="relative">
+                  <button
+                    className={`option-button pr-8 ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
+                    onClick={() => handleJobTypeClick(jobType)}
+                    title={jobType.displayName}
+                    type="button"
+                  >
+                    <span className="text-xl mr-2">{jobType.emoji}</span>
+                    <span className="text-sm sm:text-base leading-tight">{jobType.displayName}</span>
+                    {/* Help icon absolutely positioned in top-right */}
+                    <button
+                      type="button"
+                      className="absolute top-1 right-1 p-0.5 rounded-full bg-white bg-opacity-80 hover:bg-opacity-100 focus:bg-opacity-100 border border-gray-200 text-gray-400 hover:text-indigo-600 focus:text-indigo-600 outline-none"
+                      style={{ zIndex: 2 }}
+                      tabIndex={0}
+                      aria-label={`Help: ${jobType.description}`}
+                      onMouseEnter={() => setOpenTooltipId(jobType.id)}
+                      onMouseLeave={() => setOpenTooltipId(null)}
+                      onFocus={() => setOpenTooltipId(jobType.id)}
+                      onBlur={handleTooltipBlur}
+                      onTouchStart={e => {
+                        e.stopPropagation();
+                        handleTooltipToggle(jobType.id);
+                      }}
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10" strokeWidth="2" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-1m0-4a1 1 0 1 1 2 0c0 1-2 1-2 3" />
+                      </svg>
+                    </button>
+                    {/* Tooltip */}
+                    {openTooltipId === jobType.id && (
+                      <div className="absolute z-20 top-8 right-0 w-56 p-2 bg-white border border-gray-300 rounded shadow-lg text-xs text-gray-700 whitespace-normal"
+                        role="tooltip"
+                        aria-live="polite"
+                      >
+                        {jobType.description}
+                      </div>
+                    )}
+                  </button>
+                </div>
+              </div>
             ))}
           </div>
         )}

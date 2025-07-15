@@ -15,23 +15,17 @@ export interface ServiceToJobTypeMapping {
   serviceTitanId: number;
   serviceTitanName: string;
   emoji: string;
+  description: string; // Added description field
 }
 
-export interface CustomerServiceToJobTypeMapping {
-  id: number;
-  displayName: string;
-  serviceTitanId: number;
-  serviceTitanName: string;
-  emoji: string;
-}
-
-export const SERVICE_TO_JOB_TYPES_MAPPING: CustomerServiceToJobTypeMapping[] = [
+export const SERVICE_TO_JOB_TYPES_MAPPING: ServiceToJobTypeMapping[] = [
   {
     id: 1,
-    displayName: "Help me with a repair",
+    displayName: "DIY Plumbing Consult",
     serviceTitanId: 76820749,
     serviceTitanName: "Virtual Consultation - Service Request",
     emoji: "🔧", // Wrench for Repair
+    description: "Have a licensed plumber help you assess or diagnose your DIY plumbing questions.",
   },
   {
     id: 2,
@@ -39,15 +33,18 @@ export const SERVICE_TO_JOB_TYPES_MAPPING: CustomerServiceToJobTypeMapping[] = [
     serviceTitanId: 76820749,
     serviceTitanName: "Virtual Consultation - Service Request",
     emoji: "🚨", // Siren for Emergency
+    description:
+      "Urgent plumbing problem? Get immediate virtual help to assess and guide you through the next steps.",
   },
   {
     id: 3,
-    displayName: "I need a quote",
+    displayName: "Get A Quote",
     serviceTitanId: 76820748,
     serviceTitanName: "Virtual Consultation - Quote Request",
     emoji: "🧾", // Receipt for Quote
+    description:
+      "Schedule a virtual walkthrough to receive a quote for your plumbing project or repair.",
   },
-  
 ];
 
 /**
@@ -60,6 +57,12 @@ export interface TechnicianToSkillsMapping {
   skills: string[];
 }
 
+// Supported Skills
+// Virtual Quote
+// Virtual Quote - Remodel	
+// Virtual Quote - Repair/Install	
+// Virtual Quote - Water Filtration	
+// Virtual Service
 export const TECHNICIAN_TO_SKILLS_MAPPING: TechnicianToSkillsMapping[] = [
   {
     technicianId: 34365881,
