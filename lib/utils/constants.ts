@@ -14,6 +14,7 @@ export interface ServiceToJobTypeMapping {
   displayName: string;
   serviceTitanId: number;
   serviceTitanName: string;
+  emoji: string;
 }
 
 export interface CustomerServiceToJobTypeMapping {
@@ -21,6 +22,7 @@ export interface CustomerServiceToJobTypeMapping {
   displayName: string;
   serviceTitanId: number;
   serviceTitanName: string;
+  emoji: string;
 }
 
 export const SERVICE_TO_JOB_TYPES_MAPPING: CustomerServiceToJobTypeMapping[] = [
@@ -29,18 +31,21 @@ export const SERVICE_TO_JOB_TYPES_MAPPING: CustomerServiceToJobTypeMapping[] = [
     displayName: "Help me with a repair",
     serviceTitanId: 76820749,
     serviceTitanName: "Virtual Consultation - Service Request",
+    emoji: "🔧", // Wrench for Repair
   },
   {
     id: 2,
     displayName: "Help! Emergency!",
     serviceTitanId: 76820749,
     serviceTitanName: "Virtual Consultation - Service Request",
+    emoji: "🚨", // Siren for Emergency
   },
   {
     id: 3,
     displayName: "I need a quote",
     serviceTitanId: 76820748,
     serviceTitanName: "Virtual Consultation - Quote Request",
+    emoji: "🧾", // Receipt for Quote
   },
   
 ];

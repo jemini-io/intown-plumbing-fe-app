@@ -13,13 +13,16 @@ export const NOTIFICATION_CONFIG = {
   NODE_ENV: process.env.NODE_ENV || 'development',
   
   // ServiceTitan configuration
-  ST_BASE_URL: process.env.ST_BASE_URL,
-  ST_CLIENT_ID: process.env.ST_CLIENT_ID,
-  ST_CLIENT_SECRET: process.env.ST_CLIENT_SECRET,
+  SERVICETITAN_BASE_URL: process.env.SERVICETITAN_BASE_URL,
+  SERVICETITAN_CLIENT_ID: process.env.SERVICETITAN_CLIENT_ID,
+  SERVICETITAN_CLIENT_SECRET: process.env.SERVICETITAN_CLIENT_SECRET,
+  SERVICETITAN_APP_KEY: process.env.SERVICETITAN_APP_KEY,
+  SERVICETITAN_TENANT_ID: process.env.SERVICETITAN_TENANT_ID,
   
   // Podium configuration
-  PODIUM_API_KEY: process.env.PODIUM_API_KEY,
-  PODIUM_LOCATION_ID: process.env.PODIUM_LOCATION_ID,
+  PODIUM_REFRESH_TOKEN: process.env.PODIUM_REFRESH_TOKEN,
+  PODIUM_CLIENT_ID: process.env.PODIUM_CLIENT_ID,
+  PODIUM_CLIENT_SECRET: process.env.PODIUM_CLIENT_SECRET,
   
   // SMS template
   SMS_TEMPLATE: 'Hi {customerName}, this is a reminder about your consultation with InTown Plumbing scheduled for {appointmentTime}. Please be ready for your video call. If you need to reschedule, please contact us.'
@@ -28,11 +31,14 @@ export const NOTIFICATION_CONFIG = {
 // Validate required environment variables
 export function validateConfig() {
   const required = [
-    'ST_BASE_URL',
-    'ST_CLIENT_ID', 
-    'ST_CLIENT_SECRET',
-    'PODIUM_API_KEY',
-    'PODIUM_LOCATION_ID'
+    'SERVICETITAN_BASE_URL',
+    'SERVICETITAN_CLIENT_ID', 
+    'SERVICETITAN_CLIENT_SECRET',
+    'SERVICETITAN_APP_KEY',
+    'SERVICETITAN_TENANT_ID',
+    'PODIUM_REFRESH_TOKEN',
+    'PODIUM_CLIENT_ID',
+    'PODIUM_CLIENT_SECRET'
   ]
 
   const missing = required.filter(key => !process.env[key])
