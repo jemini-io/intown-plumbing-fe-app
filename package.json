@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "clean": "rm -rf .next && rm -rf node_modules && npm run clean:sdk",
+    "build": "npm run generate:sdk && next build",
     "start": "next start",
     "lint": "next lint",
     "test:whereby": "dotenv -e .env -- tsx test/test-whereby.ts",
     "test:job-notifications": "dotenv -e .env -- lib/tasks/check-send-job-notifications/test-cli.sh --dry-run",
-    "job-notifications": "dotenv -e .env -- lib/tasks/check-send-job-notifications/test-cli.sh",
     "generate:sdk": "tsx scripts/generate-sdk/generate.ts",
     "clean:sdk": "rm -rf lib/servicetitan/generated"
   },

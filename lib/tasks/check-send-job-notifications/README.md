@@ -16,4 +16,4 @@ This task checks for jobs that require notifications to be sent (e.g., reminders
 Run via CLI or import as a module. See `test-cli.sh` for example usage.
 
 ---
-Keep this directory focused on job notification logic only. 
+Keep this directory focused on job notification logic only.
