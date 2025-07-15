@@ -1,8 +1,8 @@
-import { AuthService, TechnicianService, AppointmentService } from '../services/services';
+import { AuthService } from '../services/services';
 import { ServiceTitanClient } from '@/lib/servicetitan';
 import { env } from "@/lib/config/env";
 import { Jpm_V2_AppointmentResponse, PaginatedResponse_Of_Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
-import { TECHNICIAN_TO_SKILLS_MAPPING } from '@/lib/utils/constants';
+import { QuoteSkill, TECHNICIAN_TO_SKILLS_MAPPING } from '@/lib/utils/constants';
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
@@ -11,7 +11,7 @@ interface Technician {
     name: string;
 }
 
-interface TimeSlot {
+export interface TimeSlot {
     time: string; // UTC ISO String
     technicians: Technician[];
 }
@@ -23,6 +23,7 @@ export interface DateEntry {
 
 export interface JobType {
     serviceTitanId: number;
+    skill?: string;
 }
 
 /**
@@ -31,36 +32,41 @@ export interface JobType {
  */
 export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry[]> {
     const authService = new AuthService(environment);
-    const technicianService = new TechnicianService(environment);
-    const appointmentService = new AppointmentService(environment);
-    
     const client = new ServiceTitanClient({
         authToken: await authService.getAuthToken(clientId, clientSecret),
         appKey,
         tenantId
     });
-
     const now = new Date();
 
-    const authToken = await authService.getAuthToken(clientId, clientSecret);
+    // ST API does not return the skills for technicians.
+    // const getTechsList = await client.settings.TechniciansService.techniciansGetList({
+    //     tenant: tenantId,
+    //     pageSize: 1000,
+    // });
+    // const allTechs = getTechsList.data || getTechsList;
+    const techsSkillsList = TECHNICIAN_TO_SKILLS_MAPPING;
 
-    const allTechsResponse = await technicianService.getAllTechnicians(authToken, appKey, tenantId);
-    const allTechs = allTechsResponse.data || allTechsResponse; // adjust if API returns .data
-
+    // Get ST Job Type
     const jobTypeResponse = await client.jpm.JobTypesService.jobTypesGet({
-        tenant: parseInt(tenantId),
+        tenant: tenantId,
         id: jobType.serviceTitanId
     });
+    const jobTypeSkills = jobTypeResponse.skills;
 
-    // filter techs for matching skills
-    const filteredTechs = allTechs.filter((tech: any) => {
-        const skills = TECHNICIAN_TO_SKILLS_MAPPING.find((mapping) => mapping.technicianId === tech.id)?.skills;
-        return skills?.some((skill) => jobTypeResponse.skills.includes(skill));
-    });
-
-    console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech: any) => tech.name).join(', ')}`);
-    // log first tech
-    console.log(filteredTechs[0].name);
+    // Filter techs for matching skills
+    let filteredTechs = techsSkillsList;
+    if (jobType.skill) {
+        // If a specific skill is provided, filter for that skill
+        filteredTechs = techsSkillsList.filter((tech) => tech.skills.includes(jobType.skill as QuoteSkill));
+        console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+    } else {
+        // Otherwise, filter by jobTypeSkills as before
+        filteredTechs = techsSkillsList.filter((tech) => {
+            return tech.skills.some((skill) => jobTypeSkills.includes(skill));
+        });
+        console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+    }
 
     // For each technician, fetch shifts and appointments, then aggregate
     const availableTimeSlots: DateEntry[] = [];
@@ -72,20 +78,28 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
 
         const startOfToday = new Date(now);
         startOfToday.setHours(0, 0, 0, 0);
+
         const shiftsResponse = await client.dispatch.TechnicianShiftsService.technicianShiftsGetList({
-            tenant: parseInt(tenantId),
-            technicianId: tech.id,
+            tenant: tenantId,
+            technicianId: tech.technicianId,
             startsOnOrAfter: startOfToday.toISOString(),
             endsOnOrBefore: twoWeeksFromNow.toISOString()
         });
         const shifts = shiftsResponse.data;
 
         // Fetch appointments for this technician
-        const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, now.toISOString(), tech.id);
+        // const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, now.toISOString(), tech.id);
+        const appointmentsResponse = await client.jpm.AppointmentsService.appointmentsGetList({
+            tenant: tenantId,
+            technicianId: tech.technicianId,
+            startsOnOrAfter: startOfToday.toISOString(),
+            pageSize: 1000,
+        });
+
         const {data: appointments} = appointmentsResponse as PaginatedResponse_Of_Jpm_V2_AppointmentResponse;
 
         // Process available time slots for this technician
-        shifts.forEach((shift: any) => {
+        shifts.forEach((shift) => {
             const shiftStart = new Date(shift.start);
             const shiftEnd = new Date(shift.end);
             let currentTime = new Date(shiftStart);
@@ -125,8 +139,8 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
 
                     // Add the technician to the time slot
                     timeSlotEntry.technicians.push({
-                        id: tech.id,
-                        name: tech.name
+                        id: tech.technicianId.toString(),
+                        name: tech.technicianName
                     });
                 }
 

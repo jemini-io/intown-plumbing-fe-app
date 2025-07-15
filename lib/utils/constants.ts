@@ -16,7 +16,16 @@ export interface ServiceToJobTypeMapping {
   serviceTitanName: string;
   emoji: string;
   description: string; // Added description field
+  skills?: typeof QUOTE_SKILLS;
 }
+
+export const QUOTE_SKILLS = [
+  "Virtual Quote - Remodel",
+  "Virtual Quote - Repair/Install",
+  "Virtual Quote - Water Filtration"
+] as const;
+
+export type QuoteSkill = typeof QUOTE_SKILLS[number];
 
 export const SERVICE_TO_JOB_TYPES_MAPPING: ServiceToJobTypeMapping[] = [
   {
@@ -44,6 +53,7 @@ export const SERVICE_TO_JOB_TYPES_MAPPING: ServiceToJobTypeMapping[] = [
     emoji: "🧾", // Receipt for Quote
     description:
       "Schedule a virtual walkthrough to receive a quote for your plumbing project or repair.",
+    skills: QUOTE_SKILLS,
   },
 ];
 
@@ -51,30 +61,49 @@ export const SERVICE_TO_JOB_TYPES_MAPPING: ServiceToJobTypeMapping[] = [
  * Service Titan doesn't return the skills for technicians.
  * We need to map the technician ids to the skills they have.
  */
+export type SUPPORTED_SKILLS = 
+  | "Virtual Quote - Remodel"
+  | "Virtual Quote - Repair/Install"
+  | "Virtual Quote - Water Filtration"
+  | "Virtual Service";
+
 export interface TechnicianToSkillsMapping {
   technicianId: number;
   technicianName: string;
-  skills: string[];
+  skills: SUPPORTED_SKILLS[];
 }
 
+// The ST Technician API does not return the skills for technicians.
+// We need to map the technician ids to the skills they have.
+// This is a mapping of technician ids to the skills they have.
 // Supported Skills
-// Virtual Quote
-// Virtual Quote - Remodel	
-// Virtual Quote - Repair/Install	
-// Virtual Quote - Water Filtration	
-// Virtual Service
 export const TECHNICIAN_TO_SKILLS_MAPPING: TechnicianToSkillsMapping[] = [
   {
     technicianId: 34365881,
     technicianName: "Pedro H.",
-    skills: ["Virtual Quote"],
+    skills: ["Virtual Quote - Water Filtration"],
   },
   {
     technicianId: 49786183,
     technicianName: "Doug W.",
-    skills: ["Virtual Service"],
+    skills: [
+      "Virtual Quote - Repair/Install",
+      "Virtual Quote - Water Filtration",
+    ],
+  },
+  {
+    technicianId: 2513668,
+    technicianName: "Michael G.",
+    skills: ["Virtual Quote - Remodel"],
+  },
+  {
+    technicianId: 16109753,
+    technicianName: "Francisco J.",
+    skills: ["Virtual Service", "Virtual Quote - Water Filtration"],
   },
 ];
+
+
 
 // Custom Fields Mapping
 // (76823347) -> Customer Join Link

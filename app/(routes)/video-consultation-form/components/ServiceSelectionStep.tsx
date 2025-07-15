@@ -1,26 +1,32 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
-import { SERVICE_TO_JOB_TYPES_MAPPING } from '@/lib/utils/constants';
+import { QuoteSkill, SERVICE_TO_JOB_TYPES_MAPPING, ServiceToJobTypeMapping } from '@/lib/utils/constants';
+import { useEffect, useRef, useState } from 'react';
+import { useFormStore } from '../useFormStore';
 
 export default function ServiceStep() {
   const [isLoadingJobTypes, setIsLoadingJobTypes] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [hoveredJobTypeId, setHoveredJobTypeId] = useState<number | null>(null);
   const [openTooltipId, setOpenTooltipId] = useState<number | null>(null);
   const tooltipTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const {
     availableJobTypes,
     selectedJobType,
+    selectedSkill,
     details,
     setAvailableJobTypes,
     setSelectedJobType,
+    setSelectedSkill,
     setDetails,
     setCurrentStep,
   } = useFormStore();
+
+  useEffect(() => {
+    // Reset selectedSkill in store if job type changes
+    setSelectedSkill(null);
+  }, [selectedJobType, setSelectedSkill]);
 
   // useEffect to fetch job types
   useEffect(() => {
@@ -42,12 +48,14 @@ export default function ServiceStep() {
     fetchJobTypes();
   }, [setAvailableJobTypes]);
 
-  const handleJobTypeClick = (jobType: any) => {
+  const handleJobTypeClick = (jobType: ServiceToJobTypeMapping) => {
     setSelectedJobType(jobType);
   };
 
   const handleNextClick = () => {
     if (selectedJobType) {
+      if (selectedJobType.skills && selectedJobType.skills.length > 0 && !selectedSkill) return;
+      // Save selectedSkill to form store if needed (extend useFormStore if necessary)
       setCurrentStep('date');
     }
   };
@@ -152,6 +160,28 @@ export default function ServiceStep() {
           </div>
         )}
 
+        {/* Show quote skills if 'Get A Quote' is selected */}
+        {selectedJobType && selectedJobType.skills && selectedJobType.skills.length > 0 && (
+          <div className="mt-4 mb-2">
+            <label className="block text-sm font-medium text-gray-700 mb-2">Type of Quote</label>
+            <div className="flex flex-col gap-2">
+              {selectedJobType.skills.map((skill: QuoteSkill) => (
+                <label key={skill} className="inline-flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="quote-skill"
+                    value={skill}
+                    checked={selectedSkill === skill}
+                    onChange={() => setSelectedSkill(skill)}
+                    className="form-radio text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                  />
+                  <span className="ml-2 text-sm text-gray-700">{skill}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="space-y-3">
           <label htmlFor="details" className="block text-sm font-medium text-gray-700">
             What can we help you with?
@@ -169,7 +199,10 @@ export default function ServiceStep() {
         <button 
           className="next-button" 
           onClick={handleNextClick}
-          disabled={!selectedJobType}
+          disabled={
+            !selectedJobType ||
+            (selectedJobType.skills && selectedJobType.skills.length > 0 && !selectedSkill)
+          }
         >
           <span>Next</span>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

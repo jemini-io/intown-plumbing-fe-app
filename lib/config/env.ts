@@ -16,7 +16,7 @@ export const env = {
     clientId: getEnvVar("SERVICETITAN_CLIENT_ID"),
     clientSecret: getEnvVar("SERVICETITAN_CLIENT_SECRET"),
     appKey: getEnvVar("SERVICETITAN_APP_KEY"),
-    tenantId: getEnvVar("SERVICETITAN_TENANT_ID"),
+    tenantId: parseInt(getEnvVar("SERVICETITAN_TENANT_ID")),
     baseUrl: getEnvVar("SERVICETITAN_BASE_URL"),
   },
   whereby: {

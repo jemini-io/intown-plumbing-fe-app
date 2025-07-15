@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { FormData } from './types';
 // import { JobType } from '@/app/api/servicetitan-api/types';
-import { ServiceToJobTypeMapping } from '@/lib/utils/constants';
+import { ServiceToJobTypeMapping, QuoteSkill } from '@/lib/utils/constants';
 
 interface Technician {
   id: string;
@@ -61,6 +61,10 @@ interface FormStore {
   
   // Reset form
   resetForm: () => void;
+
+  // Selected skill
+  selectedSkill: QuoteSkill | null;
+  setSelectedSkill: (skill: QuoteSkill | null) => void;
 }
 
 const initialState = {
@@ -84,6 +88,7 @@ const initialState = {
   selectedTechnician: null,
   isLoading: true,
   jobId: null,
+  selectedSkill: null,
 };
 
 export const useFormStore = create<FormStore>((set) => ({
@@ -106,6 +111,8 @@ export const useFormStore = create<FormStore>((set) => ({
   setIsLoading: (loading) => set({ isLoading: loading }),
   
   setJobId: (id) => set({ jobId: id }),
+
+  setSelectedSkill: (skill) => set({ selectedSkill: skill }),
   
   resetForm: () => set(initialState),
 })); 

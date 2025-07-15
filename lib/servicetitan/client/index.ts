@@ -6,6 +6,7 @@ import * as JpmServices from '../generated/jpm';
 import * as PricebookServices from '../generated/pricebook';
 import * as SettingsServices from '../generated/settings';
 import * as CrmServices from '../generated/crm';
+import { OpenAPIConfig } from '../generated/dispatch/core/OpenAPI';
 
 export class ServiceTitanClient {
   private baseClient: ServiceTitanBaseClient;
@@ -35,7 +36,7 @@ export class ServiceTitanClient {
     this.crm = CrmServices;
   }
 
-  private configureServiceAuth(openAPI: any, auth: ServiceTitanAuth) {
+  private configureServiceAuth(openAPI: OpenAPIConfig, auth: ServiceTitanAuth) {
     // Set the auth token
     openAPI.TOKEN = auth.authToken;
     

@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from 'axios';
 export interface ServiceTitanAuth {
   authToken: string;
   appKey: string;
-  tenantId: string;
+  tenantId: number;
 }
 
 export class ServiceTitanBaseClient {
@@ -24,7 +24,7 @@ export class ServiceTitanBaseClient {
     // Add request interceptor to inject tenant ID
     this.axiosInstance.interceptors.request.use((config) => {
       if (config.url && config.url.includes('{tenant}')) {
-        config.url = config.url.replace('{tenant}', this.auth.tenantId);
+        config.url = config.url.replace('{tenant}', this.auth.tenantId.toString());
       }
       return config;
     });

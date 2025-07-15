@@ -1,7 +1,7 @@
 'use server';
 
 import { DateEntry, getAvailableTimeSlots } from '@/app/api/appointments/getAppointments';
-import { ServiceToJobTypeMapping } from '@/lib/utils/constants';
+import { ServiceToJobTypeMapping, QuoteSkill } from '@/lib/utils/constants';
 
 export interface GetAvailableAppointmentsResponse {
   success: boolean;
@@ -9,7 +9,7 @@ export interface GetAvailableAppointmentsResponse {
   error?: string;
 }
 
-export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJobTypeMapping | null): Promise<GetAvailableAppointmentsResponse> {
+export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJobTypeMapping | null, selectedSkill?: QuoteSkill | null): Promise<GetAvailableAppointmentsResponse> {
   try {
     if (!selectedJobType) {
       return {
@@ -19,7 +19,8 @@ export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJ
     }
 
     const timeSlots = await getAvailableTimeSlots({
-      serviceTitanId: selectedJobType.serviceTitanId
+      serviceTitanId: selectedJobType.serviceTitanId,
+      skill: selectedSkill || undefined
     });
 
     return {

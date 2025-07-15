@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useFormStore } from '../useFormStore';
+import { getAvailableAppointmentsAction } from '@/app/actions/getAvailableAppointments';
+import type { TimeSlot } from '@/app/api/appointments/getAppointments';
 import FormLayout from '@/components/FormLayout';
 import { THIRTY_MINUTES } from '@/lib/utils/constants';
-import { getAvailableAppointmentsAction } from '@/app/actions/getAvailableAppointments';
+import { useEffect, useState } from 'react';
+import { useFormStore } from '../useFormStore';
 
 export default function DateStep() {
   const {
@@ -14,6 +15,7 @@ export default function DateStep() {
     selectedTechnician,
     isLoading,
     selectedJobType,
+    selectedSkill,
     setAvailableTimeSlots,
     setSelectedDate,
     setSelectedTimeSlot,
@@ -31,7 +33,7 @@ export default function DateStep() {
         setIsLoading(true);
         setError(null);
         
-        const result = await getAvailableAppointmentsAction(selectedJobType);
+        const result = await getAvailableAppointmentsAction(selectedJobType, selectedSkill);
         
         if (!result.success) {
           throw new Error(result.error);
@@ -60,7 +62,7 @@ export default function DateStep() {
     if (selectedJobType) {
       fetchTimeSlots();
     }
-  }, [setAvailableTimeSlots, setIsLoading, setSelectedDate, selectedJobType]);
+  }, [setAvailableTimeSlots, setIsLoading, setSelectedDate, selectedJobType, selectedSkill]);
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date);
@@ -76,7 +78,7 @@ export default function DateStep() {
     }
   };
 
-  const handleTimeSlotClick = (timeSlot: any) => {
+  const handleTimeSlotClick = (timeSlot: TimeSlot) => {
     if (timeSlot.technicians.length === 0) return;
     
     // Randomly select a technician
