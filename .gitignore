@@ -7,3 +7,4 @@ test-podium/
 
 # Generated SDK code
 lib/servicetitan/generated/
+tsconfig.tsbuildinfo

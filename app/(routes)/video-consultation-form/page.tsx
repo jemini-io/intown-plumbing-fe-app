@@ -11,7 +11,7 @@ import ConfirmationStep from './components/ConfirmationStep';
 
 function VideoConsultationFormContent() {
   const searchParams = useSearchParams();
-  const { currentStep, setCurrentStep, resetForm } = useFormStore();
+  const { currentStep, setCurrentStep } = useFormStore();
 
   useEffect(() => {
     // Handle Stripe redirect from confirmation

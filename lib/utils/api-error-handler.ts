@@ -16,7 +16,7 @@ interface ApiError {
   code?: string | number;
   status?: number;
   name?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface ErrorHandlerOptions {

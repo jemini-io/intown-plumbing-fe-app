@@ -10,7 +10,6 @@ const states = [
 ];
 
 export default function ContactStep() {
-  const [isLoading, setIsLoading] = useState(false);
   const [phoneError, setPhoneError] = useState('');
   const [displayPhone, setDisplayPhone] = useState('');
   const { formData, selectedTechnician, selectedJobType, setFormData, setCurrentStep } = useFormStore();
@@ -46,7 +45,7 @@ export default function ContactStep() {
       } else {
         setDisplayPhone(value);
       }
-    } catch (error) {
+    } catch {
       setDisplayPhone(value);
     }
   };
@@ -59,7 +58,7 @@ export default function ContactStep() {
         const formatted = phoneNumber.formatNational();
         setDisplayPhone(formatted);
       }
-    } catch (error) {
+    } catch {
       // Keep original if formatting fails
     }
   };
@@ -68,7 +67,7 @@ export default function ContactStep() {
     try {
       const phoneNumber = parsePhoneNumber(phone, 'US');
       return phoneNumber.format('E.164'); // Returns +15551234567 format
-    } catch (error) {
+    } catch {
       return phone; // Fallback to original if parsing fails
     }
   };
@@ -170,7 +169,6 @@ export default function ContactStep() {
                   placeholder="Enter your full name"
                   value={formData.name}
                   onChange={handleChange}
-                  disabled={isLoading}
                 />
               </div>
               
@@ -190,7 +188,6 @@ export default function ContactStep() {
                   value={displayPhone}
                   onChange={handlePhoneChange}
                   onBlur={handlePhoneBlur}
-                  disabled={isLoading}
                 />
                 {phoneError && (
                   <p className="mt-1 text-sm text-red-600">{phoneError}</p>
@@ -210,7 +207,6 @@ export default function ContactStep() {
                   placeholder="your.email@example.com"
                   value={formData.email}
                   onChange={handleChange}
-                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -234,7 +230,6 @@ export default function ContactStep() {
                   placeholder="123 Main Street"
                   value={formData.street}
                   onChange={handleChange}
-                  disabled={isLoading}
                 />
               </div>
               
@@ -250,7 +245,6 @@ export default function ContactStep() {
                   placeholder="Apt 2B (optional)"
                   value={formData.unit}
                   onChange={handleChange}
-                  disabled={isLoading}
                 />
               </div>
               
@@ -268,7 +262,6 @@ export default function ContactStep() {
                     placeholder="City"
                     value={formData.city}
                     onChange={handleChange}
-                    disabled={isLoading}
                   />
                 </div>
                 
@@ -283,7 +276,6 @@ export default function ContactStep() {
                     className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
                     value={formData.state}
                     onChange={handleChange}
-                    disabled={isLoading}
                   >
                     <option value="">Select State</option>
                     {states.map(state => (
@@ -307,7 +299,6 @@ export default function ContactStep() {
                   placeholder="12345"
                   value={formData.zip}
                   onChange={handleChange}
-                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -330,41 +321,14 @@ export default function ContactStep() {
             
             <button
               type="submit"
-              disabled={isLoading}
               className="w-full sm:flex-1 px-6 py-3 border border-transparent rounded-lg text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg
-                    className="animate-spin h-5 w-5 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Processing...
-                </span>
-              ) : (
-                <span className="flex items-center justify-center gap-2">
+              <span className="flex items-center justify-center gap-2">
                   Continue to Payment
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </span>
-              )}
             </button>
           </div>
         </form>

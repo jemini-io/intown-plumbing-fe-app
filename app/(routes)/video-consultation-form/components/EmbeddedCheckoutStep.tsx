@@ -87,7 +87,7 @@ export default function EmbeddedCheckoutStep() {
             <p className="text-sm text-gray-600">Finalizing your appointment...</p>
             <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4 w-full max-w-sm">
               <p className="text-xs text-blue-700 text-center">
-                Please don't close this window while we process your request.
+                Please don&apos;t close this window while we process your request.
               </p>
             </div>
           </div>

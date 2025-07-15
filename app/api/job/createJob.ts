@@ -2,12 +2,12 @@ import { env } from "@/lib/config/env";
 import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_ID } from '@/lib/utils/constants';
 import { AuthService, InvoiceService, JobService } from "../services/services";
 import { ServiceTitanClient } from "@/lib/servicetitan";
-import { Job, Location, Customer } from "./types";
+import type { Job, Location, Customer } from './types';
 import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan";
 
 const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
-export async function createJobAppointment({ job, location, customer }: { job: Job, location: Location, customer: Customer }): Promise<any> {
+export async function createJobAppointment({ job, location, customer }: { job: Job, location: Location, customer: Customer }): Promise<Job> {
     const authService = new AuthService(environment);
     const jobService = new JobService(environment);
     const invoiceService = new InvoiceService(environment);
@@ -30,7 +30,7 @@ export async function createJobAppointment({ job, location, customer }: { job: J
 
     // Check if a customer already exists
     const existingCustomers = await client.crm.CustomersService.customersGetList({
-        tenant: parseInt(tenantId),
+        tenant: Number(tenantId),
         name: name,
         street: street,
         zip: zip,
@@ -44,8 +44,8 @@ export async function createJobAppointment({ job, location, customer }: { job: J
 
         // Fetch locations for the existing customer
         const locationsResponse = await client.crm.LocationsService.locationsGetList({
-            tenant: parseInt(tenantId),
-            customerId: stCustomer?.id || 0
+            tenant: Number(tenantId),
+            customerId: Number(stCustomer?.id || 0)
         });
         if (locationsResponse && locationsResponse.data && locationsResponse.data.length > 0) {
             // Add locations to the customer object
@@ -104,7 +104,7 @@ export async function createJobAppointment({ job, location, customer }: { job: J
             ]
         }
         const customerResponse = await client.crm.CustomersService.customersCreate({
-            tenant: parseInt(tenantId),
+            tenant: Number(tenantId),
             requestBody: customerData
         });
         console.log("Customer created:", customerResponse.id);
@@ -117,7 +117,7 @@ export async function createJobAppointment({ job, location, customer }: { job: J
     }
 
     // Check if a job already exists
-    const existingJobs = await jobService.getJob(authToken, appKey, tenantId, technicianId, startTime, appointmentStartsBefore);
+    const existingJobs = await jobService.getJob(authToken, appKey, String(tenantId), String(technicianId), startTime, appointmentStartsBefore);
     if (existingJobs && existingJobs.data && existingJobs.data.length > 0) {
         console.log('Job already exists:', existingJobs.data[0].id);
         return existingJobs.data[0];
@@ -125,26 +125,26 @@ export async function createJobAppointment({ job, location, customer }: { job: J
 
     // Create job
     const jobData = {
-        customerId: stCustomer.id,
-        locationId: stCustomer.locations[0].id,
-        businessUnitId: BUSINESS_UNIT_ID,
-        jobTypeId: jobTypeId,
+        customerId: Number(stCustomer.id),
+        locationId: Number(stCustomer.locations[0].id),
+        businessUnitId: Number(BUSINESS_UNIT_ID),
+        jobTypeId: Number(jobTypeId),
         priority: "Normal", // KEEP for now
-        campaignId: CAMPAIGN_ID,
+        campaignId: Number(CAMPAIGN_ID),
         appointments: [{
             start: startTime,
             end: endTime,
             arrivalWindowStart: startTime,
             arrivalWindowEnd: endTime,
-            technicianIds: [technicianId]
+            technicianIds: [Number(technicianId)]
         }],
         summary: summary
     };
     console.log("Job data:", jobData);
     console.log("Creating job starting at:", startTime);
-    const jobResponse = await jobService.createJob(authToken, appKey, tenantId, jobData);
+    const jobResponse = await jobService.createJob(authToken, appKey, String(tenantId), jobData);
     console.log("Job created:", jobResponse.id);
-    const invoiceResponse = await invoiceService.getInvoiceByJobId(authToken, appKey, tenantId, jobResponse.id);
+    const invoiceResponse = await invoiceService.getInvoiceByJobId(authToken, appKey, String(tenantId), String(jobResponse.id));
     console.log("Invoice response:", invoiceResponse.data);
     if (invoiceResponse && invoiceResponse.data && invoiceResponse.data.length > 0) {
         const invoiceId = invoiceResponse.data[0].id;
@@ -155,16 +155,16 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                     skuId: VIRTUAL_SERVICE_SKU_ID, //TODO: change skuName to the sku name of the service
                     description: "New Service Jemini", //TODO: change description to the description of the service
                     unitPrice: 100, //TODO: change amount to the amount of the service
-                    technicianId: technicianId,
+                    technicianId: String(technicianId),
                     quantity: 1
                 }
             ]
         };
-        await invoiceService.updateInvoice(authToken, appKey, tenantId, invoiceId, updatedInvoiceData);
+        await invoiceService.updateInvoice(authToken, appKey, String(tenantId), String(invoiceId), updatedInvoiceData);
         console.log("Invoice updated:", invoiceId);
         
         // Check for existing payments
-        const paymentsResponse = await invoiceService.getPaymentsByInvoiceId(authToken, appKey, tenantId, invoiceId);
+        const paymentsResponse = await invoiceService.getPaymentsByInvoiceId(authToken, appKey, String(tenantId), String(invoiceId));
         console.log("Payments response:", paymentsResponse.data);
         if (paymentsResponse && paymentsResponse.data && paymentsResponse.data.length > 0) {
             console.log("Existing payments found:", paymentsResponse.data);
@@ -177,11 +177,11 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                 authCode: "123", //TODO: get auth code from customer
                 status: "Posted", 
                 splits: [{
-                    invoiceId: invoiceId,
+                    invoiceId: String(invoiceId),
                     amount: 100.00 //TODO: change amount to the amount paid by customer
                 }]
             };
-            await invoiceService.createPayment(authToken, appKey, tenantId, paymentData);
+            await invoiceService.createPayment(authToken, appKey, String(tenantId), paymentData);
             console.log("Payment created:", paymentData);
         }
     }

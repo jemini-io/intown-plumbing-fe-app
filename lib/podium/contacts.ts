@@ -12,7 +12,7 @@ export interface UpdateContactData {
   phoneNumber: string
   name?: string
   email?: string
-  attributes?: Record<string, any>
+  attributes?: Record<string, unknown>
 }
 
 /**

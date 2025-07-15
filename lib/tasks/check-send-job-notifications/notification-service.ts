@@ -44,7 +44,7 @@ export async function sendConsultationReminder(job: Jpm_V2_JobResponse, customer
     }
 
     // Send SMS via Podium
-    const result = await sendTextMessage(
+    await sendTextMessage(
       customer.phone,
       message,
       customerName

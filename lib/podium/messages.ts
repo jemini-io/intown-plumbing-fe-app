@@ -39,7 +39,7 @@ export function formatPhoneForSubmission(phone: string): string {
     
     // Fallback: return original if we can't parse it
     return phone;
-  } catch (error) {
+  } catch {
     return phone; // Fallback to original if parsing fails
   }
 }

@@ -1,7 +1,9 @@
 "use client";
 
-import { useFormStore } from "../useFormStore";
+import React from 'react';
+import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
+import Image from 'next/image';
 
 export default function ConfirmationStep() {
   const { formData, selectedTechnician, selectedJobType, jobId, resetForm } =
@@ -50,7 +52,7 @@ export default function ConfirmationStep() {
 
         {/* Success Animation */}
         <div className="bg-white border border-gray-200 rounded-lg p-4 overflow-hidden">
-          <img 
+          <Image
             src="https://media1.giphy.com/media/v1.Y2lkPTc5MGI3NjExZGttZ29obDZxc3FvZ2Jud2xxODVrejhnbHR6c2psMzZnbTA3cWhqOSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/HOsHtiVdeypFxOhLAf/giphy.gif"
             alt="Success celebration"
             className="w-full h-32 sm:h-40 object-cover rounded-lg"
@@ -133,7 +135,7 @@ export default function ConfirmationStep() {
               </svg>
             </div>
             <div className="text-left">
-              <p className="text-sm font-medium text-amber-800 mb-1">What's Next?</p>
+              <p className="text-sm font-medium text-amber-800 mb-1">What&apos;s Next?</p>
               <p className="text-sm text-amber-700">
                 You will receive appointment reminders via SMS and email. Please ensure you have a stable internet connection for your virtual consultation.
               </p>

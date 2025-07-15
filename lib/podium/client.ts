@@ -39,14 +39,14 @@ export class PodiumClient {
     return this.makeRequest<T>(endpoint)
   }
 
-  async post<T>(endpoint: string, data: any): Promise<PodiumApiResponse<T>> {
+  async post<T>(endpoint: string, data: unknown): Promise<PodiumApiResponse<T>> {
     return this.makeRequest<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
     })
   }
 
-  async put<T>(endpoint: string, data: any): Promise<PodiumApiResponse<T>> {
+  async put<T>(endpoint: string, data: unknown): Promise<PodiumApiResponse<T>> {
     return this.makeRequest<T>(endpoint, {
       method: 'PUT', 
       body: JSON.stringify(data),

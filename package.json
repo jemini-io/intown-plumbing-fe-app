@@ -8,6 +8,7 @@
     "build": "npm run generate:sdk && next build",
     "start": "next start",
     "lint": "next lint",
+    "typecheck": "tsc --noEmit",
     "test:whereby": "dotenv -e .env -- tsx test/test-whereby.ts",
     "job-notifications:test": "dotenv -e .env -- lib/tasks/check-send-job-notifications/test-cli.sh --dry-run",
     "job-notifications": "dotenv -e .env -- npx tsx lib/tasks/check-send-job-notifications/index.ts",
