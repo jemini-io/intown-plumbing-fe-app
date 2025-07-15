@@ -1,24 +1,58 @@
-# Contact Form App
+# Virtual Consultation Service App
 
-A simple Next.js application with a contact form that submits data to a webhook.
+> Books virtual consultations for InTown Plumbing.
 
 ## Setup
 
 1. Install dependencies:
-```bash
-npm install
-```
 
-2. Start the development server:
-```bash
-npm run dev
-```
+   ```bash
+   npm install
+   ```
 
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
+2. Copy environment variables:
+
+   ```bash
+   cp .example.env .env
+   ```
+
+   Edit `.env` with your actual secrets and configuration.
+
+3. Start the development server:
+
+   ```bash
+   npm run dev
+   ```
+
+   Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## Configuration
 
-Before using the form, you need to update the webhook URL in `app/page.tsx`. Replace `'YOUR_WEBHOOK_URL'` with your actual webhook endpoint.
+- Set all required environment variables in your `.env` file (see `.example.env` for reference).
+
+## Build
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+To start the production server:
+
+```bash
+npm start
+```
+
+## Deployment
+
+This app is deployed on [Render](https://render.com):
+
+- **Main App:** Deploy the main Next.js app as a web service.
+- **Cron Tasks:** Deploy a second service (cron job) to run background tasks (see `lib/tasks/check-send-job-notifications`).  
+  Configure the cron job in Render to run the appropriate script/command at your desired schedule.
+
+Set all required environment variables in the Render dashboard for each service.
 
 ## Features
 
@@ -29,10 +63,9 @@ Before using the form, you need to update the webhook URL in `app/page.tsx`. Rep
 - Responsive design
 - Tailwind CSS styling
 
-## Development
+## Tech Stack
 
-The app is built with:
 - Next.js 14
 - TypeScript
 - Tailwind CSS
-- React Hook Form 
+- React Hook Form
