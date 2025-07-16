@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "clean": "rm -rf .next && rm -rf node_modules && npm run clean:sdk",
-    "build": "npm run generate:sdk && next build",
+    "build": "npm run generate:sdk && npm run lint && npm run typecheck && next build",
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",

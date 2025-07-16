@@ -23,6 +23,14 @@ export interface CreateJobData {
   state: string;
   zip: string;
   country: string;
+  // Bill To Address fields
+  billToStreet?: string;
+  billToUnit?: string;
+  billToCity?: string;
+  billToState?: string;
+  billToZip?: string;
+  billToCountry?: string;
+  billToSameAsService?: boolean;
 }
 
 export interface CreateJobActionResult {
@@ -98,7 +106,14 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       customer: {
         name: data.name,
         email: data.email,
-        phone: data.phone
+        phone: data.phone,
+        // Bill To Address logic will be handled in createJobAppointment
+        billToStreet: data.billToStreet,
+        billToUnit: data.billToUnit,
+        billToCity: data.billToCity,
+        billToState: data.billToState,
+        billToZip: data.billToZip,
+        billToSameAsService: data.billToSameAsService
       }
     });
 

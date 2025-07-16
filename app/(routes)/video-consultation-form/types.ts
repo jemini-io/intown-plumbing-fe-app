@@ -5,9 +5,18 @@ export interface FormData {
   startTime?: string;
   endTime?: string;
   street: string;
+  unit?: string;
   city: string;
   state: string;
   zip: string;
+  country?: string;
+  // Bill To Address fields
+  billToStreet?: string;
+  billToUnit?: string;
+  billToCity?: string;
+  billToState?: string;
+  billToZip?: string;
+  billToSameAsService?: boolean;
 }
 
 export interface Technician {

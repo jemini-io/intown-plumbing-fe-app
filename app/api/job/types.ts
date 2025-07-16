@@ -20,4 +20,11 @@ export interface Customer {
     name: string;
     email: string;
     phone: string;
+    // Bill To Address fields
+    billToStreet?: string;
+    billToUnit?: string;
+    billToCity?: string;
+    billToState?: string;
+    billToZip?: string;
+    billToSameAsService?: boolean;
 }

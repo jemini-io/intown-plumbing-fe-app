@@ -12,7 +12,9 @@ export async function createJobAppointment({ job, location, customer }: { job: J
 
     const { startTime, endTime, technicianId, jobTypeId, summary } = job;
     const { street, unit, city, state, zip, country } = location;
-    const { name, email, phone } = customer;
+    const { name, email, phone,
+      billToStreet, billToUnit, billToCity, billToState, billToZip, billToSameAsService
+    } = customer;
     const tenantId = Number(env.servicetitan.tenantId);
 
     // Calculate appointmentStartsBefore
@@ -50,7 +52,7 @@ export async function createJobAppointment({ job, location, customer }: { job: J
             doNotMail: true,
             doNotService: false,
             locations: [{
-                name: `${name} Residence`,
+                name: `${name} Service Address`,
                 address: {
                     street,
                     unit,
@@ -73,12 +75,12 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                 ]
             }],
             address: {
-                street,
-                unit,
-                city,
-                state,
-                zip,
-                country
+                street: billToSameAsService ? street : (billToStreet || ''),
+                unit: billToSameAsService ? unit : (billToUnit || ''),
+                city: billToSameAsService ? city : (billToCity || ''),
+                state: billToSameAsService ? state : (billToState || ''),
+                zip: billToSameAsService ? zip : (billToZip || ''),
+                country: billToSameAsService ? country : 'US'
             },
             contacts: [
                 {

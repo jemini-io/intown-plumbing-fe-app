@@ -24,6 +24,19 @@ export default function ContactStep() {
     setDisplayPhone(formData.phone);
   }, [formData.phone]);
 
+  // Sync Bill To Address with Service Address when checkbox is checked
+  useEffect(() => {
+    if (formData.billToSameAsService) {
+      setFormData({
+        billToStreet: formData.street,
+        billToUnit: formData.unit,
+        billToCity: formData.city,
+        billToState: formData.state,
+        billToZip: formData.zip,
+      });
+    }
+  }, [formData.billToSameAsService, formData.street, formData.unit, formData.city, formData.state, formData.zip, formData.country, setFormData]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ [name]: value });
@@ -298,6 +311,110 @@ export default function ContactStep() {
                   className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
                   placeholder="12345"
                   value={formData.zip}
+                  onChange={handleChange}
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Bill To Address Section */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-gray-900 border-b border-gray-200 pb-2">Bill To Address</h3>
+            <div>
+              <label className="inline-flex items-center">
+                <input
+                  type="checkbox"
+                  name="billToSameAsService"
+                  checked={formData.billToSameAsService ?? true}
+                  onChange={e => setFormData({ billToSameAsService: e.target.checked })}
+                  className="form-checkbox h-5 w-5 text-blue-600"
+                />
+                <span className="ml-2 text-sm text-gray-700">Same as Service Address</span>
+              </label>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="billToStreet" className="block text-sm font-medium text-gray-700 mb-2">
+                  Street Address *
+                </label>
+                <input
+                  id="billToStreet"
+                  name="billToStreet"
+                  type="text"
+                  required
+                  disabled={formData.billToSameAsService}
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="123 Main Street"
+                  value={formData.billToStreet}
+                  onChange={handleChange}
+                />
+              </div>
+              <div>
+                <label htmlFor="billToUnit" className="block text-sm font-medium text-gray-700 mb-2">
+                  Unit/Apartment
+                </label>
+                <input
+                  id="billToUnit"
+                  name="billToUnit"
+                  type="text"
+                  disabled={formData.billToSameAsService}
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="Apt 2B (optional)"
+                  value={formData.billToUnit}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="billToCity" className="block text-sm font-medium text-gray-700 mb-2">
+                    City *
+                  </label>
+                  <input
+                    id="billToCity"
+                    name="billToCity"
+                    type="text"
+                    required
+                    disabled={formData.billToSameAsService}
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                    placeholder="City"
+                    value={formData.billToCity}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="billToState" className="block text-sm font-medium text-gray-700 mb-2">
+                    State *
+                  </label>
+                  <select
+                    id="billToState"
+                    name="billToState"
+                    required
+                    disabled={formData.billToSameAsService}
+                    className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors bg-white"
+                    value={formData.billToState}
+                    onChange={handleChange}
+                  >
+                    <option value="">Select State</option>
+                    {states.map(state => (
+                      <option key={state} value={state}>{state}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="sm:w-1/2">
+                <label htmlFor="billToZip" className="block text-sm font-medium text-gray-700 mb-2">
+                  ZIP Code *
+                </label>
+                <input
+                  id="billToZip"
+                  name="billToZip"
+                  type="text"
+                  pattern="\d{5}"
+                  required
+                  disabled={formData.billToSameAsService}
+                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  placeholder="12345"
+                  value={formData.billToZip}
                   onChange={handleChange}
                 />
               </div>

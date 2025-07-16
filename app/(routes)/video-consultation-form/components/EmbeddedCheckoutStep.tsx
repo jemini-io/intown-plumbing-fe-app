@@ -61,6 +61,13 @@ export default function EmbeddedCheckoutStep() {
         state: formData.state,
         zip: formData.zip,
         country: 'US',
+        billToStreet: formData.billToStreet,
+        billToUnit: formData.billToUnit,
+        billToCity: formData.billToCity,
+        billToState: formData.billToState,
+        billToZip: formData.billToZip,
+        billToCountry: 'US',
+        billToSameAsService: formData.billToSameAsService,
       });
 
       if (!result.success) {
