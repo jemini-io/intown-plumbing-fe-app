@@ -88,7 +88,6 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
         const shifts = shiftsResponse.data;
 
         // Fetch appointments for this technician
-        // const appointmentsResponse = await appointmentService.getAppointments(authToken, appKey, tenantId, now.toISOString(), tech.id);
         const appointmentsResponse = await client.jpm.AppointmentsService.appointmentsGetList({
             tenant: tenantId,
             technicianId: tech.technicianId,
