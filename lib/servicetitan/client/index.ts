@@ -17,12 +17,10 @@ export class ServiceTitanClient {
   public accounting: typeof AccountingServices;
   private authManager: ServiceTitanAuthManager;
   private appKey: string;
-  private tenantId: number;
 
   constructor() {
     this.authManager = new ServiceTitanAuthManager();
     this.appKey = env.servicetitan.appKey;
-    this.tenantId = Number(env.servicetitan.tenantId);
 
     // Configure OpenAPI for each service with dynamic token resolver
     this.configureServiceAuth(DispatchServices.OpenAPI);
