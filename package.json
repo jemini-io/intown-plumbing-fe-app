@@ -6,6 +6,7 @@
     "dev": "dotenv -e .env.test.local next dev",
     "clean": "rm -rf .next && rm -rf node_modules && npm run clean:sdk",
     "build": "npm run generate:sdk && npm run lint && next build",
+    "build:test": "npm run generate:sdk && npm run lint && dotenv -e .env.test.local next build",
     "start": "next start",
     "lint": "next lint --fix && npx tsc --noEmit",
     "test:whereby": "dotenv -e .env -- tsx test/test-whereby.ts",
