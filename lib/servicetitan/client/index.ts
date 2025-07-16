@@ -6,6 +6,7 @@ import * as JpmServices from '../generated/jpm';
 import * as PricebookServices from '../generated/pricebook';
 import * as SettingsServices from '../generated/settings';
 import * as CrmServices from '../generated/crm';
+import * as AccountingServices from '../generated/accounting';
 import { OpenAPIConfig } from '../generated/dispatch/core/OpenAPI';
 
 export class ServiceTitanClient {
@@ -17,6 +18,7 @@ export class ServiceTitanClient {
   public pricebook: typeof PricebookServices;
   public settings: typeof SettingsServices;
   public crm: typeof CrmServices;
+  public accounting: typeof AccountingServices;
 
   constructor(auth: ServiceTitanAuth) {
     this.baseClient = new ServiceTitanBaseClient(auth);
@@ -27,13 +29,14 @@ export class ServiceTitanClient {
     this.configureServiceAuth(PricebookServices.OpenAPI, auth);
     this.configureServiceAuth(SettingsServices.OpenAPI, auth);
     this.configureServiceAuth(CrmServices.OpenAPI, auth);
-    
+    this.configureServiceAuth(AccountingServices.OpenAPI, auth);
     // Initialize API services
     this.dispatch = DispatchServices;
     this.jpm = JpmServices;
     this.pricebook = PricebookServices;
     this.settings = SettingsServices;
     this.crm = CrmServices;
+    this.accounting = AccountingServices;
   }
 
   private configureServiceAuth(openAPI: OpenAPIConfig, auth: ServiceTitanAuth) {

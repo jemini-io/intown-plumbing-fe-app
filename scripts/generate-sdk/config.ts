@@ -25,6 +25,12 @@ export const SERVICE_TITAN_APIS: ServiceTitanApiConfig[] = [
     baseUrl: 'https://api-integration.servicetitan.io/pricebook/v2'
   },
   {
+    name: 'accounting',
+    specPath: 'res/service-titan/tenant-accounting-v2.yaml',
+    outputPath: 'lib/servicetitan/generated/accounting',
+    baseUrl: 'https://api-integration.servicetitan.io/accounting/v2'
+  },
+  {
     name: 'settings',
     specPath: 'res/service-titan/tenant-settings-v2.yaml',
     outputPath: 'lib/servicetitan/generated/settings',
