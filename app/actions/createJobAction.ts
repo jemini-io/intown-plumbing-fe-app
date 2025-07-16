@@ -3,7 +3,7 @@
 import { createJobAppointment } from "@/app/api/job/createJob";
 import { sendAppointmentConfirmation } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
-import { AuthService, JobService } from "@/app/api/services/services";
+import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
 import { CUSTOM_FIELDS_MAPPING } from "@/lib/utils/constants";
 import { env } from "@/lib/config/env";
@@ -27,7 +27,7 @@ export interface CreateJobData {
 
 export interface CreateJobActionResult {
   success: boolean;
-  id?: string;
+  id?: number;
   error?: string;
   notificationSent?: boolean;
   meetingCreated?: boolean;
@@ -35,17 +35,10 @@ export interface CreateJobActionResult {
 }
 
 async function updateJobWithMeetingDetails(
-  jobId: string,
+  jobId: number,
   meetingDetails: WherebyMeeting
 ): Promise<void> {
-  const authService = new AuthService(env.environment);
-  const jobService = new JobService(env.environment);
-  
-  // Get auth token
-  const authToken = await authService.getAuthToken(
-    env.servicetitan.clientId,
-    env.servicetitan.clientSecret
-  );
+  const serviceTitanClient = new ServiceTitanClient();
 
   // Prepare custom fields data with proper typing
   const customFields: Jpm_V2_CustomFieldModel[] = [
@@ -64,13 +57,12 @@ async function updateJobWithMeetingDetails(
     customFields
   };
 
-  await jobService.updateJob(
-    authToken,
-    env.servicetitan.appKey,
-    env.servicetitan.tenantId,
-    jobId,
-    updateData
-  );
+  // TODO: this probably shouldn't be here.
+  await serviceTitanClient.jpm.JobsService.jobsUpdate({
+    tenant: Number(env.servicetitan.tenantId),
+    id: jobId,
+    requestBody: updateData
+  });
 
   console.log(`[createJobAction] Successfully updated ServiceTitan job ${jobId} with meeting details:`, {
     meetingId: meetingDetails.meetingId,
