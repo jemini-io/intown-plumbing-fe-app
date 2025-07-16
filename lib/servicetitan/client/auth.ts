@@ -4,7 +4,7 @@ export class AuthService {
     private baseUrl: string;
 
     constructor() {
-        this.baseUrl = env.environment === 'prod' ? 'https://auth.servicetitan.io' : 'https://auth-integration.servicetitan.io';
+        this.baseUrl = env.appEnv === 'prod' ? 'https://auth.servicetitan.io' : 'https://auth-integration.servicetitan.io';
     }
 
     async getAuthToken(): Promise<{ access_token: string, expires_in: number }> {

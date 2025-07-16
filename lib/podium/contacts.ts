@@ -1,4 +1,4 @@
-import { PODIUM_LOCATION_ID } from '../utils/constants'
+import { config } from '../config'
 import { podiumClient } from './client'
 import { PodiumContact, PodiumContactCreatedResponse, PodiumContactRequest } from './types'
 
@@ -21,7 +21,7 @@ export interface UpdateContactData {
  */
 export async function createOrUpdateContact(data: CreateContactData): Promise<PodiumContact> {
   const contactData: PodiumContactRequest = {
-    locations: [PODIUM_LOCATION_ID],
+    locations: [config.podium.locationId],
     name: data.name,
     phoneNumber: data.phoneNumber,
   }

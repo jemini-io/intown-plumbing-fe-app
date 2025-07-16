@@ -3,7 +3,7 @@
 import { getAvailableAppointmentsAction } from '@/app/actions/getAvailableAppointments';
 import type { TimeSlot } from '@/app/api/appointments/getAppointments';
 import FormLayout from '@/components/FormLayout';
-import { THIRTY_MINUTES } from '@/lib/utils/constants';
+import { getAppointmentDuration } from '@/app/actions/getConfig';
 import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 
@@ -26,6 +26,15 @@ export default function DateStep() {
   } = useFormStore();
 
   const [error, setError] = useState<string | null>(null);
+  const [appointmentDuration, setAppointmentDuration] = useState(0);
+
+  useEffect(() => {
+    const fetchAppointmentDuration = async () => {
+      const duration = await getAppointmentDuration();
+      setAppointmentDuration(duration);
+    };
+    fetchAppointmentDuration();
+  }, []);
 
   useEffect(() => {
     const fetchTimeSlots = async () => {
@@ -90,7 +99,7 @@ export default function DateStep() {
     
     // Set start and end times
     const selectedDateObj = new Date(timeSlot.time);
-    const endTime = new Date(selectedDateObj.getTime() + THIRTY_MINUTES);
+    const endTime = new Date(selectedDateObj.getTime() + appointmentDuration);
     
     setFormData({
       startTime: selectedDateObj.toISOString(),

@@ -2,7 +2,7 @@
 
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { env } from "@/lib/config/env";
-import { ST_BUSINESS_UNIT_ID, SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/constants";
+import { config } from "@/lib/config";
 
 
 /**
@@ -11,7 +11,7 @@ import { ST_BUSINESS_UNIT_ID, SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/c
 export async function getJobTypesByServiceTitanIds() {
   const serviceTitanClient = new ServiceTitanClient();
 
-  const uniqueServiceTitanIds = Array.from(new Set(SERVICE_TO_JOB_TYPES_MAPPING.map((service) => service.serviceTitanId)));
+  const uniqueServiceTitanIds = Array.from(new Set(config.serviceToJobTypes.map((service) => service.serviceTitanId)));
 
   // Fetch job types with the specific ID
   const jobTypes = await serviceTitanClient.jpm.JobTypesService.jobTypesGetList({
@@ -27,6 +27,6 @@ export async function getJobTypesByServiceTitanIds() {
 
   // Filter by business unit
   return jobTypes.data.filter((jobType) =>
-    jobType.businessUnitIds.includes(ST_BUSINESS_UNIT_ID)
+    jobType.businessUnitIds.includes(config.serviceTitan.businessUnitId)
   );
 }

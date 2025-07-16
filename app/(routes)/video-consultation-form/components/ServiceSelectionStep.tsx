@@ -1,7 +1,8 @@
 'use client';
 
 import FormLayout from '@/components/FormLayout';
-import { QuoteSkill, SERVICE_TO_JOB_TYPES_MAPPING, ServiceToJobTypeMapping } from '@/lib/utils/constants';
+import { getServiceTypes } from '@/app/actions/getConfig';
+import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
 import { useEffect, useRef, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 
@@ -34,8 +35,7 @@ export default function ServiceStep() {
       try {
         setIsLoadingJobTypes(true);
         setError(null);
-        // const jobTypes = await getJobTypesByBusinessUnit();
-        const jobTypes = SERVICE_TO_JOB_TYPES_MAPPING;
+        const jobTypes = await getServiceTypes();
         setAvailableJobTypes(jobTypes);
         console.log('Fetched job types:', jobTypes);
       } catch (error) {

@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { FormData } from './types';
-// import { JobType } from '@/app/api/servicetitan-api/types';
-import { ServiceToJobTypeMapping, QuoteSkill } from '@/lib/utils/constants';
+import { ServiceToJobTypeMapping, QuoteSkill } from '@/lib/config/types';
 
 interface Technician {
   id: string;

@@ -4,7 +4,7 @@ import { Accounting_V2_InvoiceUpdateRequest, Accounting_V2_PaymentCreateRequest 
 import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan/generated/crm";
 import { Jpm_V2_JobResponse } from "@/lib/servicetitan/generated/jpm";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
-import { ST_BUSINESS_UNIT_ID, ST_CAMPAIGN_ID, ST_STRIPE_PAYMENT_TYPE_ID, ST_VIRTUAL_SERVICE_SKU_ID, STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME } from '@/lib/utils/constants';
+import { config } from "@/lib/config";
 import type { Customer, Job, Location } from './types';
 
 
@@ -137,10 +137,10 @@ export async function createJobAppointment({
     const jobData = {
         customerId: Number(stCustomer.id),
         locationId: Number(stCustomer.locations[0].id),
-        businessUnitId: Number(ST_BUSINESS_UNIT_ID),
+        businessUnitId: Number(config.serviceTitan.businessUnitId),
         jobTypeId: Number(jobTypeId),
         priority: "Normal", // KEEP for now
-        campaignId: Number(ST_CAMPAIGN_ID),
+        campaignId: Number(config.serviceTitan.campaignId),
         appointments: [{
             start: startTime,
             end: endTime,
@@ -166,13 +166,13 @@ export async function createJobAppointment({
     console.log("Invoice Get by JobId response:", invoiceResponse.data);
     if (invoiceResponse.data && invoiceResponse.data.length > 0) {
         const invoiceId = invoiceResponse.data[0].id;
-        const productDetails = await getProductDetails(STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME);
+        const productDetails = await getProductDetails(config.stripe.virtualConsultationProductName);
         const updatedInvoiceData: Accounting_V2_InvoiceUpdateRequest = {
-            summary: STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME,
+            summary: config.stripe.virtualConsultationProductName,
             items: [
                 {
-                    skuId: ST_VIRTUAL_SERVICE_SKU_ID,
-                    description: STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME,
+                    skuId: config.serviceTitan.virtualServiceSkuId,
+                    description: config.stripe.virtualConsultationProductName,
                     unitPrice: productDetails.stripePrice,
                     technicianId: Number(technicianId),
                     quantity: 1
@@ -197,8 +197,8 @@ export async function createJobAppointment({
         } else {
             // Create payment if no existing payments
             const paymentData: Accounting_V2_PaymentCreateRequest = {
-                typeId: ST_STRIPE_PAYMENT_TYPE_ID,
-                memo: `Payment for ${STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME}`, //TODO: improve memo
+                typeId: config.serviceTitan.stripePaymentTypeId,
+                memo: `Payment for ${config.stripe.virtualConsultationProductName}`, //TODO: improve memo
                 paidOn: new Date().toISOString(), // Use current date or specify another date
                 status: "Posted",
                 splits: [{

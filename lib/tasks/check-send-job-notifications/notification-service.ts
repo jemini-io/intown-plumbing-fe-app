@@ -4,13 +4,13 @@ import { logger } from './logger'
 import { Customer, SMSResult } from './types'
 import { Jpm_V2_JobResponse } from '../../servicetitan/generated/jpm/models/Jpm_V2_JobResponse'
 import { EnrichedJob } from './types'
-import { CUSTOM_FIELDS_MAPPING } from '../../utils/constants'
+import { config } from "@/lib/config";
 
 /**
  * Extract the customer join link from job custom fields
  */
 function getCustomerJoinLink(job: Jpm_V2_JobResponse): string | undefined {
-  const fieldId = CUSTOM_FIELDS_MAPPING.customerJoinLink;
+  const fieldId = config.customFields.customerJoinLink;
   const field = job.customFields?.find(f => f.typeId === fieldId);
   return field?.value;
 }

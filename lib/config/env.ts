@@ -7,7 +7,7 @@ const getEnvVar = (key: string): string => {
 };
 
 export const env = {
-  environment: getEnvVar("NODE_ENV"),
+  appEnv: getEnvVar("APP_ENV"),
   stripe: {
     secretKey: getEnvVar("STRIPE_SECRET_KEY"),
   },

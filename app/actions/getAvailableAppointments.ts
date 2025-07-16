@@ -1,7 +1,7 @@
 'use server';
 
 import { DateEntry, getAvailableTimeSlots } from '@/app/api/appointments/getAppointments';
-import { ServiceToJobTypeMapping, QuoteSkill } from '@/lib/utils/constants';
+import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
 
 export interface GetAvailableAppointmentsResponse {
   success: boolean;

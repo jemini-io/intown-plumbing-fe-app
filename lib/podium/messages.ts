@@ -5,7 +5,7 @@ import {
   PodiumMessageResponse,
 } from "./types";
 import { createOrUpdateContact } from "./contacts";
-import { PODIUM_LOCATION_ID } from "../utils/constants";
+import { config } from "../config";
 
 /**
  * Format phone number to E.164 format for consistent API usage
@@ -100,7 +100,7 @@ export async function sendTextMessage(
   return sendPodiumMessage({
     phoneNumber: formattedPhone,
     body: message,
-    locationUid: PODIUM_LOCATION_ID,
+    locationUid: config.podium.locationId,
     contactName: contactName,
     channelType: "phone",
   });
