@@ -22,4 +22,4 @@ export const env = {
   whereby: {
     apiToken: getEnvVar("WHEREBY_API_TOKEN"),
   },
-} as const; 
+} as const;

@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev:comment": "echo cursor is caching env vars and injecting them in the terminal. The current dev scripts overcome this with source",
+    "dev": "source .env.test.local && next dev",
     "clean": "rm -rf .next && rm -rf node_modules && npm run clean:sdk",
     "build": "npm run generate:sdk && npm run lint && npm run typecheck && next build",
     "start": "next start",
