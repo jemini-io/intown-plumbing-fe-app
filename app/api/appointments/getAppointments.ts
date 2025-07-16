@@ -1,10 +1,9 @@
-import { AuthService } from '../services/services';
 import { ServiceTitanClient } from '@/lib/servicetitan';
 import { env } from "@/lib/config/env";
 import { Jpm_V2_AppointmentResponse, PaginatedResponse_Of_Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
 import { QuoteSkill, TECHNICIAN_TO_SKILLS_MAPPING } from '@/lib/utils/constants';
 
-const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
+const { servicetitan: { tenantId } } = env;
 
 interface Technician {
     id: string;
@@ -31,12 +30,7 @@ export interface JobType {
  * Accepts job details: skills and serviceTitanId
  */
 export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry[]> {
-    const authService = new AuthService(environment);
-    const client = new ServiceTitanClient({
-        authToken: await authService.getAuthToken(clientId, clientSecret),
-        appKey,
-        tenantId
-    });
+    const serviceTitanClient = new ServiceTitanClient();
     const now = new Date();
 
     // ST API does not return the skills for technicians.
@@ -48,7 +42,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     const techsSkillsList = TECHNICIAN_TO_SKILLS_MAPPING;
 
     // Get ST Job Type
-    const jobTypeResponse = await client.jpm.JobTypesService.jobTypesGet({
+    const jobTypeResponse = await serviceTitanClient.jpm.JobTypesService.jobTypesGet({
         tenant: tenantId,
         id: jobType.serviceTitanId
     });
@@ -79,7 +73,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
         const startOfToday = new Date(now);
         startOfToday.setHours(0, 0, 0, 0);
 
-        const shiftsResponse = await client.dispatch.TechnicianShiftsService.technicianShiftsGetList({
+        const shiftsResponse = await serviceTitanClient.dispatch.TechnicianShiftsService.technicianShiftsGetList({
             tenant: tenantId,
             technicianId: tech.technicianId,
             startsOnOrAfter: startOfToday.toISOString(),
@@ -88,7 +82,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
         const shifts = shiftsResponse.data;
 
         // Fetch appointments for this technician
-        const appointmentsResponse = await client.jpm.AppointmentsService.appointmentsGetList({
+        const appointmentsResponse = await serviceTitanClient.jpm.AppointmentsService.appointmentsGetList({
             tenant: tenantId,
             technicianId: tech.technicianId,
             startsOnOrAfter: startOfToday.toISOString(),

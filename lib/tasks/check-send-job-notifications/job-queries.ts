@@ -1,10 +1,12 @@
-import { AuthService } from '../../../app/api/services/services'
+
 import { env } from '../../config/env'
 import { ServiceTitanClient } from '../../servicetitan/client'
 import { NOTIFICATION_CONFIG } from './config'
 import { logger } from './logger'
 import { TimeWindow, EnrichedJob } from './types'
 import { Jpm_V2_JobResponse } from '../../servicetitan/generated/jpm/models/Jpm_V2_JobResponse'
+
+const tenantId = Number(env.servicetitan.tenantId);
 
 /**
  * Calculate time window for job queries (±5 minutes from now)
@@ -30,23 +32,11 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
       jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
     })
 
-    // Get auth token
-    const authService = new AuthService(env.environment)
-    const authToken = await authService.getAuthToken(
-      env.servicetitan.clientId,
-      env.servicetitan.clientSecret
-    )
-
-    // Create authenticated ServiceTitan client
-    const serviceTitanClient = new ServiceTitanClient({
-      authToken,
-      appKey: env.servicetitan.appKey,
-      tenantId: env.servicetitan.tenantId
-    })
+    const serviceTitanClient = new ServiceTitanClient();
 
     // Get jobs from ServiceTitan JPM service
     const response = await serviceTitanClient.jpm.JobsService.jobsGetList({
-      tenant: parseInt(env.servicetitan.tenantId),
+      tenant: tenantId,
       firstAppointmentStartsOnOrAfter: timeWindow.start.toISOString(),
       firstAppointmentStartsBefore: timeWindow.end.toISOString(),
       page: 1,
@@ -118,7 +108,7 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
 async function getJobAppointments(jobId: number, serviceTitanClient: ServiceTitanClient) {
   try {
     const response = await serviceTitanClient.jpm.AppointmentsService.appointmentsGetList({
-      tenant: parseInt(env.servicetitan.tenantId),
+      tenant: tenantId,
       jobId: jobId,
       page: 1,
       pageSize: 10
@@ -137,7 +127,7 @@ async function getJobAppointments(jobId: number, serviceTitanClient: ServiceTita
 async function getJobType(jobTypeId: number, serviceTitanClient: ServiceTitanClient) {
   try {
     const response = await serviceTitanClient.jpm.JobTypesService.jobTypesGet({
-      tenant: parseInt(env.servicetitan.tenantId),
+      tenant: tenantId,
       id: jobTypeId
     })
     
@@ -156,13 +146,13 @@ async function getCustomerForJob(customerId: number, serviceTitanClient: Service
     // Get customer details
     const customerResponse = await serviceTitanClient.crm.CustomersService.customersGet({
       id: customerId,
-      tenant: parseInt(env.servicetitan.tenantId)
+      tenant: tenantId
     })
 
     // Get customer contacts
     const contactsResponse = await serviceTitanClient.crm.CustomersService.customersGetContactList({
       id: customerId,
-      tenant: parseInt(env.servicetitan.tenantId),
+      tenant: tenantId,
       page: 1,
       pageSize: 10
     })
@@ -191,7 +181,7 @@ async function getCustomerForJob(customerId: number, serviceTitanClient: Service
 async function getJobNotes(jobId: number, serviceTitanClient: ServiceTitanClient) {
   try {
     const response = await serviceTitanClient.jpm.JobsService.jobsGetNotes({
-      tenant: parseInt(env.servicetitan.tenantId),
+      tenant: tenantId,
       id: jobId,
       page: 1,
       pageSize: 50
@@ -222,24 +212,12 @@ export async function addJobNote(jobId: number, noteText: string) {
       return { success: true, dryRun: true }
     }
 
-    // Get auth token
-    const authService = new AuthService(env.environment)
-    const authToken = await authService.getAuthToken(
-      env.servicetitan.clientId,
-      env.servicetitan.clientSecret
-    )
-
-    // Create authenticated ServiceTitan client
-    const serviceTitanClient = new ServiceTitanClient({
-      authToken,
-      appKey: env.servicetitan.appKey,
-      tenantId: env.servicetitan.tenantId
-    })
+    const serviceTitanClient = new ServiceTitanClient();
 
     // Add note to job
     await serviceTitanClient.jpm.JobsService.jobsCreateNote({
       id: jobId,
-      tenant: parseInt(env.servicetitan.tenantId),
+      tenant: tenantId,
       requestBody: {
         text: noteText
       }

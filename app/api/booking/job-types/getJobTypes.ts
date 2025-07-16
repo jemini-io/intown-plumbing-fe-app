@@ -1,6 +1,5 @@
 "use server";
 
-import { AuthService } from "@/app/api/services/services";
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { env } from "@/lib/config/env";
 import { BUSINESS_UNIT_ID, SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/constants";
@@ -10,23 +9,13 @@ import { BUSINESS_UNIT_ID, SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/cons
  * Get Job Types by Service Titan ID from the constants file
  */
 export async function getJobTypesByServiceTitanIds() {
-  const authService = new AuthService(env.environment);
-  const authToken = await authService.getAuthToken(
-    env.servicetitan.clientId,
-    env.servicetitan.clientSecret
-  );
-
-  const client = new ServiceTitanClient({
-    authToken,
-    appKey: env.servicetitan.appKey,
-    tenantId: env.servicetitan.tenantId
-  });
+  const serviceTitanClient = new ServiceTitanClient();
 
   const uniqueServiceTitanIds = Array.from(new Set(SERVICE_TO_JOB_TYPES_MAPPING.map((service) => service.serviceTitanId)));
 
   // Fetch job types with the specific ID
-  const jobTypes = await client.jpm.JobTypesService.jobTypesGetList({
-    tenant: parseInt(env.servicetitan.tenantId),
+  const jobTypes = await serviceTitanClient.jpm.JobTypesService.jobTypesGetList({
+    tenant: Number(env.servicetitan.tenantId),
     ids: uniqueServiceTitanIds.join(','),
     includeTotal: true,
     active: 'True'

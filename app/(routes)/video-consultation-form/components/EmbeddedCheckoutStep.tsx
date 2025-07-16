@@ -67,7 +67,7 @@ export default function EmbeddedCheckoutStep() {
         throw new Error(result.error || 'Unknown error');
       }
 
-      setJobId(result.id!); // Store job ID in zustand
+      setJobId(result.id!.toString()); // Store job ID in zustand
       setCurrentStep('confirmation');
     } catch (error) {
       console.error('Booking failed:', error);

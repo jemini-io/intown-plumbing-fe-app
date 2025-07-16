@@ -1,33 +1,26 @@
-import { env } from "@/lib/config/env";
 import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_ID } from '@/lib/utils/constants';
-import { AuthService } from "../services/services";
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import type { Job, Location, Customer } from './types';
 import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan/generated/crm";
 import { Jpm_V2_JobResponse } from "@/lib/servicetitan/generated/jpm";
 import { Accounting_V2_PaymentCreateRequest } from "@/lib/servicetitan/generated/accounting";
+import { env } from '@/lib/config/env';
 
-const { servicetitan: { clientId, clientSecret, appKey, tenantId }, environment } = env;
 
 export async function createJobAppointment({ job, location, customer }: { job: Job, location: Location, customer: Customer }): Promise<Jpm_V2_JobResponse> {
-    const authService = new AuthService(environment);
-    
-    const client = new ServiceTitanClient({
-        authToken: await authService.getAuthToken(clientId, clientSecret),
-        appKey,
-        tenantId
-    });
+    const serviceTitanClient = new ServiceTitanClient();
 
     const { startTime, endTime, technicianId, jobTypeId, summary } = job;
     const { street, unit, city, state, zip, country } = location;
     const { name, email, phone } = customer;
+    const tenantId = Number(env.servicetitan.tenantId);
 
     // Calculate appointmentStartsBefore
     const appointmentStartsBefore = new Date(new Date(endTime).getTime() + 30 * 60000).toISOString();
 
     // Check if a customer already exists
-    const existingCustomers = await client.crm.CustomersService.customersGetList({
-        tenant: Number(tenantId),
+    const existingCustomers = await serviceTitanClient.crm.CustomersService.customersGetList({
+        tenant: tenantId,
         name: name,
         street: street,
         zip: zip,
@@ -40,8 +33,8 @@ export async function createJobAppointment({ job, location, customer }: { job: J
         stCustomer = existingCustomers.data[0];
 
         // Fetch locations for the existing customer
-        const locationsResponse = await client.crm.LocationsService.locationsGetList({
-            tenant: Number(tenantId),
+        const locationsResponse = await serviceTitanClient.crm.LocationsService.locationsGetList({
+            tenant: tenantId,
             customerId: Number(stCustomer?.id || 0)
         });
         if (locationsResponse && locationsResponse.data && locationsResponse.data.length > 0) {
@@ -100,8 +93,8 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                 }
             ]
         }
-        const customerResponse = await client.crm.CustomersService.customersCreate({
-            tenant: Number(tenantId),
+        const customerResponse = await serviceTitanClient.crm.CustomersService.customersCreate({
+            tenant: tenantId,
             requestBody: customerData
         });
         console.log("Customer created:", customerResponse.id);
@@ -114,8 +107,8 @@ export async function createJobAppointment({ job, location, customer }: { job: J
     }
 
     // Check if a job already exists
-    const existingJobs = await client.jpm.JobsService.jobsGetList({
-        tenant: Number(tenantId),
+    const existingJobs = await serviceTitanClient.jpm.JobsService.jobsGetList({
+        tenant: tenantId,
         technicianId: Number(technicianId),
         firstAppointmentStartsOnOrAfter: startTime,
         firstAppointmentStartsBefore: appointmentStartsBefore,
@@ -147,15 +140,15 @@ export async function createJobAppointment({ job, location, customer }: { job: J
     };
     console.log("Job data:", jobData);
     console.log("Creating job starting at:", startTime);
-    const jobResponse = await client.jpm.JobsService.jobsCreate({
-        tenant: Number(tenantId),
+    const jobResponse = await serviceTitanClient.jpm.JobsService.jobsCreate({
+        tenant: tenantId,
         requestBody: jobData
     });
     console.log("Job created:", jobResponse.id);
 
     // Get invoice by jobId
-    const invoiceResponse = await client.accounting.InvoicesService.invoicesGetList({
-        tenant: Number(tenantId),
+    const invoiceResponse = await serviceTitanClient.accounting.InvoicesService.invoicesGetList({
+        tenant: tenantId,
         jobId: Number(jobResponse.id)
     });
     console.log("Invoice response:", invoiceResponse.data);
@@ -173,15 +166,15 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                 }
             ]
         };
-        await client.accounting.InvoicesService.invoicesUpdateInvoice({
-            tenant: Number(tenantId),
+        await serviceTitanClient.accounting.InvoicesService.invoicesUpdateInvoice({
+            tenant: tenantId,
             id: Number(invoiceId),
             requestBody: updatedInvoiceData
         });
         console.log("Invoice updated:", invoiceId);
         // Check for existing payments
-        const paymentsResponse = await client.accounting.PaymentsService.paymentsGetList({
-            tenant: Number(tenantId),
+        const paymentsResponse = await serviceTitanClient.accounting.PaymentsService.paymentsGetList({
+            tenant: tenantId,
             appliedToInvoiceIds: String(invoiceId)
         });
         console.log("Payments response:", paymentsResponse.data);
@@ -200,8 +193,8 @@ export async function createJobAppointment({ job, location, customer }: { job: J
                     amount: 100.00 //TODO: change amount to the amount paid by customer
                 }]
             };
-            await client.accounting.PaymentsService.paymentsCreate({
-                tenant: Number(tenantId),
+            await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
+                tenant: tenantId,
                 requestBody: paymentData
             });
             console.log("Payment created:", paymentData);

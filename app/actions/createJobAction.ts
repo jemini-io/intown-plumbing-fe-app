@@ -3,7 +3,6 @@
 import { createJobAppointment } from "@/app/api/job/createJob";
 import { sendAppointmentConfirmation } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
-import { AuthService } from "@/app/api/services/services";
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
 import { CUSTOM_FIELDS_MAPPING } from "@/lib/utils/constants";
@@ -28,7 +27,7 @@ export interface CreateJobData {
 
 export interface CreateJobActionResult {
   success: boolean;
-  id?: string;
+  id?: number;
   error?: string;
   notificationSent?: boolean;
   meetingCreated?: boolean;
@@ -39,15 +38,7 @@ async function updateJobWithMeetingDetails(
   jobId: number,
   meetingDetails: WherebyMeeting
 ): Promise<void> {
-  const authService = new AuthService(env.environment);
-  const client = new ServiceTitanClient({
-    authToken: await authService.getAuthToken(
-      env.servicetitan.clientId,
-      env.servicetitan.clientSecret
-    ),
-    appKey: env.servicetitan.appKey,
-    tenantId: env.servicetitan.tenantId
-  });
+  const serviceTitanClient = new ServiceTitanClient();
 
   // Prepare custom fields data with proper typing
   const customFields: Jpm_V2_CustomFieldModel[] = [
@@ -66,7 +57,8 @@ async function updateJobWithMeetingDetails(
     customFields
   };
 
-  await client.jpm.JobsService.jobsUpdate({
+  // TODO: this probably shouldn't be here.
+  await serviceTitanClient.jpm.JobsService.jobsUpdate({
     tenant: Number(env.servicetitan.tenantId),
     id: jobId,
     requestBody: updateData

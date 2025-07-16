@@ -113,7 +113,7 @@ export async function checkAndSendJobNotifications() {
     const duration = Date.now() - startTime
     metrics.duration = duration
     
-    logger.info('Task completed', metrics)
+    logger.info('Task completed', { ...metrics })
     
     return metrics
     
@@ -122,7 +122,7 @@ export async function checkAndSendJobNotifications() {
     const duration = Date.now() - startTime
     metrics.duration = duration
     
-    logger.error('Task failed', error, metrics)
+    logger.error('Task failed', error, { ...metrics })
     throw error
   }
 }
@@ -133,7 +133,7 @@ export async function checkAndSendJobNotifications() {
 if (require.main === module) {
   checkAndSendJobNotifications()
     .then((metrics) => {
-      logger.info('Cron job completed successfully', metrics)
+      logger.info('Cron job completed successfully', { ...metrics })
       process.exit(0)
     })
     .catch((error) => {
