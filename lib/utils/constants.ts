@@ -1,14 +1,17 @@
 export const THIRTY_MINUTES = 30 * 60000;
 
 // Pricebook -> Virtual Service 1:1 Customer / Tech
-export const VIRTUAL_SERVICE_SKU_ID = 76811280;
+export const ST_VIRTUAL_SERVICE_SKU_ID = 76811280;
 // "Service" business unit
-export const BUSINESS_UNIT_ID = 4282891;
+export const ST_BUSINESS_UNIT_ID = 4282891;
 // "Direct Web Traffic" campaign
-export const CAMPAIGN_ID = 46989774;
+export const ST_CAMPAIGN_ID = 46989774;
+// Service Titan Stripe Payment Type
+export const ST_STRIPE_PAYMENT_TYPE_ID = 76816941;
 
 export const PODIUM_LOCATION_ID = "ce0abd8b-af60-587f-bef5-aea4b16ccb2a";
 
+export const STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME = "Virtual Consultation";
 export interface ServiceToJobTypeMapping {
   id: number;
   displayName: string;

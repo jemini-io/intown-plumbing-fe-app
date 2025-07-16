@@ -10,7 +10,6 @@ export const env = {
   environment: getEnvVar("NODE_ENV"),
   stripe: {
     secretKey: getEnvVar("STRIPE_SECRET_KEY"),
-    priceId: getEnvVar("STRIPE_PRICE_ID"),
   },
   servicetitan: {
     clientId: getEnvVar("SERVICETITAN_CLIENT_ID"),

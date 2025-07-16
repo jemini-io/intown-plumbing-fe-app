@@ -1,13 +1,23 @@
-import { BUSINESS_UNIT_ID, CAMPAIGN_ID, VIRTUAL_SERVICE_SKU_ID } from '@/lib/utils/constants';
+import { env } from '@/lib/config/env';
 import { ServiceTitanClient } from "@/lib/servicetitan";
-import type { Job, Location, Customer } from './types';
+import { Accounting_V2_InvoiceUpdateRequest, Accounting_V2_PaymentCreateRequest } from "@/lib/servicetitan/generated/accounting";
 import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan/generated/crm";
 import { Jpm_V2_JobResponse } from "@/lib/servicetitan/generated/jpm";
-import { Accounting_V2_PaymentCreateRequest } from "@/lib/servicetitan/generated/accounting";
-import { env } from '@/lib/config/env';
+import { getProductDetails } from "@/lib/stripe/product-lookup";
+import { ST_BUSINESS_UNIT_ID, ST_CAMPAIGN_ID, ST_STRIPE_PAYMENT_TYPE_ID, ST_VIRTUAL_SERVICE_SKU_ID, STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME } from '@/lib/utils/constants';
+import type { Customer, Job, Location } from './types';
 
 
-export async function createJobAppointment({ job, location, customer }: { job: Job, location: Location, customer: Customer }): Promise<Jpm_V2_JobResponse> {
+export async function createJobAppointment({ 
+  job, 
+  location, 
+  customer,
+}: { 
+  job: Job, 
+  location: Location, 
+  customer: Customer,
+  productName?: string
+}): Promise<Jpm_V2_JobResponse> {
     const serviceTitanClient = new ServiceTitanClient();
 
     const { startTime, endTime, technicianId, jobTypeId, summary } = job;
@@ -127,10 +137,10 @@ export async function createJobAppointment({ job, location, customer }: { job: J
     const jobData = {
         customerId: Number(stCustomer.id),
         locationId: Number(stCustomer.locations[0].id),
-        businessUnitId: Number(BUSINESS_UNIT_ID),
+        businessUnitId: Number(ST_BUSINESS_UNIT_ID),
         jobTypeId: Number(jobTypeId),
         priority: "Normal", // KEEP for now
-        campaignId: Number(CAMPAIGN_ID),
+        campaignId: Number(ST_CAMPAIGN_ID),
         appointments: [{
             start: startTime,
             end: endTime,
@@ -153,21 +163,23 @@ export async function createJobAppointment({ job, location, customer }: { job: J
         tenant: tenantId,
         jobId: Number(jobResponse.id)
     });
-    console.log("Invoice response:", invoiceResponse.data);
-    if (invoiceResponse && invoiceResponse.data && invoiceResponse.data.length > 0) {
+    console.log("Invoice Get by JobId response:", invoiceResponse.data);
+    if (invoiceResponse.data && invoiceResponse.data.length > 0) {
         const invoiceId = invoiceResponse.data[0].id;
-        const updatedInvoiceData = {
-            summary: "test invoice test", //TODO: change summary to the summary of the invoice
+        const productDetails = await getProductDetails(STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME);
+        const updatedInvoiceData: Accounting_V2_InvoiceUpdateRequest = {
+            summary: STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME,
             items: [
                 {
-                    skuId: VIRTUAL_SERVICE_SKU_ID, //TODO: change skuName to the sku name of the service
-                    description: "New Service Jemini", //TODO: change description to the description of the service
-                    unitPrice: 100, //TODO: change amount to the amount of the service
+                    skuId: ST_VIRTUAL_SERVICE_SKU_ID,
+                    description: STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME,
+                    unitPrice: productDetails.stripePrice,
                     technicianId: Number(technicianId),
                     quantity: 1
                 }
             ]
         };
+        console.log("Updating invoice data:", updatedInvoiceData);
         await serviceTitanClient.accounting.InvoicesService.invoicesUpdateInvoice({
             tenant: tenantId,
             id: Number(invoiceId),
@@ -185,21 +197,20 @@ export async function createJobAppointment({ job, location, customer }: { job: J
         } else {
             // Create payment if no existing payments
             const paymentData: Accounting_V2_PaymentCreateRequest = {
-                typeId: 63, //TODO: get payment type to match the payment type paid by customer
-                memo: "sum test", //TODO: improve memo
+                typeId: ST_STRIPE_PAYMENT_TYPE_ID,
+                memo: `Payment for ${STRIPE_VIRTUAL_CONSULTATION_PRODUCT_NAME}`, //TODO: improve memo
                 paidOn: new Date().toISOString(), // Use current date or specify another date
-                authCode: "123", //TODO: get auth code from customer
                 status: "Posted",
                 splits: [{
                     invoiceId: Number(invoiceId),
-                    amount: 100.00 //TODO: change amount to the amount paid by customer
+                    amount: productDetails.stripePrice
                 }]
             };
+            console.log("Payment data:", paymentData);
             await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
                 tenant: tenantId,
                 requestBody: paymentData
             });
-            console.log("Payment created:", paymentData);
         }
     }
     return jobResponse;

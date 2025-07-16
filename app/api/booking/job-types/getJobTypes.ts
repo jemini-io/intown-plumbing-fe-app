@@ -2,7 +2,7 @@
 
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { env } from "@/lib/config/env";
-import { BUSINESS_UNIT_ID, SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/constants";
+import { ST_BUSINESS_UNIT_ID, SERVICE_TO_JOB_TYPES_MAPPING } from "@/lib/utils/constants";
 
 
 /**
@@ -27,6 +27,6 @@ export async function getJobTypesByServiceTitanIds() {
 
   // Filter by business unit
   return jobTypes.data.filter((jobType) =>
-    jobType.businessUnitIds.includes(BUSINESS_UNIT_ID)
+    jobType.businessUnitIds.includes(ST_BUSINESS_UNIT_ID)
   );
 }
