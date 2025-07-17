@@ -6,7 +6,7 @@ import { env } from "./env";
 
 export function loadConfig(): Config {
   const appEnv = env.appEnv || "test";
-  const configPath = join(__dirname, "..", "..", `lib/config/${appEnv}.yaml`);
+  const configPath = join(process.cwd(), "lib", "config", `${appEnv}.yaml`);
   
   try {
     const fileContents = readFileSync(configPath, "utf8");
