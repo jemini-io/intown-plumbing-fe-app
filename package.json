@@ -10,8 +10,8 @@
     "start": "next start",
     "lint": "next lint --fix && npx tsc --noEmit",
     "test:whereby": "dotenv -e .env -- tsx test/test-whereby.ts",
-    "job-notifications:test": "dotenv -e .env -- lib/tasks/check-send-job-notifications/test-cli.sh --dry-run",
-    "job-notifications": "dotenv -e .env -- npx tsx lib/tasks/check-send-job-notifications/index.ts",
+    "job-notifications:test": "dotenv -e .env.test.local -- lib/tasks/check-send-job-notifications/test-cli.sh --dry-run",
+    "job-notifications": "dotenv -e .env.test.local -- npx tsx lib/tasks/check-send-job-notifications/index.ts",
     "generate:sdk": "tsx scripts/generate-sdk/generate.ts",
     "clean:sdk": "rm -rf lib/servicetitan/generated"
   },

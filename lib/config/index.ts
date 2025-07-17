@@ -6,7 +6,7 @@ import { env } from "./env";
 
 export function loadConfig(): Config {
   const appEnv = env.appEnv || "test";
-  const configPath = join(process.cwd(), "lib", "config", `${appEnv}.yaml`);
+  const configPath = join(__dirname, "..", "..", `lib/config/${appEnv}.yaml`);
   
   try {
     const fileContents = readFileSync(configPath, "utf8");
@@ -18,7 +18,7 @@ export function loadConfig(): Config {
     return validatedConfig;
   } catch (error) {
     if (error instanceof Error) {
-      throw new Error(`Failed to load config for environment '${env}': ${error.message}`);
+      throw new Error(`Failed to load config for environment '${env.appEnv}': ${error.message}`);
     }
     throw error;
   }
