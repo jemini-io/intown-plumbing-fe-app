@@ -1,6 +1,6 @@
 # Virtual Consultation Service App
 
-> Books virtual consultations for InTown Plumbing.
+> Books virtual consultations for InTown Plumbing. Is iFrame embeddable.
 
 ## Setup
 
@@ -13,7 +13,7 @@
 2. Copy environment variables:
 
    ```bash
-   cp .example.env .env
+   cp .example.env .env.test.local
    ```
 
    Edit `.env` with your actual secrets and configuration.
@@ -28,7 +28,7 @@
 
 ## Configuration
 
-- Set all required environment variables in your `.env` file (see `.example.env` for reference).
+- Set all required environment variables in your `.env.test.local` file (see `.example.env` for reference).
 
 ## Build
 
