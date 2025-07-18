@@ -1,6 +1,5 @@
 'use client';
 
-// TODO: determine if we shoulds use this or not.
 export default function IframeLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-gray-50">
