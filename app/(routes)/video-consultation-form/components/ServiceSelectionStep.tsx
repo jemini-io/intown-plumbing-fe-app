@@ -3,14 +3,12 @@
 import FormLayout from '@/components/FormLayout';
 import { getServiceTypes } from '@/app/actions/getConfig';
 import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 
 export default function ServiceStep() {
   const [isLoadingJobTypes, setIsLoadingJobTypes] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [openTooltipId, setOpenTooltipId] = useState<number | null>(null);
-  const tooltipTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const {
     availableJobTypes,
@@ -60,15 +58,6 @@ export default function ServiceStep() {
     }
   };
 
-  // Helper to handle touch/tap for tooltips
-  const handleTooltipToggle = (jobTypeId: number) => {
-    setOpenTooltipId(prev => (prev === jobTypeId ? null : jobTypeId));
-  };
-
-  // Helper to close tooltip on blur (keyboard)
-  const handleTooltipBlur = () => {
-    tooltipTimeout.current = setTimeout(() => setOpenTooltipId(null), 100);
-  };
 
   if (isLoadingJobTypes) {
     return (
@@ -110,50 +99,20 @@ export default function ServiceStep() {
             <p className="text-gray-600 text-sm sm:text-base">No services available at this time.</p>
           </div>
         ) : (
-          <div className="button-row">
+          <div className="button-row flex items-stretch">
             {availableJobTypes.map(jobType => (
-              <div key={jobType.id} className="inline-block mr-2 mb-2">
-                <div className="relative">
+              <div key={jobType.id} className="flex mr-2 mb-2 flex-1">
+                <div className="relative flex-1">
                   <button
-                    className={`option-button pr-8 ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
+                    className={`option-button pr-8 flex flex-col items-center justify-center h-full ${selectedJobType?.id === jobType.id ? 'selected' : ''}`}
                     onClick={() => handleJobTypeClick(jobType)}
                     title={jobType.displayName}
                     type="button"
                   >
-                    <span className="text-xl mr-2">{jobType.emoji}</span>
-                    <span className="text-sm sm:text-base leading-tight">{jobType.displayName}</span>
+                    <span className="text-4xl mb-1">{jobType.emoji}</span>
+                    <span className="text-sm sm:text-base leading-tight text-center">{jobType.displayName}</span>
+                    <span className="text-xs text-gray-500 mt-1 text-center">{jobType.description}</span>
                   </button>
-                  {/* Help icon absolutely positioned in top-right */}
-                  <button
-                    type="button"
-                    className="absolute top-1 right-1 p-0.5 rounded-full bg-white bg-opacity-80 hover:bg-opacity-100 focus:bg-opacity-100 border border-gray-200 text-gray-400 hover:text-indigo-600 focus:text-indigo-600 outline-none"
-                    style={{ zIndex: 2 }}
-                    tabIndex={0}
-                    aria-label={`Help: ${jobType.description}`}
-                    onMouseEnter={() => setOpenTooltipId(jobType.id)}
-                    onMouseLeave={() => setOpenTooltipId(null)}
-                    onFocus={() => setOpenTooltipId(jobType.id)}
-                    onBlur={handleTooltipBlur}
-                    onTouchStart={e => {
-                      e.stopPropagation();
-                      handleTooltipToggle(jobType.id);
-                    }}
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10" strokeWidth="2" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 16v-1m0-4a1 1 0 1 1 2 0c0 1-2 1-2 3" />
-                    </svg>
-                  </button>
-                  {/* Tooltip */}
-                  {openTooltipId === jobType.id && (
-                    <div className="absolute z-20 top-8 right-0 w-56 p-2 bg-white border border-gray-300 rounded shadow-lg text-xs text-gray-700 whitespace-normal"
-                      role="tooltip"
-                      aria-live="polite"
-                    >
-                      {jobType.description}
-                    </div>
-                  )}
                 </div>
               </div>
             ))}
@@ -162,20 +121,28 @@ export default function ServiceStep() {
 
         {/* Show quote skills if 'Get A Quote' is selected */}
         {selectedJobType && selectedJobType.skills && selectedJobType.skills.length > 0 && (
-          <div className="mt-4 mb-2">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type of Quote</label>
-            <div className="flex flex-col gap-2">
+          <div className="mt-6 mb-2">
+            <div className="mb-2 text-sm font-semibold text-gray-800">Type of Quote</div>
+            <div className="flex flex-col gap-3">
               {selectedJobType.skills.map((skill: QuoteSkill) => (
-                <label key={skill} className="inline-flex items-center cursor-pointer">
+                <label
+                  key={skill}
+                  className={`
+                    flex items-center px-4 py-3 rounded-lg border cursor-pointer transition
+                    ${selectedSkill === skill
+                      ? 'border-indigo-600 bg-indigo-50 ring-2 ring-indigo-200'
+                      : 'border-gray-200 bg-white hover:border-indigo-400'}
+                  `}
+                >
                   <input
                     type="radio"
                     name="quote-skill"
                     value={skill}
                     checked={selectedSkill === skill}
                     onChange={() => setSelectedSkill(skill)}
-                    className="form-radio text-indigo-600 focus:ring-indigo-500 h-4 w-4"
+                    className="form-radio text-indigo-600 focus:ring-indigo-500 h-5 w-5 mr-3"
                   />
-                  <span className="ml-2 text-sm text-gray-700">{skill}</span>
+                  <span className="text-base font-medium text-gray-900">{skill}</span>
                 </label>
               ))}
             </div>

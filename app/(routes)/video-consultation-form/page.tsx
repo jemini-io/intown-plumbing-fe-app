@@ -40,7 +40,7 @@ function VideoConsultationFormContent() {
   };
 
   const content = (
-    <div className="min-h-screen">
+    <div className="">
       {renderStep()}
     </div>
   );

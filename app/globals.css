@@ -69,6 +69,10 @@ h2, h3, p {
     border-color: #00AEEF;
 }
 
+.option-button.selected span {
+    color: #fff;
+}
+
 .details-textarea {
     width: 100%;
     min-height: 120px;

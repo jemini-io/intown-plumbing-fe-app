@@ -9,7 +9,7 @@ interface FormLayoutProps {
 export default function FormLayout({ children}: FormLayoutProps) {
   return (
     <main className="min-h-screen flex items-center justify-center py-4 sm:py-8 lg:py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md sm:max-w-lg w-full space-y-6 sm:space-y-8">
+      <div className="max-w-lg md:max-w-3xl sm:max-w-lg w-full space-y-6 sm:space-y-8">
         <div className="text-center">
           <div className="flex justify-center mb-6 sm:mb-8">
             <Image
