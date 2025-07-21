@@ -26,11 +26,17 @@ export async function createOrUpdateContact(data: CreateContactData): Promise<Po
     phoneNumber: data.phoneNumber,
   }
 
+  console.log('creating or updating contact', contactData)
+
   // check if contact already exists
-  const existingContact = await podiumClient.get<PodiumContact>(`/contacts/${data.phoneNumber}`)
-  if (existingContact.data) {
-    console.log('podium contact already exists', existingContact.data.name)
-    return existingContact.data
+  try {
+    const existingContact = await podiumClient.get<PodiumContact>(`/contacts/${data.phoneNumber}`)
+    if (existingContact.data) {
+      console.log('podium contact already exists', existingContact.data.name)
+      return existingContact.data
+    }
+  } catch (error) {
+    console.log('error checking if contact exists will attempt to create', error)
   }
 
   try {
