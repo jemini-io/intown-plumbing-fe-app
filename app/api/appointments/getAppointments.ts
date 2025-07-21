@@ -3,6 +3,9 @@ import { env } from "@/lib/config/env";
 import { Jpm_V2_AppointmentResponse, PaginatedResponse_Of_Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
 import { QuoteSkill } from '@/lib/config/types';
 import { config } from '@/lib/config';
+import pino from 'pino';
+
+const logger = pino({ name: 'getAvailableTimeSlots' });
 
 const { servicetitan: { tenantId } } = env;
 
@@ -31,6 +34,8 @@ export interface JobType {
  * Accepts job details: skills and serviceTitanId
  */
 export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry[]> {
+    logger.info({ jobType }, 'Starting getAvailableTimeSlots');
+
     const serviceTitanClient = new ServiceTitanClient();
     const now = new Date();
 
@@ -54,13 +59,15 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     if (jobType.skill) {
         // If a specific skill is provided, filter for that skill
         filteredTechs = techsSkillsList.filter((tech) => tech.skills.includes(jobType.skill as QuoteSkill));
-        console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+        // console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+        logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
     } else {
         // Otherwise, filter by jobTypeSkills as before
         filteredTechs = techsSkillsList.filter((tech) => {
             return tech.skills.some((skill) => jobTypeSkills.includes(skill));
         });
-        console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+        // console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+        logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
     }
 
     // For each technician, fetch shifts and appointments, then aggregate
@@ -147,6 +154,8 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     availableTimeSlots.forEach(dateEntry => {
         dateEntry.timeSlots.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
     });
+
+    logger.info({ availableTimeSlots }, 'Completed getAvailableTimeSlots');
 
     return availableTimeSlots;
 }
