@@ -32,6 +32,7 @@ function PaymentForm() {
         confirmParams: {
           return_url: `${window.location.origin}/video-consultation-form?success=true`,
         },
+        redirect: 'if_required',
       });
       if (confirmError) {
         setError(confirmError.message || 'Payment failed');
