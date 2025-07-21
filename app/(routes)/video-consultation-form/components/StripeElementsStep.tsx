@@ -10,7 +10,7 @@ import FormLayout from '@/components/FormLayout';
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
-function PaymentForm() {
+function PaymentForm( { price }: { price: number } ) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -80,7 +80,7 @@ function PaymentForm() {
       <PaymentElement />
       {error && <div className="bg-red-50 border border-red-200 rounded-lg p-4"><p className="text-sm text-red-700">{error}</p></div>}
       <button type="submit" disabled={!stripe || isProcessing} className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
-        {isProcessing ? 'Processing...' : 'Pay Now'}
+        {isProcessing ? 'Processing...' : `Pay Now ${price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`}
       </button>
     </form>
   );
@@ -88,6 +88,7 @@ function PaymentForm() {
 
 export default function StripeElementsStep() {
   const [clientSecret, setClientSecret] = useState('');
+  const [productDetails, setProductDetails] = useState<{ stripePrice: number } | null>(null);
   const { formData, setCurrentStep } = useFormStore();
 
   useEffect(() => {
@@ -106,7 +107,10 @@ export default function StripeElementsStep() {
       body: JSON.stringify({ metadata })
     })
       .then(res => res.json())
-      .then(data => setClientSecret(data.clientSecret))
+      .then(data => {
+        setClientSecret(data.clientSecret);
+        setProductDetails(data.productDetails);
+      })
       .catch(() => setCurrentStep('contact'));
   }, [formData, setCurrentStep]);
 
@@ -123,8 +127,14 @@ export default function StripeElementsStep() {
 
   return (
     <FormLayout>
+      {productDetails?.stripePrice !== undefined && (
+        <div className="mb-6 text-center">
+          <span className="text-lg font-semibold text-gray-800">Total: </span>
+          <span className="text-lg font-bold">{productDetails.stripePrice.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+        </div>
+      )}
       <Elements stripe={stripePromise} options={{ clientSecret }}>
-        <PaymentForm />
+        <PaymentForm price={productDetails?.stripePrice || 0} />
       </Elements>
     </FormLayout>
   );

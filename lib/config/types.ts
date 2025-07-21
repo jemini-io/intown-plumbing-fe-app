@@ -9,7 +9,7 @@ export interface ServiceToJobTypeMapping {
 }
 
 export const QUOTE_SKILLS = [
-  "Virtual Quote - Remodel",
+  "Virtual Quote - Remodel Project",
   "Virtual Quote - Repair/Install",
   "Virtual Quote - Water Filtration"
 ] as const;
@@ -21,7 +21,7 @@ export type QuoteSkill = typeof QUOTE_SKILLS[number];
  * We need to map the technician ids to the skills they have.
  */
 export type SUPPORTED_SKILLS = 
-  | "Virtual Quote - Remodel"
+  | "Virtual Quote - Remodel Project"
   | "Virtual Quote - Repair/Install"
   | "Virtual Quote - Water Filtration"
   | "Virtual Service";
