@@ -80,7 +80,7 @@ export async function sendConsultationReminder(job: Jpm_V2_JobResponse, customer
   }
 }
 
-export async function sendTechnicianAppointmentConfirmation(job: Jpm_V2_JobResponse): Promise<SMSResult> {
+export async function sendTechnicianConsultationReminder(job: Jpm_V2_JobResponse): Promise<SMSResult> {
   const technician = await getTechnicianFromJob(job.id);
   // get phone number
   let phoneNumber = technician.phoneNumber;
@@ -107,7 +107,7 @@ export async function sendTechnicianAppointmentConfirmation(job: Jpm_V2_JobRespo
   }
   const message = `Hi ${technicianName}! You're next Virtual Consultation starts in 5 mins. Here's the join link: ${joinLink}`;
   if (env.podium.useTestTechnicianNumber) {
-    console.log(`Using test number: ${env.podium.useTestTechnicianNumber}`);
+    console.log(`Using technician test number: ${env.podium.useTestTechnicianNumber}`);
     phoneNumber = env.podium.useTestTechnicianNumber;
   }
   const result = await sendTextMessage(phoneNumber, message, technicianName);

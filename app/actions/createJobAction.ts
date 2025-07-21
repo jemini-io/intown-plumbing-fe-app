@@ -124,7 +124,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       await sendTechnicianAppointmentConfirmation(
         phoneNumber,
         new Date(data.startTime),
-        data.name
+        technician.name,
       );
     }
 

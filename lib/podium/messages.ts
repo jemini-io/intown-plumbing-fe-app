@@ -182,7 +182,7 @@ export async function sendTechnicianAppointmentConfirmation(
   name: string
 ) {
   if (env.podium.useTestTechnicianNumber) {
-    console.log(`Using test number: ${env.podium.useTestTechnicianNumber}`);
+    console.log(`Using technician test number: ${env.podium.useTestTechnicianNumber}`);
     phoneNumber = env.podium.useTestTechnicianNumber;
   }
 
