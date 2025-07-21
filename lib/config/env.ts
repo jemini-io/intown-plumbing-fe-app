@@ -7,6 +7,7 @@ const getEnvVar = (key: string): string => {
 };
 
 export const env = {
+  nextEnv: getEnvVar("NEXT_PUBLIC_APP_ENV"),
   appEnv: getEnvVar("APP_ENV"),
   stripe: {
     secretKey: getEnvVar("STRIPE_SECRET_KEY"),

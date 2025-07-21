@@ -18,7 +18,13 @@
 
    Edit `.env` with your actual secrets and configuration.
 
-3. Start the development server:
+3. Generate API SDK Files
+
+   ```bash
+   npm run build:test
+   ```
+
+4. Start the development server:
 
    ```bash
    npm run dev
