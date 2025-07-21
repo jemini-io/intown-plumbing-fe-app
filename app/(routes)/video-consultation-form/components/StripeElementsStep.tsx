@@ -46,7 +46,7 @@ function PaymentForm( { price }: { price: number } ) {
         phone: formData.phone,
         startTime: formData.startTime!,
         endTime: formData.endTime!,
-        technicianId: selectedTechnician.id,
+        technicianId: Number(selectedTechnician.id),
         jobTypeId: selectedJobType.serviceTitanId,
         jobSummary: `Category Selection: "${selectedJobType.displayName}"\nDetails:\n${details}`,
         street: formData.street,

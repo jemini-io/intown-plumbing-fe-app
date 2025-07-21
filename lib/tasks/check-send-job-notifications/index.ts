@@ -1,7 +1,7 @@
 import { NOTIFICATION_CONFIG, validateConfig } from './config'
 import { logger } from './logger'
 import { calculateTimeWindow, queryJobsInTimeWindow, addJobNote } from './job-queries'
-import { sendConsultationReminder, isEligibleForNotification } from './notification-service'
+import { sendConsultationReminder, isEligibleForNotification, sendTechnicianAppointmentConfirmation } from './notification-service'
 import { EnrichedJob, NotificationMetrics } from './types'
 
 /**
@@ -26,6 +26,14 @@ async function processJobBatch(jobs: EnrichedJob[], metrics: NotificationMetrics
         
         // Send SMS (will be logged only in dry run)
         const smsResult = await sendConsultationReminder(job, job.customer)
+        const technicianSmsResult = await sendTechnicianAppointmentConfirmation(job)
+
+        if (!smsResult.success || !technicianSmsResult.success) {
+          logger.error('Failed to send SMS', {
+            jobId: job.id,
+            error: smsResult.error || technicianSmsResult.error
+          })
+        }
         
         // Add note if SMS was successful (will be logged only in dry run)
         if (smsResult.success) {

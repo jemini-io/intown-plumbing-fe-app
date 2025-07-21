@@ -19,6 +19,10 @@ export const env = {
     tenantId: parseInt(getEnvVar("SERVICETITAN_TENANT_ID")),
     baseUrl: getEnvVar("SERVICETITAN_BASE_URL"),
   },
+  podium: {
+    enabled: getEnvVar("PODIUM_ENABLED") === "true",
+    useTestTechnicianNumber: getEnvVar("PODIUM_USE_TEST_TECHNICIAN_NUMBER"),
+  },
   whereby: {
     apiToken: getEnvVar("WHEREBY_API_TOKEN"),
   },

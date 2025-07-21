@@ -6,6 +6,7 @@ import { Jpm_V2_JobResponse } from "@/lib/servicetitan/generated/jpm";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
 import { config } from "@/lib/config";
 import type { Customer, Job, Location } from './types';
+import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
 
 
 export async function createJobAppointment({ 
@@ -214,4 +215,32 @@ export async function createJobAppointment({
         }
     }
     return jobResponse;
+}
+
+export async function getTechnicianFromJob(jobId: number): Promise<TenantSettings_V2_TechnicianResponse> {
+    const serviceTitanClient = new ServiceTitanClient();
+    const tenantId = Number(env.servicetitan.tenantId);
+    const appointments = await serviceTitanClient.dispatch.AppointmentAssignmentsService.appointmentAssignmentsGetList({
+        tenant: tenantId,
+        jobId: jobId
+    });
+    if (appointments.data.length > 1) {
+        console.warn(`Job ${jobId} has more than one appointment assignment. Using the first one.`);
+    }
+    const technicianId = appointments.data[0].technicianId;
+    const technician = await serviceTitanClient.settings.TechniciansService.techniciansGet({
+        tenant: tenantId,
+        id: Number(technicianId)
+    });
+    return technician;
+}
+
+export async function getTechnician(technicianId: number): Promise<TenantSettings_V2_TechnicianResponse> {
+    const serviceTitanClient = new ServiceTitanClient();
+    const tenantId = Number(env.servicetitan.tenantId);
+    const technician = await serviceTitanClient.settings.TechniciansService.techniciansGet({
+        tenant: tenantId,
+        id: technicianId
+    });
+    return technician;
 }
