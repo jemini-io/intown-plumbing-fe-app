@@ -11,8 +11,8 @@ import pino from "pino";
 const logger = pino({ name: "createJobAppointment" });
 
 export async function createJobAppointment({ 
-  job, 
-  location, 
+  job,
+  location,
   customer,
 }: { 
   job: Job, 
