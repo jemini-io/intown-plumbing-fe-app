@@ -10,7 +10,6 @@ export async function GET() {
     logger.info("GET /booking/job-types called");
 
     const jobTypes = await getJobTypesByServiceTitanIds();
-    // logger.info({ jobTypes }, "Job types fetched successfully");
     logger.info({ jobTypesCount: jobTypes.length }, "Fetched job types count");
 
     return NextResponse.json(jobTypes);

@@ -59,14 +59,12 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     if (jobType.skill) {
         // If a specific skill is provided, filter for that skill
         filteredTechs = techsSkillsList.filter((tech) => tech.skills.includes(jobType.skill as QuoteSkill));
-        // console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
         logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
     } else {
         // Otherwise, filter by jobTypeSkills as before
         filteredTechs = techsSkillsList.filter((tech) => {
             return tech.skills.some((skill) => jobTypeSkills.includes(skill));
         });
-        // console.log(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
         logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
     }
 

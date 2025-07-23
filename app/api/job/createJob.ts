@@ -45,7 +45,6 @@ export async function createJobAppointment({
     let stCustomer;
 
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {
-        // console.log('Customer already exists:', existingCustomers.data[0].id);
         logger.info({ customerId: existingCustomers.data[0].id }, "Customer already exists");
         stCustomer = existingCustomers.data[0];
 
@@ -117,7 +116,6 @@ export async function createJobAppointment({
             tenant: tenantId,
             requestBody: customerData
         });
-        // console.log("Customer created:", customerResponse.id);
         logger.info({ customerId: customerResponse.id }, "Customer created");
         stCustomer = customerResponse;
     }
@@ -140,7 +138,6 @@ export async function createJobAppointment({
         pageSize: 10
     });
     if (existingJobs && existingJobs.data && existingJobs.data.length > 0) {
-        // console.log('Job already exists:', existingJobs.data[0].id);
         logger.info({ jobId: existingJobs.data[0].id }, "Job already exists");
         return existingJobs.data[0];
     }
@@ -162,14 +159,12 @@ export async function createJobAppointment({
         }],
         summary: summary
     };
-    // console.log("Job data:", jobData);
-    // console.log("Creating job starting at:", startTime);
+
     logger.info({ jobData }, "Creating job");
     const jobResponse = await serviceTitanClient.jpm.JobsService.jobsCreate({
         tenant: tenantId,
         requestBody: jobData
     });
-    // console.log("Job created:", jobResponse.id);
     logger.info({ jobId: jobResponse.id }, "Job created");
 
     // Get invoice by jobId
@@ -177,7 +172,7 @@ export async function createJobAppointment({
         tenant: tenantId,
         jobId: Number(jobResponse.id)
     });
-    // console.log("Invoice Get by JobId response:", invoiceResponse.data);
+
     logger.debug({ invoiceCount: invoiceResponse.data?.length }, "Invoice lookup by job ID");
 
     if (invoiceResponse.data && invoiceResponse.data.length > 0) {
@@ -195,14 +190,14 @@ export async function createJobAppointment({
                 }
             ]
         };
-        // console.log("Updating invoice data:", updatedInvoiceData);
+
         logger.info({ invoiceId, updatedInvoiceData }, "Updating invoice");
         await serviceTitanClient.accounting.InvoicesService.invoicesUpdateInvoice({
             tenant: tenantId,
             id: Number(invoiceId),
             requestBody: updatedInvoiceData
         });
-        // console.log("Invoice updated:", invoiceId);
+
         logger.info({ invoiceId }, "Invoice updated");
 
         // Check for existing payments
@@ -210,12 +205,11 @@ export async function createJobAppointment({
             tenant: tenantId,
             appliedToInvoiceIds: String(invoiceId)
         });
-        // console.log("Payments response:", paymentsResponse.data);
+
         logger.debug({ payments: paymentsResponse.data }, "Payment lookup by invoice ID");
 
 
         if (paymentsResponse && paymentsResponse.data && paymentsResponse.data.length > 0) {
-            // console.log("Existing payments found:", paymentsResponse.data);
             logger.info({ payments: paymentsResponse.data }, "Existing payments found");
         } else {
             // Create payment if no existing payments
@@ -229,7 +223,7 @@ export async function createJobAppointment({
                     amount: productDetails.stripePrice
                 }]
             };
-            // console.log("Payment data:", paymentData);
+
             logger.info({ paymentData }, "Creating payment");
             await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
                 tenant: tenantId,
