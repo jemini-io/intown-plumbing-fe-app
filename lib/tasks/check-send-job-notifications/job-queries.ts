@@ -45,7 +45,9 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
     })
 
     if (!response.data || !Array.isArray(response.data)) {
-      logger.warn('No jobs found or invalid response format')
+      logger.warn('No jobs found or invalid response format', {
+        responseDataType: typeof response.data
+      })
       return []
     }
 
