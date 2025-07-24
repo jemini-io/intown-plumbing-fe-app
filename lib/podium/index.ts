@@ -14,4 +14,5 @@ export {
 export {
   sendTextMessage,
   sendAppointmentConfirmation,
+  sendTechnicianAppointmentConfirmation,
 } from "./messages"; 

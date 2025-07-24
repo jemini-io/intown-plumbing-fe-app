@@ -2,7 +2,7 @@ export interface Job {
     name: string;
     startTime: string;
     endTime: string;
-    technicianId: string;
+    technicianId: number;
     jobTypeId: number;
     summary: string;
 }

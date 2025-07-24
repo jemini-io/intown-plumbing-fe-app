@@ -142,7 +142,7 @@ export default function ServiceStep() {
                     onChange={() => setSelectedSkill(skill)}
                     className="form-radio text-indigo-600 focus:ring-indigo-500 h-5 w-5 mr-3"
                   />
-                  <span className="text-base font-medium text-gray-900">{skill}</span>
+                  <span className="text-base font-medium text-gray-900">{skill.replace('Virtual Quote - ', '')}</span>
                 </label>
               ))}
             </div>
@@ -168,7 +168,8 @@ export default function ServiceStep() {
           onClick={handleNextClick}
           disabled={
             !selectedJobType ||
-            (selectedJobType.skills && selectedJobType.skills.length > 0 && !selectedSkill)
+            (selectedJobType.skills && selectedJobType.skills.length > 0 && !selectedSkill) ||
+            !details
           }
         >
           <span>Next</span>

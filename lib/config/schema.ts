@@ -2,13 +2,13 @@ import { z } from "zod";
 
 // Base schemas
 const QuoteSkillSchema = z.enum([
-  "Virtual Quote - Remodel",
+  "Virtual Quote - Remodel Project",
   "Virtual Quote - Repair/Install", 
   "Virtual Quote - Water Filtration"
 ]);
 
 const SupportedSkillSchema = z.enum([
-  "Virtual Quote - Remodel",
+  "Virtual Quote - Remodel Project",
   "Virtual Quote - Repair/Install",
   "Virtual Quote - Water Filtration",
   "Virtual Service"
@@ -23,7 +23,7 @@ const ServiceToJobTypeSchema = z.object({
   emoji: z.string(),
   description: z.string(),
   skills: z.tuple([
-    z.literal("Virtual Quote - Remodel"),
+    z.literal("Virtual Quote - Remodel Project"),
     z.literal("Virtual Quote - Repair/Install"), 
     z.literal("Virtual Quote - Water Filtration")
   ]).optional(),

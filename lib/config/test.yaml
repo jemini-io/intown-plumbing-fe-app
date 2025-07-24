@@ -39,13 +39,14 @@ serviceToJobTypes:
     emoji: "🧾"
     description: "Schedule a virtual walkthrough to receive a quote for your plumbing project or repair."
     skills:
-      - "Virtual Quote - Remodel"
+      - "Virtual Quote - Remodel Project"
       - "Virtual Quote - Repair/Install"
       - "Virtual Quote - Water Filtration"
 
 # Quote Skills
+# These must match EXACTLY with what is in Service Titan as Skills
 quoteSkills:
-  - "Virtual Quote - Remodel"
+  - "Virtual Quote - Remodel Project"
   - "Virtual Quote - Repair/Install"
   - "Virtual Quote - Water Filtration"
 
@@ -63,7 +64,7 @@ technicianToSkills:
   - technicianId: 2513668
     technicianName: "Michael G."
     skills:
-      - "Virtual Quote - Remodel"
+      - "Virtual Quote - Remodel Project"
   - technicianId: 16109753
     technicianName: "Francisco J."
     skills:

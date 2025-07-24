@@ -7,6 +7,7 @@ const getEnvVar = (key: string): string => {
 };
 
 export const env = {
+  nextEnv: getEnvVar("NEXT_PUBLIC_APP_ENV"),
   appEnv: getEnvVar("APP_ENV"),
   stripe: {
     secretKey: getEnvVar("STRIPE_SECRET_KEY"),
@@ -17,6 +18,10 @@ export const env = {
     appKey: getEnvVar("SERVICETITAN_APP_KEY"),
     tenantId: parseInt(getEnvVar("SERVICETITAN_TENANT_ID")),
     baseUrl: getEnvVar("SERVICETITAN_BASE_URL"),
+  },
+  podium: {
+    enabled: getEnvVar("PODIUM_ENABLED") === "true",
+    useTestTechnicianNumber: getEnvVar("PODIUM_USE_TEST_TECHNICIAN_NUMBER"),
   },
   whereby: {
     apiToken: getEnvVar("WHEREBY_API_TOKEN"),

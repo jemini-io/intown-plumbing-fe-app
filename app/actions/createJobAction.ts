@@ -1,7 +1,7 @@
 'use server';
 
-import { createJobAppointment } from "@/app/api/job/createJob";
-import { sendAppointmentConfirmation } from "@/lib/podium";
+import { createJobAppointment, getTechnician } from "@/app/api/job/createJob";
+import { sendAppointmentConfirmation, sendTechnicianAppointmentConfirmation } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
@@ -17,7 +17,7 @@ export interface CreateJobData {
   phone: string;
   startTime: string;
   endTime: string;
-  technicianId: string;
+  technicianId: number;
   jobTypeId: number;
   jobSummary: string;
   street: string;
@@ -139,6 +139,17 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       },
       "[createJobAction] Job created successfully"
     );
+
+    // Send notification to technician
+    const technician = await getTechnician(data.technicianId);
+    const phoneNumber = technician.phoneNumber;
+    if (phoneNumber) {
+      await sendTechnicianAppointmentConfirmation(
+        phoneNumber,
+        new Date(data.startTime),
+        technician.name,
+      );
+    }
 
     // Send confirmation notification via Podium
     let notificationSent = false;
