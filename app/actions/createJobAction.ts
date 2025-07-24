@@ -7,6 +7,9 @@ import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
 import { config } from "@/lib/config";
 import { env } from "@/lib/config/env";
+import pino from "pino";
+
+const logger = pino({ name: "createJobAction" });
 
 export interface CreateJobData {
   name: string;
@@ -72,11 +75,15 @@ async function updateJobWithMeetingDetails(
     requestBody: updateData
   });
 
-  console.log(`[createJobAction] Successfully updated ServiceTitan job ${jobId} with meeting details:`, {
-    meetingId: meetingDetails.meetingId,
-    customerJoinLink: meetingDetails.roomUrl,
-    technicianJoinLink: meetingDetails.hostRoomUrl,
-  });
+  logger.info(
+    {
+      jobId,
+      meetingId: meetingDetails.meetingId,
+      customerJoinLink: meetingDetails.roomUrl,
+      technicianJoinLink: meetingDetails.hostRoomUrl
+    },
+    `[createJobAction] Successfully updated ServiceTitan job ${jobId} with meeting details`
+  );
 }
 
 export async function createJobAction(data: CreateJobData): Promise<CreateJobActionResult> {
@@ -117,6 +124,22 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       }
     });
 
+    logger.info(
+      {
+        jobId: jobResponse.id,
+        customer: {
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+        },
+        technicianId: data.technicianId,
+        jobTypeId: data.jobTypeId,
+        startTime: data.startTime,
+        endTime: data.endTime
+      },
+      "[createJobAction] Job created successfully"
+    );
+
     // Send notification to technician
     const technician = await getTechnician(data.technicianId);
     const phoneNumber = technician.phoneNumber;
@@ -138,7 +161,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       );
       notificationSent = true;
     } catch (notificationError) {
-      console.error("[createJobAction] Error sending Podium notification:", notificationError);
+      logger.error({ error: notificationError }, "Failed to send Podium notification");
       // Don't fail the entire job creation if notification fails
     }
 
@@ -157,7 +180,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       await updateJobWithMeetingDetails(jobResponse.id, meetingDetails);
       
     } catch (meetingError) {
-      console.error("[createJobAction] Error creating Whereby meeting:", meetingError);
+      logger.error({ error: meetingError }, "Failed to create Whereby meeting");
       // Don't fail the entire job creation if meeting creation fails
     }
 
@@ -169,7 +192,8 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       meetingDetails
     };
   } catch (error) {
-    console.error("[createJobAction] Error creating job appointment:", JSON.stringify(error, null, 2));
+    logger.error({ error }, "[createJobAction] Error creating job appointment");
+    
     return { success: false, error: "Error creating job appointment" };
   }
 } 

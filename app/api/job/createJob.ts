@@ -7,11 +7,13 @@ import { getProductDetails } from "@/lib/stripe/product-lookup";
 import { config } from "@/lib/config";
 import type { Customer, Job, Location } from './types';
 import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
+import pino from "pino";
 
+const logger = pino({ name: "createJobAppointment" });
 
 export async function createJobAppointment({ 
-  job, 
-  location, 
+  job,
+  location,
   customer,
 }: { 
   job: Job, 
@@ -31,6 +33,8 @@ export async function createJobAppointment({
     // Calculate appointmentStartsBefore
     const appointmentStartsBefore = new Date(new Date(endTime).getTime() + 30 * 60000).toISOString();
 
+    logger.info("Checking if customer already exists");
+
     // Check if a customer already exists
     const existingCustomers = await serviceTitanClient.crm.CustomersService.customersGetList({
         tenant: tenantId,
@@ -42,7 +46,7 @@ export async function createJobAppointment({
     let stCustomer;
 
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {
-        console.log('Customer already exists:', existingCustomers.data[0].id);
+        logger.info({ customerId: existingCustomers.data[0].id }, "Customer already exists");
         stCustomer = existingCustomers.data[0];
 
         // Fetch locations for the existing customer
@@ -54,9 +58,12 @@ export async function createJobAppointment({
             // Add locations to the customer object
             stCustomer = { ...stCustomer, locations: locationsResponse.data };
         } else {
+            logger.error("Customer does not have any locations");
             throw new Error('Customer does not have any locations.');
         }
     } else {
+        logger.info("Creating new customer");
+
         const customerData: Crm_V2_Customers_CreateCustomerRequest = {
             name,
             type: "Residential",
@@ -110,16 +117,18 @@ export async function createJobAppointment({
             tenant: tenantId,
             requestBody: customerData
         });
-        console.log("Customer created:", customerResponse.id);
+        logger.info({ customerId: customerResponse.id }, "Customer created");
         stCustomer = customerResponse;
     }
 
     // Ensure customer has at least one location
     if (!stCustomer.locations || stCustomer.locations.length === 0) {
+        logger.error("Customer does not have any locations");
         throw new Error('Customer does not have any locations.');
     }
 
     // Check if a job already exists
+    logger.info("Checking for existing jobs");
     const existingJobs = await serviceTitanClient.jpm.JobsService.jobsGetList({
         tenant: tenantId,
         technicianId: Number(technicianId),
@@ -130,7 +139,7 @@ export async function createJobAppointment({
         pageSize: 10
     });
     if (existingJobs && existingJobs.data && existingJobs.data.length > 0) {
-        console.log('Job already exists:', existingJobs.data[0].id);
+        logger.info({ jobId: existingJobs.data[0].id }, "Job already exists");
         return existingJobs.data[0];
     }
 
@@ -151,20 +160,22 @@ export async function createJobAppointment({
         }],
         summary: summary
     };
-    console.log("Job data:", jobData);
-    console.log("Creating job starting at:", startTime);
+
+    logger.info({ jobData }, "Creating job");
     const jobResponse = await serviceTitanClient.jpm.JobsService.jobsCreate({
         tenant: tenantId,
         requestBody: jobData
     });
-    console.log("Job created:", jobResponse.id);
+    logger.info({ jobId: jobResponse.id }, "Job created");
 
     // Get invoice by jobId
     const invoiceResponse = await serviceTitanClient.accounting.InvoicesService.invoicesGetList({
         tenant: tenantId,
         jobId: Number(jobResponse.id)
     });
-    console.log("Invoice Get by JobId response:", invoiceResponse.data);
+
+    logger.debug({ invoiceCount: invoiceResponse.data?.length }, "Invoice lookup by job ID");
+
     if (invoiceResponse.data && invoiceResponse.data.length > 0) {
         const invoiceId = invoiceResponse.data[0].id;
         const productDetails = await getProductDetails(config.stripe.virtualConsultationProductName);
@@ -180,21 +191,27 @@ export async function createJobAppointment({
                 }
             ]
         };
-        console.log("Updating invoice data:", updatedInvoiceData);
+
+        logger.info({ invoiceId, updatedInvoiceData }, "Updating invoice");
         await serviceTitanClient.accounting.InvoicesService.invoicesUpdateInvoice({
             tenant: tenantId,
             id: Number(invoiceId),
             requestBody: updatedInvoiceData
         });
-        console.log("Invoice updated:", invoiceId);
+
+        logger.info({ invoiceId }, "Invoice updated");
+
         // Check for existing payments
         const paymentsResponse = await serviceTitanClient.accounting.PaymentsService.paymentsGetList({
             tenant: tenantId,
             appliedToInvoiceIds: String(invoiceId)
         });
-        console.log("Payments response:", paymentsResponse.data);
+
+        logger.debug({ payments: paymentsResponse.data }, "Payment lookup by invoice ID");
+
+
         if (paymentsResponse && paymentsResponse.data && paymentsResponse.data.length > 0) {
-            console.log("Existing payments found:", paymentsResponse.data);
+            logger.info({ payments: paymentsResponse.data }, "Existing payments found");
         } else {
             // Create payment if no existing payments
             const paymentData: Accounting_V2_PaymentCreateRequest = {
@@ -207,7 +224,8 @@ export async function createJobAppointment({
                     amount: productDetails.stripePrice
                 }]
             };
-            console.log("Payment data:", paymentData);
+
+            logger.info({ paymentData }, "Creating payment");
             await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
                 tenant: tenantId,
                 requestBody: paymentData

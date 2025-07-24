@@ -4,14 +4,23 @@ import { env } from "@/lib/config/env";
 import { handleApiError } from "@/lib/utils/api-error-handler";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
 import { config } from "@/lib/config";
+import pino from "pino";
+
+const logger = pino();
 
 const stripe = new Stripe(env.stripe.secretKey);
 
 export async function POST(req: NextRequest) {
   try {
+    logger.info("POST /create-payment-intent called");
+
     const body = await req.json();
     const { metadata } = body;
+    logger.info({ metadata }, "Metadata received");
+    
     const productDetails = await getProductDetails(config.stripe.virtualConsultationProductName);
+    logger.info({ productDetails }, "Product details fetched");
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: productDetails.stripePrice * 100,
       currency: 'usd',
@@ -23,8 +32,13 @@ export async function POST(req: NextRequest) {
         amount: productDetails.stripePrice.toString(),
       },
     });
+
+    logger.info({ clientSecret: paymentIntent.client_secret }, "Payment intent created");
+
     return NextResponse.json({ clientSecret: paymentIntent.client_secret, productDetails });
   } catch (error) {
+    logger.error({ err: error }, "Error creating payment intent");
+
     return handleApiError(error, {
       message: "Error creating payment intent",
       logPrefix: "[Payment Intent API]",
