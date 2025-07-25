@@ -9,6 +9,7 @@ import ContactStep from './components/ContactStep';
 import StripeElementsStep from './components/StripeElementsStep';
 import ConfirmationStep from './components/ConfirmationStep';
 import IframeLayout from '@/components/IframeLayout';
+import posthog from 'posthog-js';
 
 function VideoConsultationFormContent() {
   const searchParams = useSearchParams();
@@ -25,14 +26,19 @@ function VideoConsultationFormContent() {
   const renderStep = () => {
     switch (currentStep) {
       case 'service':
+        posthog.capture("form_step_completed", { step: "page_loaded" });
         return <ServiceStep />;
       case 'date':
+        posthog.capture("form_step_completed", { step: "service_selected" });
         return <DateStep />;
       case 'contact':
+        posthog.capture("form_step_completed", { step: "date_selected" });
         return <ContactStep />;
       case 'checkout':
+        posthog.capture("form_step_completed", { step: "contact_info_entered" });
         return <StripeElementsStep />;
       case 'confirmation':
+        posthog.capture("form_step_completed", { step: "payment_completed" });
         return <ConfirmationStep />;
       default:
         return <ServiceStep />;
