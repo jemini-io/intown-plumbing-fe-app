@@ -1,6 +1,5 @@
 import { generate } from 'openapi-typescript-codegen';
 import { SERVICE_TITAN_APIS, GENERATION_CONFIG } from './config';
-import { join } from 'path';
 import { existsSync, mkdirSync, rmSync } from 'fs';
 
 async function generateSDK() {

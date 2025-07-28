@@ -153,7 +153,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
         dateEntry.timeSlots.sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
     });
 
-    logger.info({ availableTimeSlots }, 'Completed getAvailableTimeSlots');
+    logger.info({ availableTimeSlotsLength: availableTimeSlots.length }, 'Completed getAvailableTimeSlots');
 
     return availableTimeSlots;
 }

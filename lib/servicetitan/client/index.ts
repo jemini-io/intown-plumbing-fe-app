@@ -17,10 +17,12 @@ export class ServiceTitanClient {
   public accounting: typeof AccountingServices;
   private authManager: ServiceTitanAuthManager;
   private appKey: string;
+  private baseUrl: string;
 
   constructor() {
     this.authManager = new ServiceTitanAuthManager();
     this.appKey = env.servicetitan.appKey;
+    this.baseUrl = env.servicetitan.baseUrl;
 
     // Configure OpenAPI for each service with dynamic token resolver
     this.configureServiceAuth(DispatchServices.OpenAPI);
@@ -43,6 +45,11 @@ export class ServiceTitanClient {
       'ST-App-Key': this.appKey,
       'Content-Type': 'application/json'
     };
+
+    // auto gen sdk uses api-integration.servicetitan.io but we want to drive the baseUrl from env vars
+    // convert domain of *.servicetitan.io to env.baseUrl
+    const baseUrl = openAPI.BASE.replace(/.*\.servicetitan\.io/, this.baseUrl);
+    openAPI.BASE = baseUrl;
   }
 
   getAuthManager(): ServiceTitanAuthManager {

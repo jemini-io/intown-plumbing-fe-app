@@ -1,9 +1,9 @@
-const getEnvVar = (key: string): string => {
+const getEnvVar = (key: string, required: boolean = true, defaultValue?: string): string => {
   const value = process.env[key];
-  if (!value) {
+  if (!value && required) {
     throw new Error(`Missing environment variable: ${key}`);
   }
-  return value;
+  return value || defaultValue || '';
 };
 
 export const env = {
@@ -20,8 +20,8 @@ export const env = {
     baseUrl: getEnvVar("SERVICETITAN_BASE_URL"),
   },
   podium: {
-    enabled: getEnvVar("PODIUM_ENABLED") === "true",
-    useTestTechnicianNumber: getEnvVar("PODIUM_USE_TEST_TECHNICIAN_NUMBER"),
+    enabled: getEnvVar("PODIUM_ENABLED", false, "false") === "true",
+    useTestTechnicianNumber: getEnvVar("PODIUM_USE_TEST_TECHNICIAN_NUMBER", false, "false"),
   },
   whereby: {
     apiToken: getEnvVar("WHEREBY_API_TOKEN"),

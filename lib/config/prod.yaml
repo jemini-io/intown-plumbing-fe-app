@@ -1,0 +1,88 @@
+# Test Environment Configuration
+app:
+  name: "Intown Plumbing Virtual Consultation App"
+  environment: "prod"
+
+# Service Titan Configuration
+serviceTitan:
+  businessUnitId: 4282891
+  campaignId: 78453779
+  virtualServiceSkuId: 78453913
+  stripePaymentTypeId: 78455320
+
+# Podium Configuration
+podium:
+  locationId: "ce0abd8b-af60-587f-bef5-aea4b16ccb2a"
+
+# Stripe Configuration
+stripe:
+  virtualConsultationProductName: "Virtual Consultation"
+
+# Service to Job Types Mapping
+serviceToJobTypes:
+  - id: 1
+    displayName: "DIY Plumbing Consult"
+    serviceTitanId: 78455317
+    serviceTitanName: "Virtual Consult - Service Request"
+    emoji: "🔧"
+    description: "Have a licensed plumber help you assess or diagnose your DIY plumbing questions."
+  - id: 2
+    displayName: "Help! Emergency!"
+    serviceTitanId: 78447656
+    serviceTitanName: "Virtual Consult - Emergency"
+    emoji: "🚨"
+    description: "Urgent plumbing problem? Get immediate virtual help to assess and guide you through the next steps."
+  - id: 3
+    displayName: "Get A Quote"
+    serviceTitanId: 78445220
+    serviceTitanName: "Virtual Consult - Quote Request"
+    emoji: "🧾"
+    description: "Schedule a virtual walkthrough to receive a quote for your plumbing project or repair."
+    skills:
+      - "Virtual Quote - Remodel Project"
+      - "Virtual Quote - Repair/Install"
+      - "Virtual Quote - Water Filtration"
+
+# Quote Skills
+# These must match EXACTLY with what is in Service Titan as Skills
+quoteSkills:
+  - "Virtual Quote - Remodel Project"
+  - "Virtual Quote - Repair/Install"
+  - "Virtual Quote - Water Filtration"
+
+# Technician to Skills Mapping
+technicianToSkills:
+  - technicianId: 78450829
+    technicianName: "Brittany TestTech"
+    skills:
+      - "Virtual Service"
+      - "Virtual Quote - Repair/Install"
+      - "Virtual Quote - Water Filtration"
+      - "Virtual Quote - Remodel Project"
+  # Verified
+  # - technicianId: 34365881
+  #   technicianName: "Pedro H."
+  #   skills:
+  #     - "Virtual Quote - Water Filtration"
+  # - technicianId: 49786183
+  #   technicianName: "Doug W."
+  #   skills:
+  #     - "Virtual Quote - Repair/Install"
+  #     - "Virtual Quote - Water Filtration"
+  # - technicianId: 2513668
+  #   technicianName: "Michael G."
+  #   skills:
+  #     - "Virtual Quote - Remodel Project"
+  # - technicianId: 16109753
+  #   technicianName: "Francisco J."
+  #   skills:
+  #     - "Virtual Service"
+  #     - "Virtual Quote - Water Filtration"
+
+# Custom Fields Mapping
+# TODO: Verify
+customFields:
+  customerJoinLink: 78453400
+  technicianJoinLink: 78453297
+
+appointmentDurationInMs: 1800000 
