@@ -3,7 +3,8 @@ export interface ServiceToJobTypeMapping {
   displayName: string;
   serviceTitanId: number;
   serviceTitanName: string;
-  emoji: string;
+  emoji?: string;
+  icon?: string; // New field for icon path
   description: string; // Added description field
   skills?: typeof QUOTE_SKILLS;
 }

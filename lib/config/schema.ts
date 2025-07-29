@@ -20,7 +20,8 @@ const ServiceToJobTypeSchema = z.object({
   displayName: z.string(),
   serviceTitanId: z.number(),
   serviceTitanName: z.string(),
-  emoji: z.string(),
+  emoji: z.string().optional(),
+  icon: z.string().optional(),
   description: z.string(),
   skills: z.tuple([
     z.literal("Virtual Quote - Remodel Project"),

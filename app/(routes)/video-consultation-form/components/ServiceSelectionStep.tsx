@@ -1,6 +1,7 @@
 'use client';
 
 import FormLayout from '@/components/FormLayout';
+import Icon from '@/components/Icon';
 import { getServiceTypes } from '@/app/actions/getConfig';
 import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
 import { useEffect, useState } from 'react';
@@ -59,6 +60,21 @@ export default function ServiceStep() {
     }
   };
 
+  const renderIcon = (jobType: ServiceToJobTypeMapping) => {
+    if (jobType.icon) {
+      return (
+        <Icon 
+          name={jobType.icon} 
+          size={64} 
+          color={selectedJobType?.id === jobType.id ? '#FFFFFF' : '#00AEEF'}
+          className="transition-colors duration-200"
+        />
+      );
+    }
+    // Fallback to emoji for backward compatibility
+    return <span className="text-2xl">{jobType.emoji}</span>;
+  };
+
 
   if (isLoadingJobTypes) {
     return (
@@ -110,14 +126,14 @@ export default function ServiceStep() {
                     title={jobType.displayName}
                     type="button"
                   >
-                    {/* Emoji - Fixed width */}
+                    {/* Icon - Fixed width */}
                     <div className="flex-shrink-0 w-12 flex justify-center">
-                      <span className="text-2xl">{jobType.emoji}</span>
+                      {renderIcon(jobType)}
                     </div>
                     
                     {/* Title - Growing to fill space */}
                     <div className="flex-1 px-3">
-                      <span className="text-sm sm:text-base leading-tight text-center block">{jobType.displayName}</span>
+                      <span className="text-md sm:text-lg leading-tight text-center block">{jobType.displayName}</span>
                     </div>
                     
                     {/* Tooltip Question Mark - Fixed width */}
