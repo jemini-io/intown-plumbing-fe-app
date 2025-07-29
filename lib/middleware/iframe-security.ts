@@ -20,7 +20,7 @@ export function validateIframeOrigin(req: NextRequest): boolean {
   
   // Validate origin for cross-origin iframe requests
   const isValid = allowedOrigins.some(allowedOrigin => origin.includes(allowedOrigin.trim()));
-  console.log('🔍 Origin validation result:', isValid);
+  console.log('🔍 Origin validation result:', isValid, origin, allowedOrigins, requestHost, refererUrl);
   return isValid;
 }
 
