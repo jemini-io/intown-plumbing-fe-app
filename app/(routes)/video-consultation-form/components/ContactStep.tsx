@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { parsePhoneNumber, isValidPhoneNumber } from 'libphonenumber-js';
 import { useFormStore } from '../useFormStore';
 import FormLayout from '@/components/FormLayout';
@@ -11,8 +11,18 @@ const states = [
 
 export default function ContactStep() {
   const [phoneError, setPhoneError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [displayPhone, setDisplayPhone] = useState('');
   const { formData, selectedTechnician, selectedJobType, setFormData, setCurrentStep } = useFormStore();
+
+  // Refs for form inputs
+  const nameRef = useRef<HTMLInputElement>(null);
+  const phoneRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
+  const streetRef = useRef<HTMLInputElement>(null);
+  const cityRef = useRef<HTMLInputElement>(null);
+  const stateRef = useRef<HTMLSelectElement>(null);
+  const zipRef = useRef<HTMLInputElement>(null);
 
   // Scroll to top when component mounts
   useEffect(() => {
@@ -40,6 +50,14 @@ export default function ContactStep() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData({ [name]: value });
+    
+    // Clear errors when user starts typing
+    if (name === 'phone') {
+      setPhoneError('');
+    }
+    if (name === 'email') {
+      setEmailError('');
+    }
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,6 +103,11 @@ export default function ContactStep() {
     }
   };
 
+  const validateEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const formatTime = (date: Date) => {
     if (isNaN(date.getTime())) {
       console.error('Invalid Date:', date);
@@ -118,17 +141,71 @@ export default function ContactStep() {
     );
   };
 
+  const scrollToFirstError = () => {
+    // Check for errors in order of appearance
+    if (!formData.name) {
+      nameRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      nameRef.current?.focus();
+      return;
+    }
+    
+    if (!formData.phone || !isValidPhoneNumber(formData.phone, 'US')) {
+      phoneRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      phoneRef.current?.focus();
+      return;
+    }
+    
+    if (!formData.email || !validateEmail(formData.email)) {
+      emailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      emailRef.current?.focus();
+      return;
+    }
+    
+    if (!formData.street) {
+      streetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      streetRef.current?.focus();
+      return;
+    }
+    
+    if (!formData.city) {
+      cityRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      cityRef.current?.focus();
+      return;
+    }
+    
+    if (!formData.state) {
+      stateRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      stateRef.current?.focus();
+      return;
+    }
+    
+    if (!formData.zip) {
+      zipRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      zipRef.current?.focus();
+      return;
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate phone number
     if (!formData.phone || !isValidPhoneNumber(formData.phone, 'US')) {
       setPhoneError('Please enter a valid US phone number');
+      scrollToFirstError();
       return;
     }
 
-    if (!selectedTechnician || !selectedJobType || !formData.name || !formData.email) {
+    // Validate email
+    if (!formData.email || !validateEmail(formData.email)) {
+      setEmailError('Please enter a valid email address');
+      scrollToFirstError();
+      return;
+    }
+
+    if (!selectedTechnician || !selectedJobType || !formData.name) {
       alert('Please fill in all required fields.');
+      scrollToFirstError();
       return;
     }
 
@@ -174,6 +251,7 @@ export default function ContactStep() {
                   Full Name *
                 </label>
                 <input
+                  ref={nameRef}
                   id="name"
                   name="name"
                   type="text"
@@ -190,6 +268,7 @@ export default function ContactStep() {
                   Phone Number *
                 </label>
                 <input
+                  ref={phoneRef}
                   id="phone"
                   name="phone"
                   type="tel"
@@ -212,15 +291,21 @@ export default function ContactStep() {
                   Email Address *
                 </label>
                 <input
+                  ref={emailRef}
                   id="email"
                   name="email"
                   type="email"
                   required
-                  className="w-full px-4 py-3 text-base border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                  className={`w-full px-4 py-3 text-base border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors ${
+                    emailError ? 'border-red-300 focus:ring-red-500' : 'border-gray-300'
+                  }`}
                   placeholder="your.email@example.com"
                   value={formData.email}
                   onChange={handleChange}
                 />
+                {emailError && (
+                  <p className="mt-1 text-sm text-red-600">{emailError}</p>
+                )}
               </div>
             </div>
           </div>
@@ -235,6 +320,7 @@ export default function ContactStep() {
                   Street Address *
                 </label>
                 <input
+                  ref={streetRef}
                   id="street"
                   name="street"
                   type="text"
@@ -267,6 +353,7 @@ export default function ContactStep() {
                     City *
                   </label>
                   <input
+                    ref={cityRef}
                     id="city"
                     name="city"
                     type="text"
@@ -283,6 +370,7 @@ export default function ContactStep() {
                     State *
                   </label>
                   <select
+                    ref={stateRef}
                     id="state"
                     name="state"
                     required
@@ -303,6 +391,7 @@ export default function ContactStep() {
                   ZIP Code *
                 </label>
                 <input
+                  ref={zipRef}
                   id="zip"
                   name="zip"
                   type="text"
