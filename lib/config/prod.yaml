@@ -55,32 +55,54 @@ technicianToSkills:
   - technicianId: 78450829
     technicianName: "Brittany TestTech"
     skills:
-      - "Virtual Service"
       - "Virtual Quote - Repair/Install"
       - "Virtual Quote - Water Filtration"
       - "Virtual Quote - Remodel Project"
-  # Verified
-  # - technicianId: 34365881
-  #   technicianName: "Pedro H."
-  #   skills:
-  #     - "Virtual Quote - Water Filtration"
-  # - technicianId: 49786183
-  #   technicianName: "Doug W."
-  #   skills:
-  #     - "Virtual Quote - Repair/Install"
-  #     - "Virtual Quote - Water Filtration"
-  # - technicianId: 2513668
-  #   technicianName: "Michael G."
-  #   skills:
-  #     - "Virtual Quote - Remodel Project"
-  # - technicianId: 16109753
-  #   technicianName: "Francisco J."
-  #   skills:
-  #     - "Virtual Service"
-  #     - "Virtual Quote - Water Filtration"
+      - "Virtual Service"
+  - technicianId: 76734742
+    technicianName: "David G."
+    skills:
+      - "Virtual Service"
+  - technicianId: 49786183
+    technicianName: "Doug W."
+    skills:
+      - "Virtual Quote - Repair/Install"
+      - "Virtual Quote - Water Filtration"
+      - "Virtual Quote - Remodel Project"
+      - "Virtual Service"
+  - technicianId: 16109753
+    technicianName: "Francisco J."
+    skills:
+      - "Virtual Service"
+  - technicianId: 60829405
+    technicianName: "Greg S."
+    skills:
+      - "Virtual Quote - Repair/Install"
+      - "Virtual Quote - Water Filtration"
+  - technicianId: 78123939
+    technicianName: "Ian F."
+    skills:
+      - "Virtual Quote - Remodel Project"
+  - technicianId: 45406649
+    technicianName: "Kyler B."
+    skills:
+      - "Virtual Service"
+  - technicianId: 2513668
+    technicianName: "Michael G."
+    skills:
+      - "Virtual Quote - Remodel Project"
+      - "Virtual Quote - Water Filtration"
+  - technicianId: 34365881
+    technicianName: "Pedro H."
+    skills:
+      - "Virtual Quote - Water Filtration"
+      - "Virtual Quote - Repair/Install"
+  - technicianId: 60804414
+    technicianName: "Trevar S."
+    skills:
+      - "Virtual Service"
 
 # Custom Fields Mapping
-# TODO: Verify
 customFields:
   customerJoinLink: 78453400
   technicianJoinLink: 78453297
@@ -89,4 +111,4 @@ appointmentDurationInMs: 1800000
 
 # Default managed technician ID to assign when non-managed techs are assigned
 # Doug W.
-defaultManagedTechId: 49786183 
+defaultManagedTechId: 49786183
