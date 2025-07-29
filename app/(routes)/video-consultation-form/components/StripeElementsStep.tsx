@@ -79,7 +79,7 @@ function PaymentForm( { price }: { price: number } ) {
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
       {error && <div className="bg-red-50 border border-red-200 rounded-lg p-4"><p className="text-sm text-red-700">{error}</p></div>}
-      <button type="submit" disabled={!stripe || isProcessing} className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+      <button type="submit" disabled={!stripe || isProcessing} className="next-button w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium">
         {isProcessing ? 'Processing...' : `Pay Now ${price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`}
       </button>
     </form>

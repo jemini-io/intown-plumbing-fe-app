@@ -176,6 +176,14 @@
     color: #00AEEF;
 }
 
+.bg-intown-yellow {
+    background-color: #BED433;
+}
+
+.text-intown-yellow {
+    color: #BED433;
+}
+
 h2, h3, p {
     margin-bottom: 10px;
 }
@@ -235,6 +243,25 @@ h2, h3, p {
     color: #fff;
 }
 
+.intown-date-button {
+  background-color: #FFFFFF;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px 32px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.intown-date-button:hover {
+  background-color: #00AEEF;
+}
+
+.intown-date-button.selected {
+  background-color: #00AEEF;
+  color: #FFFFFF;
+  border-color: #00AEEF;
+}
+
 .details-textarea {
     width: 100%;
     min-height: 120px;
@@ -255,10 +282,9 @@ h2, h3, p {
 }
 
 .next-button {
-    background-color: #00AEEF;
+    background-color: #BED433;
     font-size: 16px;
     font-weight: 600;
-    text-transform: uppercase;
     color: #FFFFFF;
     border: none;
     border-radius: 8px;
@@ -274,9 +300,10 @@ h2, h3, p {
 }
 
 .next-button:hover {
-    background-color: #0099d4;
+    color: #BED433;
+    background-color: #FFFFFF;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 174, 239, 0.3);
+    box-shadow: 0 4px 12px rgba(190, 212, 51, 0.3);
 }
 
 .next-button:active {

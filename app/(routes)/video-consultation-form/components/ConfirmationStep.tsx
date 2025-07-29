@@ -149,7 +149,7 @@ export default function ConfirmationStep() {
         <div className="flex flex-col sm:flex-row gap-4 pt-4">
           <button
             onClick={handleReturnHome}
-            className="w-full sm:flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 font-medium text-base transition-colors"
+            className="bg-intown-blue text-white w-full sm:flex-1 px-6 py-3 border-2 border-gray-300 hover:bg-[#BED433] rounded-lg font-medium transition-colors"
           >
             <span className="flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -161,7 +161,7 @@ export default function ConfirmationStep() {
           
           <button
             onClick={handleStartOver}
-            className="w-full sm:w-auto px-6 py-3 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 font-medium text-base transition-colors"
+            className="next-button w-full sm:w-auto px-6 py-3 border-2 border-gray-300"
           >
             <span className="flex items-center justify-center gap-2">
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

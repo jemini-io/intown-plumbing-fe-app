@@ -189,7 +189,7 @@ export default function DateStep() {
           <p className="text-red-600 mb-4">{error}</p>
           <button
             onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md"
           >
             Retry
           </button>
@@ -256,7 +256,7 @@ export default function DateStep() {
                 disabled={!dateInfo.isAvailable}
                 className={`flex-shrink-0 min-w-[64px] w-16 h-20 rounded-lg border-2 flex flex-col items-center justify-center transition-all ${
                   dateInfo.isSelected
-                    ? 'bg-blue-50 border-blue-500 text-blue-700'
+                    ? 'bg-intown-blue text-white border-intown-blue'
                     : dateInfo.isAvailable
                     ? 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
                     : 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
@@ -315,12 +315,12 @@ export default function DateStep() {
                   key={timeSlot.time}
                   onClick={() => handleTimeSlotClick(timeSlot)}
                   disabled={timeSlot.technicians.length === 0}
-                  className={`p-4 text-sm font-medium rounded-lg border-2 transition-all ${
+                  className={`intown-date-button p-4 text-sm font-medium rounded-lg border-2 transition-all ${
                     selectedTimeSlot?.time === timeSlot.time
-                      ? 'bg-blue-600 text-white border-blue-600 shadow-md'
+                      ? 'selected'
                       : timeSlot.technicians.length === 0
                       ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
-                      : 'bg-white text-gray-900 border-gray-300 hover:border-blue-500 hover:bg-blue-50'
+                      : 'bg-white text-gray-900 border-gray-300 hover:border-gray-300 hover:bg-gray-50'
                   }`}
                 >
                   <div className="text-center">
@@ -348,7 +348,7 @@ export default function DateStep() {
           <button
             onClick={handleNextClick}
             disabled={!selectedDate || !selectedTimeSlot || !selectedTechnician}
-            className="w-full sm:flex-1 px-6 py-3 border border-transparent rounded-lg text-base font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="next-button w-full sm:flex-1 px-6 py-3 border border-transparent rounded-lg text-base font-medium"
           >
             <span className="flex items-center justify-center gap-2">
               Continue
