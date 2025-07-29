@@ -168,6 +168,9 @@ export async function createJobAppointment({
     });
     logger.info({ jobId: jobResponse.id }, "Job created");
 
+    // Check and assign managed tech if needed
+    await checkAndAssignManagedTech(jobResponse, Number(technicianId));
+
     // Get invoice by jobId
     const invoiceResponse = await serviceTitanClient.accounting.InvoicesService.invoicesGetList({
         tenant: tenantId,
@@ -233,6 +236,42 @@ export async function createJobAppointment({
         }
     }
     return jobResponse;
+}
+
+async function checkAndAssignManagedTech(
+  jobResponse: Jpm_V2_JobResponse, 
+  originalTechnicianId: number
+): Promise<void> {
+  const serviceTitanClient = new ServiceTitanClient();
+  const tenantId = Number(env.servicetitan.tenantId);
+  
+  // Get original technician details
+  const originalTech = await getTechnician(originalTechnicianId);
+  
+  // Check if original tech is non-managed
+  if (!originalTech.isManagedTech) {
+    logger.info({ 
+      technicianId: originalTechnicianId, 
+      technicianName: originalTech.name 
+    }, "Non-managed technician detected, assigning default managed tech");
+    
+    const appointmentId = jobResponse.firstAppointmentId;
+    
+    // Assign default managed tech to the appointment
+    await serviceTitanClient.dispatch.AppointmentAssignmentsService.appointmentAssignmentsAssignTechnicians({
+      tenant: tenantId,
+      requestBody: {
+        jobAppointmentId: appointmentId,
+        technicianIds: [config.defaultManagedTechId]
+      }
+    });
+    
+    logger.info({ 
+      jobId: jobResponse.id,
+      originalTechId: originalTechnicianId,
+      managedTechId: config.defaultManagedTechId
+    }, "Successfully assigned default managed tech to appointment");
+  }
 }
 
 export async function getTechnicianFromJob(jobId: number): Promise<TenantSettings_V2_TechnicianResponse> {

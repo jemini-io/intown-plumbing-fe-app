@@ -62,6 +62,7 @@ export const ConfigSchema = z.object({
     technicianJoinLink: z.number(),
   }),
   appointmentDurationInMs: z.number(),
+  defaultManagedTechId: z.number(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

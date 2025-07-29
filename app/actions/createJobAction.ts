@@ -42,16 +42,13 @@ export interface CreateJobActionResult {
   error?: string;
   notificationSent?: boolean;
   meetingCreated?: boolean;
-  meetingDetails?: WherebyMeeting | null;
+  meetingDetails?: WherebyMeeting;
 }
 
-async function updateJobWithMeetingDetails(
-  jobId: number,
-  meetingDetails: WherebyMeeting
-): Promise<void> {
+async function updateJobWithMeetingDetails(jobId: number, meetingDetails: WherebyMeeting) {
   const serviceTitanClient = new ServiceTitanClient();
+  const tenantId = Number(env.servicetitan.tenantId);
 
-  // Prepare custom fields data with proper typing
   const customFields: Jpm_V2_CustomFieldModel[] = [
     {
       typeId: config.customFields.customerJoinLink,
@@ -63,14 +60,12 @@ async function updateJobWithMeetingDetails(
     }
   ];
 
-  // Update the job with custom fields - strongly typed
   const updateData: Jpm_V2_UpdateJobRequest = {
-    customFields
+    customFields: customFields
   };
 
-  // TODO: this probably shouldn't be here.
   await serviceTitanClient.jpm.JobsService.jobsUpdate({
-    tenant: Number(env.servicetitan.tenantId),
+    tenant: tenantId,
     id: jobId,
     requestBody: updateData
   });
@@ -140,15 +135,27 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       "[createJobAction] Job created successfully"
     );
 
-    // Send notification to technician
-    const technician = await getTechnician(data.technicianId);
-    const phoneNumber = technician.phoneNumber;
-    if (phoneNumber) {
+    // Send notification to original technician
+    const originalTechnician = await getTechnician(data.technicianId);
+    if (originalTechnician.phoneNumber) {
       await sendTechnicianAppointmentConfirmation(
-        phoneNumber,
+        originalTechnician.phoneNumber,
         new Date(data.startTime),
-        technician.name,
+        originalTechnician.name,
       );
+    }
+
+    // If original tech is non-managed, also notify the default managed tech
+    // TODO: this really needs to pull from the appointment assignments list on the job.
+    if (!originalTechnician.isManagedTech) {
+      const managedTechnician = await getTechnician(config.defaultManagedTechId);
+      if (managedTechnician.phoneNumber) {
+        await sendTechnicianAppointmentConfirmation(
+          managedTechnician.phoneNumber,
+          new Date(data.startTime),
+          managedTechnician.name,
+        );
+      }
     }
 
     // Send confirmation notification via Podium
@@ -189,7 +196,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       id: jobResponse.id,
       notificationSent,
       meetingCreated,
-      meetingDetails
+      meetingDetails: meetingDetails || undefined
     };
   } catch (error) {
     logger.error({ error }, "[createJobAction] Error creating job appointment");

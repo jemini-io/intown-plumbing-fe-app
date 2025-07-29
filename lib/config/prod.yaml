@@ -85,4 +85,8 @@ customFields:
   customerJoinLink: 78453400
   technicianJoinLink: 78453297
 
-appointmentDurationInMs: 1800000 
+appointmentDurationInMs: 1800000
+
+# Default managed technician ID to assign when non-managed techs are assigned
+# Doug W.
+defaultManagedTechId: 49786183 

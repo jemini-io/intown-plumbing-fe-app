@@ -312,6 +312,7 @@ h2, h3, p {
 
 .next-button:disabled {
     background-color: #9ca3af;
+    color: #FFFFFF;
     cursor: not-allowed;
     transform: none;
     box-shadow: none;
