@@ -48,7 +48,7 @@ export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJ
       data: timeSlots
     };
   } catch (error) {
-    logger.error({ error }, 'Failed to fetch available appointments');
+    logger.error({ err: error }, 'Failed to fetch available appointments');
 
     return {
       success: false,

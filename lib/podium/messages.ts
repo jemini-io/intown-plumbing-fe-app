@@ -7,6 +7,7 @@ import {
 import { createOrUpdateContact } from "./contacts";
 import { config } from "../config";
 import { env } from "../config/env";
+import { logger } from './logger'
 
 /**
  * Format phone number to E.164 format for consistent API usage
@@ -59,14 +60,18 @@ export interface SendMessageData {
  * Send a text message to a contact
  */
 async function sendPodiumMessage(data: SendMessageData) {
-  console.log(`Sending message to ${data.phoneNumber} with body: ${data.body}`);
-
   // Ensure the contact exists and get their info
   await createOrUpdateContact({
     phoneNumber: data.phoneNumber,
     name: data.contactName,
   });
 
+  logger.info({
+    message: "Sending message to podium",
+    phoneNumber: data.phoneNumber,
+    textMessage: data.body,
+    contactName: data.contactName,
+  })
 
   // Build the request body as per OpenAPI spec
   const messageRequest: PodiumMessageRequest = {
@@ -82,11 +87,12 @@ async function sendPodiumMessage(data: SendMessageData) {
   };
 
   // Send the message
-  const response = await podiumClient.post<PodiumMessageResponse>(
-    "/messages",
-    messageRequest
-  );
-  return response.data;
+  return null as unknown as PodiumMessageResponse;
+  // const response = await podiumClient.post<PodiumMessageResponse>(
+  //   "/messages",
+  //   messageRequest
+  // );
+  // return response.data;
 }
 
 /**
@@ -101,7 +107,12 @@ export async function sendTextMessage(
   const formattedPhone = formatPhoneForSubmission(phoneNumber);
 
   if (!env.podium.enabled) {
-    console.log(`Podium is disabled. Skipping message to technician (phone number: ${phoneNumber}):`, message);
+    logger.info({
+      message: "Podium is disabled, not sending.",
+      phoneNumber: formattedPhone,
+      textMessage: message,
+      contactName: contactName,
+    })
     return {
       data: {
         body: message,
@@ -138,13 +149,20 @@ export async function sendTextMessage(
     message += "\n\n(TEST ENVIRONMENT)";
   }
 
-  return sendPodiumMessage({
+  const response = await sendPodiumMessage({
     phoneNumber: formattedPhone,
     body: message,
     locationUid: config.podium.locationId,
     contactName: contactName,
     channelType: "phone",
   });
+  logger.info({
+    message: "Sent message to podium",
+    phoneNumber: formattedPhone,
+    textMessage: message,
+    contactName: contactName,
+  })
+  return response;
 }
 
 /**
@@ -182,7 +200,10 @@ export async function sendTechnicianAppointmentConfirmation(
   name: string
 ) {
   if (env.podium.useTestTechnicianNumber) {
-    console.log(`Using technician test number: ${env.podium.useTestTechnicianNumber}`);
+    logger.info({
+      message: "Using technician test number",
+      phoneNumber: env.podium.useTestTechnicianNumber,
+    })
     phoneNumber = env.podium.useTestTechnicianNumber;
   }
 

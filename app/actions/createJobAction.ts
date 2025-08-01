@@ -168,7 +168,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       );
       notificationSent = true;
     } catch (notificationError) {
-      logger.error({ error: notificationError }, "Failed to send Podium notification");
+      logger.error({ err: notificationError }, "Failed to send Podium notification");
       // Don't fail the entire job creation if notification fails
     }
 
@@ -187,7 +187,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       await updateJobWithMeetingDetails(jobResponse.id, meetingDetails);
       
     } catch (meetingError) {
-      logger.error({ error: meetingError }, "Failed to create Whereby meeting");
+      logger.error({ err: meetingError }, "Failed to create Whereby meeting");
       // Don't fail the entire job creation if meeting creation fails
     }
 
@@ -199,7 +199,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       meetingDetails: meetingDetails || undefined
     };
   } catch (error) {
-    logger.error({ error }, "[createJobAction] Error creating job appointment");
+    logger.error({ err: error }, "[createJobAction] Error creating job appointment");
     
     return { success: false, error: "Error creating job appointment" };
   }
