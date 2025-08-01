@@ -1,7 +1,7 @@
 import { NOTIFICATION_CONFIG, validateConfig } from './config'
 import { logger } from './logger'
 import { calculateTimeWindow, queryJobsInTimeWindow, addJobNote } from './job-queries'
-import { sendConsultationReminder, isEligibleForNotification, sendTechnicianConsultationReminder } from './notification-service'
+import { sendCustomerConsultationReminder, isEligibleForNotification, sendTechnicianConsultationReminder } from './notification-service'
 import { EnrichedJob, NotificationMetrics } from './types'
 
 /**
@@ -25,14 +25,15 @@ async function processJobBatch(jobs: EnrichedJob[], metrics: NotificationMetrics
         metrics.eligibleJobs++
         
         // Send SMS (will be logged only in dry run)
-        const smsResult = await sendConsultationReminder(job, job.customer)
+        const smsResult = await sendCustomerConsultationReminder(job, job.customer)
         const technicianSmsResult = await sendTechnicianConsultationReminder(job)
 
         if (!smsResult.success || !technicianSmsResult.success) {
-          logger.error('Failed to send SMS', {
+          logger.error({
             jobId: job.id,
-            error: smsResult.error || technicianSmsResult.error
-          })
+            smsResult: smsResult,
+            technicianSmsResult: technicianSmsResult,
+          }, 'Failed to send SMS')
         }
         
         // Add note if SMS was successful (will be logged only in dry run)
@@ -41,31 +42,32 @@ async function processJobBatch(jobs: EnrichedJob[], metrics: NotificationMetrics
           
           if (noteResult.success) {
             metrics.notificationsSent++
-            logger.info('Notification processed successfully', {
+            logger.info({
               jobId: job.id,
               customerId: job.customer.id,
               dryRun: NOTIFICATION_CONFIG.DRY_RUN,
               smsSent: !smsResult.dryRun,
               noteAdded: !noteResult.dryRun
-            })
+            }, 'Notification processed successfully')
           } else {
-            logger.error('Failed to add notification note', {
+            logger.error({
               jobId: job.id,
               error: noteResult.error
-            })
+            }, 'Failed to add notification note')
           }
         } else {
-          logger.error('Failed to send SMS', {
+          logger.error({
             jobId: job.id,
             error: smsResult.error
-          })
+          }, 'Failed to send SMS')
         }
       }
     } catch (error) {
       metrics.errors++
-      logger.error('Failed to process job', error, {
+      logger.error({
+        err: error,
         jobId: job.id
-      })
+      }, 'Failed to process job')
     }
   })
   
@@ -89,11 +91,11 @@ export async function checkAndSendJobNotifications() {
     // Validate configuration
     validateConfig()
     
-    logger.info('Starting job notification task', {
+    logger.info({
       dryRun: NOTIFICATION_CONFIG.DRY_RUN,
       jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER,
       timeWindowMinutes: NOTIFICATION_CONFIG.TIME_WINDOW_MINUTES
-    })
+    }, 'Starting job notification task')
 
     // 1. Get current time window (±5 minutes)
     const timeWindow = calculateTimeWindow()
@@ -103,12 +105,15 @@ export async function checkAndSendJobNotifications() {
     metrics.totalJobs = jobs.length
     
     if (jobs.length === 0) {
-      logger.info('No jobs found in time window', {
+      logger.info({
         start: timeWindow.start.toISOString(),
         end: timeWindow.end.toISOString()
-      })
+      }, 'No jobs found in time window')
       return metrics
     }
+
+    logger.error('exit early')
+    return metrics;
     
     // 3. Process jobs in batches
     const batches = chunk(jobs, 10) // Process 10 at a time
@@ -121,7 +126,9 @@ export async function checkAndSendJobNotifications() {
     const duration = Date.now() - startTime
     metrics.duration = duration
     
-    logger.info('Task completed', { ...metrics })
+    logger.info({
+      ...metrics
+    }, 'Task completed')
     
     return metrics
     
@@ -130,7 +137,10 @@ export async function checkAndSendJobNotifications() {
     const duration = Date.now() - startTime
     metrics.duration = duration
     
-    logger.error('Task failed', error, { ...metrics })
+    logger.error({
+      err: error,
+      ...metrics
+    }, 'Task failed')
     throw error
   }
 }
@@ -141,11 +151,15 @@ export async function checkAndSendJobNotifications() {
 if (require.main === module) {
   checkAndSendJobNotifications()
     .then((metrics) => {
-      logger.info('Cron job completed successfully', { ...metrics })
+      logger.info({
+        ...metrics
+      }, 'Cron job completed successfully')
       process.exit(0)
     })
     .catch((error) => {
-      logger.error('Cron job failed', error)
+      logger.error({
+        err: error
+      }, 'Cron job failed')
       process.exit(1)
     })
 } 

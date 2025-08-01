@@ -26,11 +26,11 @@ export function calculateTimeWindow(): TimeWindow {
  */
 export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<EnrichedJob[]> {
   try {
-    logger.info('Querying jobs in time window', {
+    logger.info({
       start: timeWindow.start.toISOString(),
       end: timeWindow.end.toISOString(),
       jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
-    })
+    }, 'Querying jobs in time window')
 
     const serviceTitanClient = new ServiceTitanClient();
 
@@ -45,11 +45,15 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
     })
 
     if (!response.data || !Array.isArray(response.data)) {
-      logger.warn('No jobs found or invalid response format', {
+      logger.warn({
         responseDataType: typeof response.data
-      })
+      }, 'No jobs found or invalid response format')
       return []
     }
+
+    logger.info({
+      totalCount: response.data.length
+    }, `Found ${response.data.length} jobs in time window`)
 
     // Filter jobs by appointment time and job type, then enrich with customer and notes
     const enrichedJobs = await Promise.all(
@@ -82,24 +86,34 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
             notes
           }
         } catch (error) {
-          logger.error('Failed to enrich job data', error, { jobId: job.id })
+          logger.error({
+            err: error,
+            jobId: job.id
+          }, 'Failed to enrich job data')
           return null
         }
       })
     )
 
-    const validJobs: EnrichedJob[] = enrichedJobs.filter((job) => job !== null)
-
-    logger.info('Found jobs for notification processing', {
-      total: response.data.length,
-      filtered: validJobs.length,
-      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
+    const validJobs: EnrichedJob[] = enrichedJobs.filter((job: EnrichedJob | null): job is EnrichedJob => {
+      if (job?.jobType === NOTIFICATION_CONFIG.JOB_TYPE_FILTER) {
+        return true
+      }
+      return false
     })
+
+    logger.info({
+      totalCount: response.data.length,
+      filteredCount: validJobs.length,
+      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
+    }, `Found ${validJobs.length} jobs for notification processing`)
 
     return validJobs
 
   } catch (error) {
-    logger.error('Failed to query jobs', error)
+    logger.error({
+      err: error,
+    }, 'Failed to query jobs')
     throw error
   }
 }
@@ -118,7 +132,10 @@ async function getJobAppointments(jobId: number, serviceTitanClient: ServiceTita
     
     return response.data || []
   } catch (error) {
-    logger.error('Failed to get job appointments', error, { jobId })
+    logger.error({
+      err: error,
+      jobId: jobId
+    }, 'Failed to get job appointments')
     return []
   }
 }
@@ -135,7 +152,10 @@ async function getJobType(jobTypeId: number, serviceTitanClient: ServiceTitanCli
     
     return response
   } catch (error) {
-    logger.error('Failed to get job type', error, { jobTypeId })
+    logger.error({
+      err: error,
+      jobTypeId: jobTypeId
+    }, 'Failed to get job type')
     return null
   }
 }
@@ -172,7 +192,10 @@ async function getCustomerForJob(customerId: number, serviceTitanClient: Service
     }
 
   } catch (error) {
-    logger.error('Failed to get customer for job', error, { customerId })
+    logger.error({
+      err: error,
+      customerId: customerId
+    }, 'Failed to get customer for job')
     throw error
   }
 }
@@ -196,7 +219,10 @@ async function getJobNotes(jobId: number, serviceTitanClient: ServiceTitanClient
       createdBy: note.createdById ? String(note.createdById) : 'Unknown'
     })) || []
   } catch (error) {
-    logger.error('Failed to get job notes', error, { jobId })
+    logger.error({
+      err: error,
+      jobId: jobId
+    }, 'Failed to get job notes')
     return []
   }
 }
@@ -207,10 +233,10 @@ async function getJobNotes(jobId: number, serviceTitanClient: ServiceTitanClient
 export async function addJobNote(jobId: number, noteText: string) {
   try {
     if (NOTIFICATION_CONFIG.DRY_RUN) {
-      logger.info('DRY RUN: Would add job note', {
-        jobId,
-        noteText
-      })
+      logger.info({
+        jobId: jobId,
+        noteText: noteText
+      }, 'DRY RUN: Would add job note')
       return { success: true, dryRun: true }
     }
 
@@ -225,15 +251,19 @@ export async function addJobNote(jobId: number, noteText: string) {
       }
     })
     
-    logger.info('Added job note', {
-      jobId,
-      noteText
-    })
+    logger.info({
+      jobId: jobId,
+      noteText: noteText
+    }, 'Added job note')
 
     return { success: true }
 
   } catch (error) {
-    logger.error('Failed to add job note', error, { jobId, noteText })
+    logger.error({
+      err: error,
+      jobId: jobId,
+      noteText: noteText
+    }, 'Failed to add job note')
     return { success: false, error: error instanceof Error ? error.message : String(error) }
   }
 } 
