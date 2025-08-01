@@ -87,12 +87,11 @@ async function sendPodiumMessage(data: SendMessageData) {
   };
 
   // Send the message
-  return null as unknown as PodiumMessageResponse;
-  // const response = await podiumClient.post<PodiumMessageResponse>(
-  //   "/messages",
-  //   messageRequest
-  // );
-  // return response.data;
+  const response = await podiumClient.post<PodiumMessageResponse>(
+    "/messages",
+    messageRequest
+  );
+  return response.data;
 }
 
 /**
