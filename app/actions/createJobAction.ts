@@ -1,7 +1,7 @@
 'use server';
 
 import { createJobAppointment, getTechnician } from "@/app/api/job/createJob";
-import { sendAppointmentConfirmation, sendTechnicianAppointmentConfirmation } from "@/lib/podium";
+import { sendAppointmentConfirmation, sendTechnicianAppointmentConfirmation, sendTechnicianAppointmentConfirmationToManager } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
@@ -150,10 +150,11 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
     if (!originalTechnician.isManagedTech) {
       const managedTechnician = await getTechnician(config.defaultManagedTechId);
       if (managedTechnician.phoneNumber) {
-        await sendTechnicianAppointmentConfirmation(
+        await sendTechnicianAppointmentConfirmationToManager(
           managedTechnician.phoneNumber,
           new Date(data.startTime),
           managedTechnician.name,
+          originalTechnician.name,
         );
       }
     }

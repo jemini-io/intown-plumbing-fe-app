@@ -67,11 +67,10 @@ async function sendPodiumMessage(data: SendMessageData) {
   });
 
   logger.info({
-    message: "Sending message to podium",
     phoneNumber: data.phoneNumber,
     textMessage: data.body,
     contactName: data.contactName,
-  })
+  }, "Sending message to podium")
 
   // Build the request body as per OpenAPI spec
   const messageRequest: PodiumMessageRequest = {
@@ -107,11 +106,10 @@ export async function sendTextMessage(
 
   if (!env.podium.enabled) {
     logger.info({
-      message: "Podium is disabled, not sending.",
       phoneNumber: formattedPhone,
       textMessage: message,
       contactName: contactName,
-    })
+    }, "Podium is disabled, not sending.")
     return {
       data: {
         body: message,
@@ -155,12 +153,7 @@ export async function sendTextMessage(
     contactName: contactName,
     channelType: "phone",
   });
-  logger.info({
-    message: "Sent message to podium",
-    phoneNumber: formattedPhone,
-    textMessage: message,
-    contactName: contactName,
-  })
+  logger.info("Sent message to podium")
   return response;
 }
 
@@ -200,9 +193,8 @@ export async function sendTechnicianAppointmentConfirmation(
 ) {
   if (env.podium.useTestTechnicianNumber) {
     logger.info({
-      message: "Using technician test number",
       phoneNumber: env.podium.useTestTechnicianNumber,
-    })
+    }, "Using technician test number")
     phoneNumber = env.podium.useTestTechnicianNumber;
   }
 
@@ -214,6 +206,25 @@ export async function sendTechnicianAppointmentConfirmation(
   return sendTextMessage(phoneNumber, message, name);
 }
 
+export async function sendTechnicianAppointmentConfirmationToManager(
+  phoneNumber: string,
+  date: Date,
+  name: string,
+  scheduledTechnicianName: string,
+) {
+  if (env.podium.useTestTechnicianNumber) {
+    logger.info({
+      phoneNumber: env.podium.useTestTechnicianNumber,
+    }, "Using test technician number")
+    phoneNumber = env.podium.useTestTechnicianNumber;
+  }
+
+  const formattedDateAtTime = formatDateAtTimeString(date);
+  const message = [
+    `Hi ${name}! A new Virtual Consultation is booked for ${formattedDateAtTime} with ${scheduledTechnicianName}.`,
+  ].join("\n");
+  return sendTextMessage(phoneNumber, message, name);
+}
 
 function formatDateAtTimeString(date: Date): string {
   const formattedDate = date.toLocaleDateString("en-US", {
