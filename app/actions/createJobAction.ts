@@ -1,7 +1,7 @@
 'use server';
 
 import { createJobAppointment, getTechnician } from "@/app/api/job/createJob";
-import { sendAppointmentConfirmation, sendTechnicianAppointmentConfirmation } from "@/lib/podium";
+import { sendAppointmentConfirmation, sendTechnicianAppointmentConfirmation, sendTechnicianAppointmentConfirmationToManager } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
@@ -150,10 +150,11 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
     if (!originalTechnician.isManagedTech) {
       const managedTechnician = await getTechnician(config.defaultManagedTechId);
       if (managedTechnician.phoneNumber) {
-        await sendTechnicianAppointmentConfirmation(
+        await sendTechnicianAppointmentConfirmationToManager(
           managedTechnician.phoneNumber,
           new Date(data.startTime),
           managedTechnician.name,
+          originalTechnician.name,
         );
       }
     }
@@ -168,7 +169,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       );
       notificationSent = true;
     } catch (notificationError) {
-      logger.error({ error: notificationError }, "Failed to send Podium notification");
+      logger.error({ err: notificationError }, "Failed to send Podium notification");
       // Don't fail the entire job creation if notification fails
     }
 
@@ -187,7 +188,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       await updateJobWithMeetingDetails(jobResponse.id, meetingDetails);
       
     } catch (meetingError) {
-      logger.error({ error: meetingError }, "Failed to create Whereby meeting");
+      logger.error({ err: meetingError }, "Failed to create Whereby meeting");
       // Don't fail the entire job creation if meeting creation fails
     }
 
@@ -199,7 +200,7 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
       meetingDetails: meetingDetails || undefined
     };
   } catch (error) {
-    logger.error({ error }, "[createJobAction] Error creating job appointment");
+    logger.error({ err: error }, "[createJobAction] Error creating job appointment");
     
     return { success: false, error: "Error creating job appointment" };
   }

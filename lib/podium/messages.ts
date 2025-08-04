@@ -7,6 +7,7 @@ import {
 import { createOrUpdateContact } from "./contacts";
 import { config } from "../config";
 import { env } from "../config/env";
+import { logger } from './logger'
 
 /**
  * Format phone number to E.164 format for consistent API usage
@@ -59,14 +60,17 @@ export interface SendMessageData {
  * Send a text message to a contact
  */
 async function sendPodiumMessage(data: SendMessageData) {
-  console.log(`Sending message to ${data.phoneNumber} with body: ${data.body}`);
-
   // Ensure the contact exists and get their info
   await createOrUpdateContact({
     phoneNumber: data.phoneNumber,
     name: data.contactName,
   });
 
+  logger.info({
+    phoneNumber: data.phoneNumber,
+    textMessage: data.body,
+    contactName: data.contactName,
+  }, "Sending message to podium")
 
   // Build the request body as per OpenAPI spec
   const messageRequest: PodiumMessageRequest = {
@@ -101,7 +105,11 @@ export async function sendTextMessage(
   const formattedPhone = formatPhoneForSubmission(phoneNumber);
 
   if (!env.podium.enabled) {
-    console.log(`Podium is disabled. Skipping message to technician (phone number: ${phoneNumber}):`, message);
+    logger.info({
+      phoneNumber: formattedPhone,
+      textMessage: message,
+      contactName: contactName,
+    }, "Podium is disabled, not sending.")
     return {
       data: {
         body: message,
@@ -138,13 +146,15 @@ export async function sendTextMessage(
     message += "\n\n(TEST ENVIRONMENT)";
   }
 
-  return sendPodiumMessage({
+  const response = await sendPodiumMessage({
     phoneNumber: formattedPhone,
     body: message,
     locationUid: config.podium.locationId,
     contactName: contactName,
     channelType: "phone",
   });
+  logger.info("Sent message to podium")
+  return response;
 }
 
 /**
@@ -182,7 +192,9 @@ export async function sendTechnicianAppointmentConfirmation(
   name: string
 ) {
   if (env.podium.useTestTechnicianNumber) {
-    console.log(`Using technician test number: ${env.podium.useTestTechnicianNumber}`);
+    logger.info({
+      phoneNumber: env.podium.useTestTechnicianNumber,
+    }, "Using technician test number")
     phoneNumber = env.podium.useTestTechnicianNumber;
   }
 
@@ -194,6 +206,25 @@ export async function sendTechnicianAppointmentConfirmation(
   return sendTextMessage(phoneNumber, message, name);
 }
 
+export async function sendTechnicianAppointmentConfirmationToManager(
+  phoneNumber: string,
+  date: Date,
+  name: string,
+  scheduledTechnicianName: string,
+) {
+  if (env.podium.useTestTechnicianNumber) {
+    logger.info({
+      phoneNumber: env.podium.useTestTechnicianNumber,
+    }, "Using test technician number")
+    phoneNumber = env.podium.useTestTechnicianNumber;
+  }
+
+  const formattedDateAtTime = formatDateAtTimeString(date);
+  const message = [
+    `Hi ${name}! A new Virtual Consultation is booked for ${formattedDateAtTime} with ${scheduledTechnicianName}.`,
+  ].join("\n");
+  return sendTextMessage(phoneNumber, message, name);
+}
 
 function formatDateAtTimeString(date: Date): string {
   const formattedDate = date.toLocaleDateString("en-US", {

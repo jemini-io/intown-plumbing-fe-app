@@ -1,6 +1,7 @@
 import { config } from '../config'
 import { podiumClient } from './client'
 import { PodiumContact, PodiumContactCreatedResponse, PodiumContactRequest } from './types'
+import { logger } from './logger'
 
 export interface CreateContactData {
   phoneNumber: string
@@ -26,27 +27,39 @@ export async function createOrUpdateContact(data: CreateContactData): Promise<Po
     phoneNumber: data.phoneNumber,
   }
 
-  console.log('creating or updating contact', contactData)
+  logger.info({
+    contactData: contactData,
+  }, 'creating or updating contact')
 
   // check if contact already exists
   try {
     const existingContact = await podiumClient.get<PodiumContact>(`/contacts/${data.phoneNumber}`)
     if (existingContact.data) {
-      console.log('podium contact already exists', existingContact.data.name)
+      logger.info({
+        contactName: existingContact.data.name,
+      }, 'podium contact already exists')
       return existingContact.data
     }
   } catch (error) {
-    console.log('error checking if contact exists will attempt to create', error)
+    logger.error({
+      err: error,
+    }, 'error checking if contact exists will attempt to create')
   }
 
   try {
     // Try to create the contact first
     const response = await podiumClient.post<PodiumContactCreatedResponse>('/contacts', contactData)
-    console.log('created contact', response.data.identifier)
+    logger.info({
+      contactId: response.data.identifier,
+    }, 'created contact')
   } catch (error) {
-    console.log('error creating contact', error)
+    logger.error({
+      err: error,
+    }, 'error creating contact')
   }
   const response = await podiumClient.get<PodiumContact>(`/contacts/${data.phoneNumber}`)
-  console.log('fetched contact', response.data.name)
+  logger.info({
+    contactName: response.data.name,
+  }, 'fetched contact')
   return response.data
 }

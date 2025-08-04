@@ -26,28 +26,35 @@ function getTechnicianJoinLink(job: Jpm_V2_JobResponse): string | undefined {
 /**
  * Format SMS message using job and customer data
  */
-function formatSMSMessage(job: Jpm_V2_JobResponse, customer: Customer): string {
-  const customerName = `${customer.firstName}`.trim() || 'there';
-  const customerJoinLink = getCustomerJoinLink(job) || '[link unavailable]';
+function formatCustomerSMSMessage(customerName: string, customerJoinLink: string): string {
   return `Hey, ${customerName}, your InTown Plumbing consultation is starting in 5 mins!\n\nFollow this link to join: ${customerJoinLink}`;
 }
 
 /**
  * Send consultation reminder SMS
  */
-export async function sendConsultationReminder(job: Jpm_V2_JobResponse, customer: Customer): Promise<SMSResult> {
+export async function sendCustomerConsultationReminder(job: Jpm_V2_JobResponse, customer: Customer): Promise<SMSResult> {
   try {
-    const message = formatSMSMessage(job, customer);
-    const customerName = `${customer.firstName} ${customer.lastName}`.trim() || 'Customer';
+
+    const customerJoinLink = getCustomerJoinLink(job)
+    if (!customerJoinLink) {
+      return {
+        success: false,
+        error: "Customer has no join link"
+      };
+    }
+
+    const customerName = `${customer.firstName} ${customer.lastName}`.trim() || 'there';
+    const message = formatCustomerSMSMessage(customerName, customerJoinLink);
 
     if (NOTIFICATION_CONFIG.DRY_RUN) {
-      logger.info('DRY RUN: Would send SMS', {
+      logger.info({
         jobId: job.id,
         customerId: customer.id,
         phone: customer.phone,
         text: message,
         customerName
-      });
+      }, 'DRY RUN: Would send SMS');
       return { success: true, dryRun: true };
     }
 
@@ -58,20 +65,22 @@ export async function sendConsultationReminder(job: Jpm_V2_JobResponse, customer
       customerName
     );
 
-    logger.info('SMS sent successfully', {
+    logger.info({
       jobId: job.id,
       customerId: customer.id,
       phone: customer.phone,
-    });
+      customerName: customerName,
+    }, 'SMS sent successfully');
 
     return { success: true, messageId: 'unknown' };
 
   } catch (error) {
-    logger.error('Failed to send SMS', error, {
+    logger.error({
+      err: error,
       jobId: job.id,
       customerId: customer.id,
       phone: customer.phone
-    });
+    }, 'Failed to send SMS');
 
     return {
       success: false,
@@ -105,9 +114,12 @@ export async function sendTechnicianConsultationReminder(job: Jpm_V2_JobResponse
       error: "Technician has no join link"
     };
   }
+
   const message = `Hi ${technicianName}! You're next Virtual Consultation starts in 5 mins. Here's the join link: ${joinLink}`;
   if (env.podium.useTestTechnicianNumber) {
-    console.log(`Using technician test number: ${env.podium.useTestTechnicianNumber}`);
+    logger.info({
+      phoneNumber: env.podium.useTestTechnicianNumber,
+    }, "Using technician test number")
     phoneNumber = env.podium.useTestTechnicianNumber;
   }
   await sendTextMessage(phoneNumber, message, technicianName);
@@ -137,14 +149,14 @@ export function isEligibleForNotification(job: EnrichedJob): boolean {
   // check if phone number exists
   const phoneNumberExists = job.customer.phone !== null && job.customer.phone !== undefined && job.customer.phone !== '';
 
-  logger.info('Checking notification eligibility', {
+  logger.info({
     jobId: job.id,
     withinTimeWindow,
     hasNotificationNote,
     timeDiffMinutes: Math.round(timeDiff),
     phoneNumberExists,
     eligible: withinTimeWindow && !hasNotificationNote && phoneNumberExists
-  });
+  }, 'Checking notification eligibility');
 
   return withinTimeWindow && !hasNotificationNote && phoneNumberExists;
 } 

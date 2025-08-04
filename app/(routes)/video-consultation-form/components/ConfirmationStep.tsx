@@ -14,7 +14,7 @@ export default function ConfirmationStep() {
   };
 
   const handleReturnHome = () => {
-    window.location.href = "/";
+    window.location.href = "https://intownplumbingtx.com";
   };
 
   const formatDateTime = (isoString: string) => {
