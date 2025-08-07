@@ -16,9 +16,8 @@ datasource db {
 
 model AppSetting {
   id     Int    @id @default(autoincrement())
-  env    String // "test", "prod", etc.
   key    String
   value  String
 
-  @@unique([env, key])
+  @@unique([key])
 }

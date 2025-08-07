@@ -17,7 +17,15 @@
     "job-notifications:test": "dotenv -e .env.test.local -- npx tsx lib/tasks/check-send-job-notifications/index.ts",
     "job-notifications": "npx tsx lib/tasks/check-send-job-notifications/index.ts",
     "generate:sdk": "tsx scripts/generate-sdk/generate.ts",
-    "clean:sdk": "rm -rf lib/servicetitan/generated"
+    "clean:sdk": "rm -rf lib/servicetitan/generated",
+    "db:dev:create": "createdb intown_dev || echo 'Dev Database already exists'",
+    "db:test:create": "createdb intown_test || echo 'Test Database already exists'",
+    "migrate:dev": "dotenv -e .env -- npx prisma migrate dev --name init",
+    "migrate:test": "dotenv -e .env.test -- npx prisma migrate deploy",
+    "import:dev": "dotenv -e .env -- node scripts/importAppSettings.js prod",
+    "import:test": "dotenv -e .env.test -- node scripts/importAppSettings.js test",
+    "setup:dev": "npm run db:dev:create && npm run migrate:dev && npm run import:dev",
+    "setup:test": "npm run db:test:create && npm run migrate:test && npm run import:test"
   },
   "dependencies": {
     "@prisma/client": "^6.13.0",

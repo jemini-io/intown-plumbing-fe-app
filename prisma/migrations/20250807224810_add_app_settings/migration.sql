@@ -1,7 +1,6 @@
 -- CreateTable
 CREATE TABLE "public"."AppSetting" (
     "id" SERIAL NOT NULL,
-    "env" TEXT NOT NULL,
     "key" TEXT NOT NULL,
     "value" TEXT NOT NULL,
 
@@ -9,4 +8,4 @@ CREATE TABLE "public"."AppSetting" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "AppSetting_env_key_key" ON "public"."AppSetting"("env", "key");
+CREATE UNIQUE INDEX "AppSetting_key_key" ON "public"."AppSetting"("key");
