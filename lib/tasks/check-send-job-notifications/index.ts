@@ -108,13 +108,10 @@ export async function checkAndSendJobNotifications() {
       logger.info({
         start: timeWindow.start.toISOString(),
         end: timeWindow.end.toISOString()
-      }, 'No jobs found in time window')
+      }, 'No jobs to send notifications for')
       return metrics
     }
 
-    logger.error('exit early')
-    return metrics;
-    
     // 3. Process jobs in batches
     const batches = chunk(jobs, 10) // Process 10 at a time
     
