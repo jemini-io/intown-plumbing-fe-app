@@ -1,4 +1,4 @@
-import { config } from '../config'
+import { getPodiumLocationId } from "@/app/actions/getConfig"
 import { podiumClient } from './client'
 import { PodiumContact, PodiumContactCreatedResponse, PodiumContactRequest } from './types'
 import { logger } from './logger'
@@ -21,8 +21,9 @@ export interface UpdateContactData {
  * If the contact already exists, it will be updated
  */
 export async function createOrUpdateContact(data: CreateContactData): Promise<PodiumContact> {
+  const podiumLocationId = await getPodiumLocationId();
   const contactData: PodiumContactRequest = {
-    locations: [config.podium.locationId],
+    locations: [podiumLocationId],
     name: data.name,
     phoneNumber: data.phoneNumber,
   }

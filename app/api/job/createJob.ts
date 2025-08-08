@@ -4,7 +4,7 @@ import { Accounting_V2_InvoiceUpdateRequest, Accounting_V2_PaymentCreateRequest 
 import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan/generated/crm";
 import { Jpm_V2_JobResponse } from "@/lib/servicetitan/generated/jpm";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
-import { config } from "@/lib/config";
+import { getServiceTitanConfig, getStripeConfig, getDefaultManagedTechId } from "@/app/actions/getConfig";
 import type { Customer, Job, Location } from './types';
 import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
 import { logger } from "../logger";
@@ -175,14 +175,16 @@ export async function createJobAppointment({
         return existingJobs.data[0];
     }
 
+    const serviceTitanConfig = await getServiceTitanConfig();
+
     // Create job
     const jobData = {
         customerId: Number(stCustomer.id),
         locationId: Number(stCustomer.locations[0].id),
-        businessUnitId: Number(config.serviceTitan.businessUnitId),
+        businessUnitId: Number(serviceTitanConfig.businessUnitId),
         jobTypeId: Number(jobTypeId),
         priority: "Normal", // KEEP for now
-        campaignId: Number(config.serviceTitan.campaignId),
+        campaignId: Number(serviceTitanConfig.campaignId),
         appointments: [{
             start: startTime,
             end: endTime,
@@ -222,13 +224,15 @@ export async function createJobAppointment({
 
     if (invoiceResponse.data && invoiceResponse.data.length > 0) {
         const invoiceId = invoiceResponse.data[0].id;
-        const productDetails = await getProductDetails(config.stripe.virtualConsultationProductName);
+        const stripeConfig = await getStripeConfig();
+        const virtualConsultationProductName = stripeConfig.virtualConsultationProductName;
+        const productDetails = await getProductDetails(virtualConsultationProductName);
         const updatedInvoiceData: Accounting_V2_InvoiceUpdateRequest = {
-            summary: config.stripe.virtualConsultationProductName,
+            summary: virtualConsultationProductName,
             items: [
                 {
-                    skuId: config.serviceTitan.virtualServiceSkuId,
-                    description: config.stripe.virtualConsultationProductName,
+                    skuId: serviceTitanConfig.virtualServiceSkuId,
+                    description: virtualConsultationProductName,
                     unitPrice: productDetails.stripePrice,
                     technicianId: Number(technicianId),
                     quantity: 1
@@ -272,8 +276,8 @@ export async function createJobAppointment({
         } else {
             // Create payment if no existing payments
             const paymentData: Accounting_V2_PaymentCreateRequest = {
-                typeId: config.serviceTitan.stripePaymentTypeId,
-                memo: `Payment for ${config.stripe.virtualConsultationProductName}`, //TODO: improve memo
+                typeId: serviceTitanConfig.stripePaymentTypeId,
+                memo: `Payment for ${virtualConsultationProductName}`, //TODO: improve memo
                 paidOn: new Date().toISOString(), // Use current date or specify another date
                 status: "Posted",
                 splits: [{
@@ -314,13 +318,15 @@ async function checkAndAssignManagedTech(
     });
     
     const appointmentId = jobResponse.firstAppointmentId;
+
+    const defaultManagedTechId = await getDefaultManagedTechId();
     
     // Assign default managed tech to the appointment
     await serviceTitanClient.dispatch.AppointmentAssignmentsService.appointmentAssignmentsAssignTechnicians({
       tenant: tenantId,
       requestBody: {
         jobAppointmentId: appointmentId,
-        technicianIds: [config.defaultManagedTechId]
+        technicianIds: [defaultManagedTechId]
       }
     });
     
@@ -328,7 +334,7 @@ async function checkAndAssignManagedTech(
       message: "Successfully assigned default managed tech to appointment",
       jobId: jobResponse.id,
       originalTechId: originalTechnicianId,
-      managedTechId: config.defaultManagedTechId
+      managedTechId: defaultManagedTechId
     });
   }
 }

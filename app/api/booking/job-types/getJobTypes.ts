@@ -2,7 +2,7 @@
 
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { env } from "@/lib/config/env";
-import { config } from "@/lib/config";
+import { getServiceToJobTypes, getServiceTitanConfig } from '@/app/actions/getConfig';
 import pino from "pino";
 
 const logger = pino({ name: "getJobTypesByServiceTitanIds" });
@@ -15,7 +15,9 @@ export async function getJobTypesByServiceTitanIds() {
 
   const serviceTitanClient = new ServiceTitanClient();
 
-  const uniqueServiceTitanIds = Array.from(new Set(config.serviceToJobTypes.map((service) => service.serviceTitanId)));
+  const serviceToJobTypes = await getServiceToJobTypes();
+
+  const uniqueServiceTitanIds = Array.from(new Set(serviceToJobTypes.map((service) => service.serviceTitanId)));
 
   logger.debug({ uniqueServiceTitanIds }, "Unique ServiceTitan IDs");
 
@@ -34,9 +36,12 @@ export async function getJobTypesByServiceTitanIds() {
     return [];
   }
 
+
+  const serviceTitanConfig = await getServiceTitanConfig();
+
   // Filter by business unit
-  const filtered = jobTypes.data.filter((jobType) =>
-    jobType.businessUnitIds.includes(config.serviceTitan.businessUnitId)
+  const filtered = jobTypes.data.filter((jobType) => 
+    jobType.businessUnitIds.includes(serviceTitanConfig.businessUnitId)
   );
 
   logger.info({ count: filtered.length }, "Filtered job types by business unit");

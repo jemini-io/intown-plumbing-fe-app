@@ -1,7 +1,6 @@
-import { PrismaClient } from '@/lib/generated/prisma'
-const prisma = new PrismaClient()
+import { prisma } from "@/lib/prisma";
 
-export async function getSetting(key: string) {
+export async function getSetting(key: string): Promise<string | null> {
   const setting = await prisma.appSetting.findUnique({
     where: { key }
   })

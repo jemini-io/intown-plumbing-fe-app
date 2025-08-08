@@ -2,7 +2,8 @@ import { ServiceTitanClient } from '@/lib/servicetitan';
 import { env } from "@/lib/config/env";
 import { Jpm_V2_AppointmentResponse, PaginatedResponse_Of_Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
 import { QuoteSkill } from '@/lib/config/types';
-import { config } from '@/lib/config';
+import { getTechnicianToSkills } from '@/app/actions/getConfig';
+
 import pino from 'pino';
 
 const logger = pino({ name: 'getAvailableTimeSlots' });
@@ -45,7 +46,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     //     pageSize: 1000,
     // });
     // const allTechs = getTechsList.data || getTechsList;
-    const techsSkillsList = config.technicianToSkills;
+    const techsSkillsList = await getTechnicianToSkills();
 
     // Get ST Job Type
     const jobTypeResponse = await serviceTitanClient.jpm.JobTypesService.jobTypesGet({
