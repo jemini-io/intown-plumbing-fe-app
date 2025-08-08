@@ -21,7 +21,7 @@ export const env = {
   },
   podium: {
     enabled: getEnvVar("PODIUM_ENABLED", false, "false") === "true",
-    useTestTechnicianNumber: getEnvVar("PODIUM_USE_TEST_TECHNICIAN_NUMBER", false, "false"),
+    useTestTechnicianNumber: getEnvVar("PODIUM_USE_TEST_TECHNICIAN_NUMBER", false, "") || undefined,
   },
   whereby: {
     apiToken: getEnvVar("WHEREBY_API_TOKEN", true),
