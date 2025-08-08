@@ -6,7 +6,6 @@ export function validateIframeOrigin(req: NextRequest): boolean {
   
   // Allow direct browser access (no origin/referer header)
   if (!origin) {
-    console.log('✅ Allowing direct access (no origin)');
     return true;
   }
   
@@ -14,13 +13,11 @@ export function validateIframeOrigin(req: NextRequest): boolean {
   const requestHost = req.nextUrl.host;
   const refererUrl = new URL(origin);
   if (refererUrl.host === requestHost) {
-    console.log('✅ Allowing same-origin request');
     return true;
   }
   
   // Validate origin for cross-origin iframe requests
   const isValid = allowedOrigins.some(allowedOrigin => origin.includes(allowedOrigin.trim()));
-  console.log('🔍 Origin validation result:', isValid, origin, allowedOrigins, requestHost, refererUrl);
   return isValid;
 }
 
@@ -29,13 +26,9 @@ export function iframeSecurityMiddleware(req: NextRequest): NextResponse | null 
     return null;
   }
   
-  console.log('🚨 Middleware triggered for:', req.nextUrl.pathname);
-  
   if (!validateIframeOrigin(req)) {
-    console.log('❌ Access denied - returning 403');
+    console.log('❌ Iframe security middleware: Access denied - returning 403');
     return new NextResponse('Forbidden', { status: 403 });
   }
-  
-  console.log('✅ Access allowed');
   return null;
 } 
