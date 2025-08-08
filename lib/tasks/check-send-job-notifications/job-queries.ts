@@ -2,6 +2,7 @@
 import { env } from '../../config/env'
 import { ServiceTitanClient } from '../../servicetitan/client'
 import { NOTIFICATION_CONFIG } from './config'
+import { config } from '../../config'
 import { logger } from './logger'
 import { TimeWindow, EnrichedJob } from './types'
 
@@ -27,8 +28,7 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
   try {
     logger.info({
       start: timeWindow.start.toISOString(),
-      end: timeWindow.end.toISOString(),
-      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
+      end: timeWindow.end.toISOString()
     }, 'Querying jobs in time window')
 
     const serviceTitanClient = new ServiceTitanClient();
@@ -92,8 +92,13 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
         }
     }
 
+    // Get configured serviceTitanName values for filtering
+    const configuredServiceTitanNames = config.serviceToJobTypes.map(service => service.serviceTitanName)
+    
     const validJobs: EnrichedJob[] = enrichedJobs.filter((job: EnrichedJob | null): job is EnrichedJob => {
-      if (job?.jobType === NOTIFICATION_CONFIG.JOB_TYPE_FILTER) {
+      if (job?.jobStatus !== 'Scheduled') return false
+
+      if (job?.jobType && configuredServiceTitanNames.includes(job.jobType)) {
         return true
       }
       return false
@@ -102,7 +107,7 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
     logger.info({
       totalCount: response.data.length,
       filteredCount: validJobs.length,
-      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
+      configuredServiceTitanNames
     }, `Found ${validJobs.length} matching job types`)
 
     return validJobs

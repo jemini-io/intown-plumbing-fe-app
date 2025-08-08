@@ -93,7 +93,6 @@ export async function checkAndSendJobNotifications() {
     
     logger.info({
       dryRun: NOTIFICATION_CONFIG.DRY_RUN,
-      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER,
       timeWindowMinutes: NOTIFICATION_CONFIG.TIME_WINDOW_MINUTES
     }, 'Starting job notification task')
 
