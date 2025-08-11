@@ -2,7 +2,7 @@
 
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { env } from "@/lib/config/env";
-import { getServiceToJobTypes, getServiceTitanConfig } from '@/app/actions/getConfig';
+import { getServiceToJobTypes, getServiceTitanConfig } from '@/lib/appSettings/getConfig';
 import pino from "pino";
 
 const logger = pino({ name: "getJobTypesByServiceTitanIds" });

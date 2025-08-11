@@ -2,7 +2,7 @@ import { ServiceTitanClient } from '@/lib/servicetitan';
 import { env } from "@/lib/config/env";
 import { Jpm_V2_AppointmentResponse, PaginatedResponse_Of_Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
 import { QuoteSkill } from '@/lib/config/types';
-import { getTechnicianToSkills } from '@/app/actions/getConfig';
+import { getTechnicianToSkills } from '@/lib/appSettings/getConfig';
 
 import pino from 'pino';
 

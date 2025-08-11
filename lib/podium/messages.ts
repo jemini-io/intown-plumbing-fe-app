@@ -5,8 +5,8 @@ import {
   PodiumMessageResponse,
 } from "./types";
 import { createOrUpdateContact } from "./contacts";
-import { getPodiumLocationId } from "@/app/actions/getConfig";
-import { env } from "../conftig/env";
+import { getPodiumLocationId } from "@/lib/appSettings/getConfig";
+import { env } from "../config/env";
 import { logger } from './logger'
 
 /**
