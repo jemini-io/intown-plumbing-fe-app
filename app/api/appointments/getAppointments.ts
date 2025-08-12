@@ -73,6 +73,9 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     const availableTimeSlots: DateEntry[] = [];
 
     for (const tech of filteredTechs) {
+        // on call shifts are long, need to look for startsOnOrAfter two weeks ago
+        const twoWeeksAgo = new Date(now);
+        twoWeeksAgo.setDate(now.getDate() - 14);
         // Fetch shifts for this technician
         const twoWeeksFromNow = new Date(now);
         twoWeeksFromNow.setDate(now.getDate() + 14);
@@ -83,20 +86,22 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
         const shiftsResponse = await serviceTitanClient.dispatch.TechnicianShiftsService.technicianShiftsGetList({
             tenant: tenantId,
             technicianId: tech.technicianId,
-            startsOnOrAfter: startOfToday.toISOString(),
+            startsOnOrAfter: twoWeeksAgo.toISOString(),
             endsOnOrBefore: twoWeeksFromNow.toISOString()
         });
         const shifts = shiftsResponse.data;
+        logger.info(`Found ${shifts.length} shifts for technician ${tech.technicianName}`);
 
         // Fetch appointments for this technician
-        const appointmentsResponse = await serviceTitanClient.jpm.AppointmentsService.appointmentsGetList({
+        const appointmentsQuery = {
             tenant: tenantId,
             technicianId: tech.technicianId,
             startsOnOrAfter: startOfToday.toISOString(),
             pageSize: 1000,
-        });
-
-        const {data: appointments} = appointmentsResponse as PaginatedResponse_Of_Jpm_V2_AppointmentResponse;
+        }
+        const appointmentsResponse = await serviceTitanClient.jpm.AppointmentsService.appointmentsGetList(appointmentsQuery);
+        const appointments = appointmentsResponse.data;
+        logger.info(`Found ${appointments.length} appointments for technician ${tech.technicianName}`);
 
         // Process available time slots for this technician
         shifts.forEach((shift) => {

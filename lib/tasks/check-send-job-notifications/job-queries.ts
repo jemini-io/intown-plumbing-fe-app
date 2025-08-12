@@ -2,9 +2,9 @@
 import { env } from '../../config/env'
 import { ServiceTitanClient } from '../../servicetitan/client'
 import { NOTIFICATION_CONFIG } from './config'
+import { config } from '../../config'
 import { logger } from './logger'
 import { TimeWindow, EnrichedJob } from './types'
-import { Jpm_V2_JobResponse } from '../../servicetitan/generated/jpm/models/Jpm_V2_JobResponse'
 
 const tenantId = Number(env.servicetitan.tenantId);
 
@@ -28,8 +28,7 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
   try {
     logger.info({
       start: timeWindow.start.toISOString(),
-      end: timeWindow.end.toISOString(),
-      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
+      end: timeWindow.end.toISOString()
     }, 'Querying jobs in time window')
 
     const serviceTitanClient = new ServiceTitanClient();
@@ -55,9 +54,9 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
       totalCount: response.data.length
     }, `Found ${response.data.length} jobs in time window`)
 
-    // Filter jobs by appointment time and job type, then enrich with customer and notes
-    const enrichedJobs = await Promise.all(
-      response.data.map(async (job: Jpm_V2_JobResponse): Promise<EnrichedJob | null> => {
+    const enrichedJobs: EnrichedJob[] = []
+
+    for (const job of response.data) {
         try {
           // Get appointments for this job
           const appointments = await getJobAppointments(job.id, serviceTitanClient)
@@ -65,7 +64,7 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
             const appointmentStart = new Date(appointment.start)
             return appointmentStart >= timeWindow.start && appointmentStart <= timeWindow.end
           })
-          if (!appointmentInWindow) return null
+          if (!appointmentInWindow) continue
 
           // Get customer details for this job
           const customer = await getCustomerForJob(job.customerId, serviceTitanClient)
@@ -77,26 +76,29 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
           const jobType = await getJobType(job.jobTypeId, serviceTitanClient)
 
           // Return the job object, adding customer, notes, and startTime for downstream use
-          return {
+          enrichedJobs.push({
             ...job,
             startTime: appointmentInWindow.start,
             endTime: appointmentInWindow.end,
             jobType: jobType?.name || 'Unknown',
             customer,
             notes
-          }
+          })
         } catch (error) {
           logger.error({
             err: error,
             jobId: job.id
           }, 'Failed to enrich job data')
-          return null
         }
-      })
-    )
+    }
 
+    // Get configured serviceTitanName values for filtering
+    const configuredServiceTitanNames = config.serviceToJobTypes.map(service => service.serviceTitanName)
+    
     const validJobs: EnrichedJob[] = enrichedJobs.filter((job: EnrichedJob | null): job is EnrichedJob => {
-      if (job?.jobType === NOTIFICATION_CONFIG.JOB_TYPE_FILTER) {
+      if (job?.jobStatus !== 'Scheduled') return false
+
+      if (job?.jobType && configuredServiceTitanNames.includes(job.jobType)) {
         return true
       }
       return false
@@ -105,8 +107,8 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
     logger.info({
       totalCount: response.data.length,
       filteredCount: validJobs.length,
-      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER
-    }, `Found ${validJobs.length} jobs for notification processing`)
+      configuredServiceTitanNames
+    }, `Found ${validJobs.length} matching job types`)
 
     return validJobs
 

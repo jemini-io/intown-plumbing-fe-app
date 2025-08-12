@@ -34,11 +34,19 @@ function PaymentForm( { price }: { price: number } ) {
         },
         redirect: 'if_required',
       });
+
       if (confirmError) {
         setError(confirmError.message || 'Payment failed');
         sendToParent({ type: 'payment_error', data: { error: confirmError.message } });
         return;
       }
+    } catch {
+      setError('Payment failed! Please try again.');
+      setIsProcessing(false);
+      return;
+    }
+
+    try {
       // Payment successful, create booking
       const result = await createJobAction({
         name: formData.name,
@@ -68,7 +76,9 @@ function PaymentForm( { price }: { price: number } ) {
       setCurrentStep('confirmation');
       sendToParent({ type: 'payment_success', data: { jobId: result.id } });
     } catch {
-      setError('Payment successful but booking failed. Please contact support.');
+      setError(
+        "Payment successful but booking failed. Please contact support at (469) 936-4227."
+      );
       sendToParent({ type: 'payment_error', data: { error: 'Booking failed' } });
     } finally {
       setIsProcessing(false);

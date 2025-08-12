@@ -93,7 +93,6 @@ export async function checkAndSendJobNotifications() {
     
     logger.info({
       dryRun: NOTIFICATION_CONFIG.DRY_RUN,
-      jobTypeFilter: NOTIFICATION_CONFIG.JOB_TYPE_FILTER,
       timeWindowMinutes: NOTIFICATION_CONFIG.TIME_WINDOW_MINUTES
     }, 'Starting job notification task')
 
@@ -108,13 +107,10 @@ export async function checkAndSendJobNotifications() {
       logger.info({
         start: timeWindow.start.toISOString(),
         end: timeWindow.end.toISOString()
-      }, 'No jobs found in time window')
+      }, 'No jobs to send notifications for')
       return metrics
     }
 
-    logger.error('exit early')
-    return metrics;
-    
     // 3. Process jobs in batches
     const batches = chunk(jobs, 10) // Process 10 at a time
     

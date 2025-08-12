@@ -13,7 +13,13 @@ This task checks for jobs that require notifications to be sent (e.g., reminders
 
 ## Usage
 
-Run via CLI or import as a module. See `test-cli.sh` for example usage.
+```sh
+# In Dev
+npm run job-notifications
+
+# As a Task
+npx tsx lib/tasks/check-send-job-notifications/index.ts
+```
 
 ---
 Keep this directory focused on job notification logic only.

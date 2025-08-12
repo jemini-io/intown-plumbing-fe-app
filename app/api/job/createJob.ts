@@ -9,6 +9,7 @@ import type { Customer, Job, Location } from './types';
 import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
 import { logger } from "../logger";
 
+const tenantId = Number(env.servicetitan.tenantId);
 
 export async function createJobAppointment({ 
   job,
@@ -27,17 +28,15 @@ export async function createJobAppointment({
     const { name, email, phone,
       billToStreet, billToUnit, billToCity, billToState, billToZip, billToSameAsService
     } = customer;
-    const tenantId = Number(env.servicetitan.tenantId);
 
     // Calculate appointmentStartsBefore
     const appointmentStartsBefore = new Date(new Date(endTime).getTime() + 30 * 60000).toISOString();
 
     logger.info({
-      message: "Checking if customer already exists",
       customerName: name,
       customerPhone: phone,
       customerEmail: email,
-    });
+    }, "createJobAppointment: Checking if customer already exists");
 
     // Check if a customer already exists
     const existingCustomers = await serviceTitanClient.crm.CustomersService.customersGetList({
@@ -51,12 +50,11 @@ export async function createJobAppointment({
 
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {
         logger.info({
-          message: "Customer already exists",
           customerId: existingCustomers.data[0].id,
           customerName: name,
           customerPhone: phone,
           customerEmail: email,
-        });
+        }, "createJobAppointment: Customer already exists");
         stCustomer = existingCustomers.data[0];
 
         // Fetch locations for the existing customer
@@ -73,11 +71,10 @@ export async function createJobAppointment({
         }
     } else {
         logger.info({
-          message: "Creating new customer",
           customerName: name,
           customerPhone: phone,
           customerEmail: email,
-        });
+        }, "createJobAppointment: Creating new customer");
 
         const customerData: Crm_V2_Customers_CreateCustomerRequest = {
             name,
@@ -133,12 +130,11 @@ export async function createJobAppointment({
             requestBody: customerData
         });
         logger.info({
-          message: "Customer created",
           customerId: customerResponse.id,
           customerName: name,
           customerPhone: phone,
           customerEmail: email,
-        });
+        }, "createJobAppointment: Customer created");
         stCustomer = customerResponse;
     }
 
@@ -150,11 +146,10 @@ export async function createJobAppointment({
 
     // Check if a job already exists
     logger.info({
-      message: "Checking for existing jobs",
       technicianId: technicianId,
       startTime: startTime,
       endTime: endTime,
-    });
+    }, "createJobAppointment: Checking for existing jobs");
     const existingJobs = await serviceTitanClient.jpm.JobsService.jobsGetList({
         tenant: tenantId,
         technicianId: Number(technicianId),
@@ -166,12 +161,11 @@ export async function createJobAppointment({
     });
     if (existingJobs && existingJobs.data && existingJobs.data.length > 0) {
         logger.info({
-          message: "Job already exists",
           jobId: existingJobs.data[0].id,
           technicianId: technicianId,
           startTime: startTime,
           endTime: endTime,
-        });
+        }, "createJobAppointment: Job already exists");
         return existingJobs.data[0];
     }
 
@@ -196,21 +190,33 @@ export async function createJobAppointment({
     };
 
     logger.info({
-      message: "Creating job",
       jobData: jobData,
-    });
+    }, "createJobAppointment: Creating job");
     const jobResponse = await serviceTitanClient.jpm.JobsService.jobsCreate({
         tenant: tenantId,
         requestBody: jobData
     });
     logger.info({
-      message: "Job created",
       jobId: jobResponse.id,
-    });
+    }, "createJobAppointment: Job created");
 
     // Check and assign managed tech if needed
-    await checkAndAssignManagedTech(jobResponse, Number(technicianId));
+    try {
+      await checkAndAssignManagedTech(jobResponse, Number(technicianId));
+    } catch (error) {
+      logger.error({ err: error }, "createJobAppointment: Error checking and assigning managed tech");
+    }
 
+    try {
+      await updateInvoiceAndPayment(jobResponse, serviceTitanClient, Number(technicianId));
+    } catch (error) {
+      logger.error({ err: error }, "createJobAppointment: Error updating invoice and payment");
+    }
+
+    return jobResponse;
+}
+
+async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceTitanClient: ServiceTitanClient, technicianId: number): Promise<void> {
     // Get invoice by jobId
     const invoiceResponse = await serviceTitanClient.accounting.InvoicesService.invoicesGetList({
         tenant: tenantId,
@@ -218,9 +224,8 @@ export async function createJobAppointment({
     });
 
     logger.debug({
-      message: "Invoice lookup by job ID",
       invoiceCount: invoiceResponse.data?.length,
-    });
+    }, "createJobAppointment: Invoice lookup by job ID");
 
     if (invoiceResponse.data && invoiceResponse.data.length > 0) {
         const invoiceId = invoiceResponse.data[0].id;
@@ -241,10 +246,9 @@ export async function createJobAppointment({
         };
 
         logger.info({
-          message: "Updating invoice",
           invoiceId: invoiceId,
           updatedInvoiceData: updatedInvoiceData,
-        });
+        }, "createJobAppointment: Updating invoice");
         await serviceTitanClient.accounting.InvoicesService.invoicesUpdateInvoice({
             tenant: tenantId,
             id: Number(invoiceId),
@@ -252,9 +256,8 @@ export async function createJobAppointment({
         });
 
         logger.info({
-          message: "Invoice updated",
           invoiceId: invoiceId,
-        });
+        }, "createJobAppointment: Invoice updated");
 
         // Check for existing payments
         const paymentsResponse = await serviceTitanClient.accounting.PaymentsService.paymentsGetList({
@@ -263,16 +266,14 @@ export async function createJobAppointment({
         });
 
         logger.debug({
-          message: "Payment lookup by invoice ID",
           payments: paymentsResponse.data,
-        });
+        }, "createJobAppointment: Payment lookup by invoice ID");
 
 
         if (paymentsResponse && paymentsResponse.data && paymentsResponse.data.length > 0) {
             logger.info({
-              message: "Existing payments found",
               payments: paymentsResponse.data,
-            });
+            }, "createJobAppointment: Existing payments found");
         } else {
             // Create payment if no existing payments
             const paymentData: Accounting_V2_PaymentCreateRequest = {
@@ -287,16 +288,14 @@ export async function createJobAppointment({
             };
 
             logger.info({
-              message: "Creating payment",
               paymentData: paymentData,
-            });
+            }, "createJobAppointment: Creating payment");
             await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
                 tenant: tenantId,
                 requestBody: paymentData
             });
         }
     }
-    return jobResponse;
 }
 
 async function checkAndAssignManagedTech(
@@ -304,7 +303,6 @@ async function checkAndAssignManagedTech(
   originalTechnicianId: number
 ): Promise<void> {
   const serviceTitanClient = new ServiceTitanClient();
-  const tenantId = Number(env.servicetitan.tenantId);
   
   // Get original technician details
   const originalTech = await getTechnician(originalTechnicianId);
@@ -312,10 +310,9 @@ async function checkAndAssignManagedTech(
   // Check if original tech is non-managed
   if (!originalTech.isManagedTech) {
     logger.info({
-      message: "Non-managed technician detected, assigning default managed tech",
       technicianId: originalTechnicianId,
       technicianName: originalTech.name,
-    });
+    }, "createJobAppointment: Non-managed technician detected, assigning default managed tech");
     
     const appointmentId = jobResponse.firstAppointmentId;
 
@@ -331,26 +328,23 @@ async function checkAndAssignManagedTech(
     });
     
     logger.info({ 
-      message: "Successfully assigned default managed tech to appointment",
       jobId: jobResponse.id,
       originalTechId: originalTechnicianId,
       managedTechId: defaultManagedTechId
-    });
+    }, "createJobAppointment: Successfully assigned default managed tech to appointment");
   }
 }
 
 export async function getTechnicianFromJob(jobId: number): Promise<TenantSettings_V2_TechnicianResponse> {
     const serviceTitanClient = new ServiceTitanClient();
-    const tenantId = Number(env.servicetitan.tenantId);
     const appointments = await serviceTitanClient.dispatch.AppointmentAssignmentsService.appointmentAssignmentsGetList({
         tenant: tenantId,
         jobId: jobId
     });
     if (appointments.data.length > 1) {
         logger.warn({
-          message: `Job ${jobId} has more than one appointment assignment. Using the first one.`,
           jobId: jobId,
-        });
+        }, `createJobAppointment: Job ${jobId} has more than one appointment assignment. Using the first one.`);
     }
     const technicianId = appointments.data[0].technicianId;
     const technician = await serviceTitanClient.settings.TechniciansService.techniciansGet({
@@ -362,7 +356,6 @@ export async function getTechnicianFromJob(jobId: number): Promise<TenantSetting
 
 export async function getTechnician(technicianId: number): Promise<TenantSettings_V2_TechnicianResponse> {
     const serviceTitanClient = new ServiceTitanClient();
-    const tenantId = Number(env.servicetitan.tenantId);
     const technician = await serviceTitanClient.settings.TechniciansService.techniciansGet({
         tenant: tenantId,
         id: technicianId

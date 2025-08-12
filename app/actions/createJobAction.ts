@@ -1,7 +1,11 @@
-'use server';
+"use server";
 
 import { createJobAppointment, getTechnician } from "@/app/api/job/createJob";
-import { sendAppointmentConfirmation, sendTechnicianAppointmentConfirmation, sendTechnicianAppointmentConfirmationToManager } from "@/lib/podium";
+import {
+  sendAppointmentConfirmation,
+  sendTechnicianAppointmentConfirmation,
+  sendTechnicianAppointmentConfirmationToManager,
+} from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
@@ -45,7 +49,10 @@ export interface CreateJobActionResult {
   meetingDetails?: WherebyMeeting;
 }
 
-async function updateJobWithMeetingDetails(jobId: number, meetingDetails: WherebyMeeting) {
+async function updateJobWithMeetingDetails(
+  jobId: number,
+  meetingDetails: WherebyMeeting
+) {
   const serviceTitanClient = new ServiceTitanClient();
   const tenantId = Number(env.servicetitan.tenantId);
 
@@ -57,19 +64,19 @@ async function updateJobWithMeetingDetails(jobId: number, meetingDetails: Whereb
       value: meetingDetails.roomUrl || null
     },
     {
-      typeId: customFieldsConfig.technicianJoinLinkLabel,
+      typeId: customFieldsConfig.technicianJoinLink,
       value: meetingDetails.hostRoomUrl || null
     }
   ];
 
   const updateData: Jpm_V2_UpdateJobRequest = {
-    customFields: customFields
+    customFields: customFields,
   };
 
   await serviceTitanClient.jpm.JobsService.jobsUpdate({
     tenant: tenantId,
     id: jobId,
-    requestBody: updateData
+    requestBody: updateData,
   });
 
   logger.info(
@@ -77,79 +84,133 @@ async function updateJobWithMeetingDetails(jobId: number, meetingDetails: Whereb
       jobId,
       meetingId: meetingDetails.meetingId,
       customerJoinLink: meetingDetails.roomUrl,
-      technicianJoinLink: meetingDetails.hostRoomUrl
+      technicianJoinLink: meetingDetails.hostRoomUrl,
     },
     `[createJobAction] Successfully updated ServiceTitan job ${jobId} with meeting details`
   );
 }
 
-export async function createJobAction(data: CreateJobData): Promise<CreateJobActionResult> {
+export async function createJobAction(
+  data: CreateJobData
+): Promise<CreateJobActionResult> {
   try {
-    if (!data.name || !data.email || !data.phone || !data.startTime || !data.endTime || !data.technicianId || !data.jobTypeId) {
-      return { success: false, error: "Missing required information" };
+    if (
+      !data.name ||
+      !data.email ||
+      !data.phone ||
+      !data.startTime ||
+      !data.endTime ||
+      !data.technicianId ||
+      !data.jobTypeId
+    ) {
+      throw new Error("Missing required information");
     }
+    return await createJob(data);
+  } catch (error) {
+    logger.error(
+      { err: error },
+      "[createJobAction] Error creating job appointment"
+    );
+    throw error;
+  }
+}
 
-    // Use the handler function to manage job creation
-    const jobResponse = await createJobAppointment({
-      job: {
-        name: data.name,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        technicianId: data.technicianId,
-        jobTypeId: data.jobTypeId,
-        summary: data.jobSummary,
-      },
-      location: {
-        street: data.street,
-        unit: data.unit,
-        city: data.city,
-        state: data.state,
-        zip: data.zip,
-        country: data.country
-      },
+export async function createJob(
+  data: CreateJobData
+): Promise<CreateJobActionResult> {
+  // Use the handler function to manage job creation
+  const jobResponse = await createJobAppointment({
+    job: {
+      name: data.name,
+      startTime: data.startTime,
+      endTime: data.endTime,
+      technicianId: data.technicianId,
+      jobTypeId: data.jobTypeId,
+      summary: data.jobSummary,
+    },
+    location: {
+      street: data.street,
+      unit: data.unit,
+      city: data.city,
+      state: data.state,
+      zip: data.zip,
+      country: data.country,
+    },
+    customer: {
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      // Bill To Address logic will be handled in createJobAppointment
+      billToStreet: data.billToStreet,
+      billToUnit: data.billToUnit,
+      billToCity: data.billToCity,
+      billToState: data.billToState,
+      billToZip: data.billToZip,
+      billToSameAsService: data.billToSameAsService,
+    },
+  });
+
+  logger.info(
+    {
+      jobId: jobResponse.id,
       customer: {
         name: data.name,
-        email: data.email,
         phone: data.phone,
-        // Bill To Address logic will be handled in createJobAppointment
-        billToStreet: data.billToStreet,
-        billToUnit: data.billToUnit,
-        billToCity: data.billToCity,
-        billToState: data.billToState,
-        billToZip: data.billToZip,
-        billToSameAsService: data.billToSameAsService
-      }
-    });
-
-    logger.info(
-      {
-        jobId: jobResponse.id,
-        customer: {
-          name: data.name,
-          phone: data.phone,
-          email: data.email,
-        },
-        technicianId: data.technicianId,
-        jobTypeId: data.jobTypeId,
-        startTime: data.startTime,
-        endTime: data.endTime
+        email: data.email,
       },
-      "[createJobAction] Job created successfully"
-    );
+      technicianId: data.technicianId,
+      jobTypeId: data.jobTypeId,
+      startTime: data.startTime,
+      endTime: data.endTime,
+    },
+    "[createJobAction] Job created successfully"
+  );
 
-    // Send notification to original technician
-    const originalTechnician = await getTechnician(data.technicianId);
+  let meetingCreated = false;
+  let meetingDetails = null;
+  try {
+    meetingDetails = await createConsultationMeeting(
+      data.startTime,
+      data.endTime,
+      data.name
+    );
+    meetingCreated = true;
+    await updateJobWithMeetingDetails(jobResponse.id, meetingDetails);
+  } catch (meetingError) {
+    logger.error({ err: meetingError }, "Failed to create Whereby meeting");
+  }
+  logger.info(
+    {
+      jobId: jobResponse.id,
+      meetingId: meetingDetails?.meetingId,
+      customerJoinLink: meetingDetails?.roomUrl,
+      technicianJoinLink: meetingDetails?.hostRoomUrl,
+    },
+    "[createJobAction] Whereby meeting created successfully"
+  );
+
+  // Send notification to original technician
+  let originalTechnician = null;
+  try {
+    originalTechnician = await getTechnician(data.technicianId);
     if (originalTechnician.phoneNumber) {
       await sendTechnicianAppointmentConfirmation(
         originalTechnician.phoneNumber,
         new Date(data.startTime),
-        originalTechnician.name,
+        originalTechnician.name
       );
     }
+  } catch (error) {
+    logger.error(
+      { err: error },
+      "[createJobAction] Error sending technician appointment confirmation"
+    );
+  }
 
-    // If original tech is non-managed, also notify the default managed tech
-    // TODO: this really needs to pull from the appointment assignments list on the job.
-    if (!originalTechnician.isManagedTech) {
+  // If original tech is non-managed, also notify the default managed tech
+  // TODO: this really needs to pull from the appointment assignments list on the job.
+  try {
+    if (originalTechnician && !originalTechnician.isManagedTech) {
       const defaultManagedTechId = await getDefaultManagedTechId();
       const managedTechnician = await getTechnician(defaultManagedTechId);
       if (managedTechnician.phoneNumber) {
@@ -157,54 +218,38 @@ export async function createJobAction(data: CreateJobData): Promise<CreateJobAct
           managedTechnician.phoneNumber,
           new Date(data.startTime),
           managedTechnician.name,
-          originalTechnician.name,
+          originalTechnician.name
         );
       }
     }
-
-    // Send confirmation notification via Podium
-    let notificationSent = false;
-    try {
-      await sendAppointmentConfirmation(
-        data.phone,
-        new Date(data.startTime),
-        data.name
-      );
-      notificationSent = true;
-    } catch (notificationError) {
-      logger.error({ err: notificationError }, "Failed to send Podium notification");
-      // Don't fail the entire job creation if notification fails
-    }
-
-    // Create Whereby meeting
-    let meetingCreated = false;
-    let meetingDetails = null;
-    try {
-      meetingDetails = await createConsultationMeeting(
-        data.startTime,
-        data.endTime,
-        data.name
-      );
-      meetingCreated = true;
-      
-      // Update ServiceTitan with meeting details
-      await updateJobWithMeetingDetails(jobResponse.id, meetingDetails);
-      
-    } catch (meetingError) {
-      logger.error({ err: meetingError }, "Failed to create Whereby meeting");
-      // Don't fail the entire job creation if meeting creation fails
-    }
-
-    return { 
-      success: true, 
-      id: jobResponse.id,
-      notificationSent,
-      meetingCreated,
-      meetingDetails: meetingDetails || undefined
-    };
   } catch (error) {
-    logger.error({ err: error }, "[createJobAction] Error creating job appointment");
-    
-    return { success: false, error: "Error creating job appointment" };
+    logger.error(
+      { err: error },
+      "[createJobAction] Error sending technician appointment confirmation to manager"
+    );
   }
-} 
+
+  // Send confirmation notification via Podium
+  let notificationSent = false;
+  try {
+    await sendAppointmentConfirmation(
+      data.phone,
+      new Date(data.startTime),
+      data.name
+    );
+    notificationSent = true;
+  } catch (notificationError) {
+    logger.error(
+      { err: notificationError },
+      "Failed to send Podium notification"
+    );
+  }
+
+  return {
+    success: true,
+    id: jobResponse.id,
+    notificationSent,
+    meetingCreated,
+    meetingDetails: meetingDetails || undefined,
+  };
+}
