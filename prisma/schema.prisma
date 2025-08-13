@@ -14,10 +14,35 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// Optional: auto-generate Zod from Prisma
+generator zod {
+  provider             = "prisma-zod-generator"
+  output               = "../prisma/zod"
+  useDecimalJs         = false
+  useDefaultValidators = true
+}
+
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
 model AppSetting {
   id     Int    @id @default(autoincrement())
   key    String
   value  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt 
 
   @@unique([key])
 }
