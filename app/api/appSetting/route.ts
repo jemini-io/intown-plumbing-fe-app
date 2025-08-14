@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/auth";
 import { AppSettingCreateInputObjectSchema } from "@/prisma/zod/schemas/objects";
 
 export async function GET() {
+  await requireAdmin();
   const settings = await prisma.appSetting.findMany();
   return Response.json(settings);
 }
