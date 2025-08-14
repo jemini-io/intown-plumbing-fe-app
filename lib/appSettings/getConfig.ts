@@ -87,7 +87,7 @@ export async function getCustomFields(): Promise<CustomFields> {
   };
 }
 
-export async function getQuoteSkills(): Promise<String[]> {
+export async function getQuoteSkills(): Promise<string[]> {
   const quoteSkills = await getSetting('quoteSkills');
   
   if (quoteSkills === null) {
@@ -114,7 +114,8 @@ export async function getDefaultManagedTechId(): Promise<number> {
   return Number(defaultManagedTechId);
 }
 
-export async function getTechnicianToSkills(): Promise<any[]> {
+// TODO: type this.
+export async function getTechnicianToSkills(): Promise<unknown> {
   const technicianToSkills = await getSetting('technicianToSkills');
 
   if (technicianToSkills === null) {
