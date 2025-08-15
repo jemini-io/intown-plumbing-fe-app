@@ -83,7 +83,7 @@ export default function DateStep() {
     if (selectedJobType) {
       fetchTimeSlots();
     }
-  }, [setAvailableTimeSlots, setIsLoading, setSelectedDate, selectedJobType, selectedSkill]);
+  }, [setAvailableTimeSlots, setSelectedTimeSlot, setSelectedTechnician, setIsLoading, setSelectedDate, selectedJobType, selectedSkill]);
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date);

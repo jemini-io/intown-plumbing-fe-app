@@ -232,6 +232,7 @@ async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceT
         const stripeConfig = await getStripeConfig();
         const virtualConsultationProductName = stripeConfig.virtualConsultationProductName;
         const productDetails = await getProductDetails(virtualConsultationProductName);
+        const serviceTitanConfig = await getServiceTitanConfig();
         const updatedInvoiceData: Accounting_V2_InvoiceUpdateRequest = {
             summary: virtualConsultationProductName,
             items: [

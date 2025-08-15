@@ -38,7 +38,7 @@ function formatCustomerSMSMessage(customerName: string, customerJoinLink: string
 export async function sendCustomerConsultationReminder(job: Jpm_V2_JobResponse, customer: Customer): Promise<SMSResult> {
   try {
 
-    const customerJoinLink = getCustomerJoinLink(job)
+    const customerJoinLink = await getCustomerJoinLink(job)
     if (!customerJoinLink) {
       return {
         success: false,
