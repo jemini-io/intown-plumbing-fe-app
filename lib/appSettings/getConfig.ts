@@ -1,6 +1,6 @@
 'use server';
 import { ServiceTitanConfig } from '@/lib/types/serviceTitan';
-import { ServiceToJobType } from '@/lib/types/serviceToJobType';
+import { ServiceToJobTypeMapping, TechnicianToSkillsMapping } from '../config/types';
 import { StripeConfig } from '@/lib/types/stripe';
 import { CustomFields } from '@/lib/types/customFields';
 import { getSetting } from "@/lib/appSettings/getSetting";
@@ -10,7 +10,7 @@ import pino from "pino";
 // const logger = pino({ name: 'getAvailableTimeSlots' });
 const logger = pino({ name: 'getConfig' });
 
-export async function getServiceToJobTypes(): Promise<ServiceToJobType[]> {
+export async function getServiceToJobTypes(): Promise<ServiceToJobTypeMapping[]> {
   const serviceToJobTypes = await getSetting('serviceToJobTypes');
 
   if (serviceToJobTypes === null) {
@@ -87,7 +87,7 @@ export async function getCustomFields(): Promise<CustomFields> {
   };
 }
 
-export async function getQuoteSkills(): Promise<String[]> {
+export async function getQuoteSkills(): Promise<string[]> {
   const quoteSkills = await getSetting('quoteSkills');
   
   if (quoteSkills === null) {
@@ -114,7 +114,7 @@ export async function getDefaultManagedTechId(): Promise<number> {
   return Number(defaultManagedTechId);
 }
 
-export async function getTechnicianToSkills(): Promise<any[]> {
+export async function getTechnicianToSkills(): Promise<TechnicianToSkillsMapping[]> {
   const technicianToSkills = await getSetting('technicianToSkills');
 
   if (technicianToSkills === null) {

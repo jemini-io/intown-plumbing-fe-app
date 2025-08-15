@@ -3,7 +3,7 @@
 import { useTransition, useState } from "react";
 import { createSetting, updateSetting, deleteSetting } from "./actions";
 
-export function SettingsForm({ existing }: { existing?: { id: string; key: string; value: any } }) {
+export function SettingsForm({ existing }: { existing?: { id: number; key: string; value: unknown } }) {
   const [pending, start] = useTransition();
   const [key, setKey] = useState(existing?.key ?? "");
   const [value, setValue] = useState(

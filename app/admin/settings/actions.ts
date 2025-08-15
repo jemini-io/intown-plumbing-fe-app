@@ -22,14 +22,14 @@ export async function updateSetting(raw: unknown) {
   if (!parsed.success) return { ok: false as const, error: parsed.error.flatten() };
 
   const { id, value } = parsed.data;
-  const rec = await prisma.appSetting.update({ where: { id }, data: { value } });
-  revalidatePath("/admin/settings");
+  const rec = await prisma.appSetting.update({ where: { id: Number(id) }, data: { value } });
+revalidatePath("/admin/settings");
   return { ok: true as const, data: rec };
 }
 
-export async function deleteSetting(id: string) {
+export async function deleteSetting(id: number) {
   await requireAdmin();
-  await prisma.appSetting.delete({ where: { id } });
+  await prisma.appSetting.delete({ where: { id: Number(id) } });
   revalidatePath("/admin/settings");
   return { ok: true as const };
 }
