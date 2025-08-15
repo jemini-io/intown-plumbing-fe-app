@@ -283,13 +283,17 @@ async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceT
                 }]
             };
 
-            logger.info({
-              paymentData: paymentData,
-            }, "createJobAppointment: Creating payment");
-            await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
-                tenant: tenantId,
-                requestBody: paymentData
-            });
+            try {
+              logger.info({
+                paymentData: paymentData,
+              }, "createJobAppointment: Creating payment");
+              await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
+                  tenant: tenantId,
+                  requestBody: paymentData
+              });
+            } catch (error) {
+              logger.warn({ err: error }, "createJobAppointment: Error creating payment");
+            }
         }
     }
 }
