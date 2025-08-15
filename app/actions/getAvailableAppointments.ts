@@ -35,6 +35,21 @@ export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJ
       skill: selectedSkill || undefined
     });
 
+    if (!timeSlots || timeSlots.length === 0) {
+      logger.warn(
+        {
+          serviceTitanId: selectedJobType.serviceTitanId,
+          skill: selectedSkill
+        },
+        'No available time slots found'
+      );
+      
+      return {
+        success: false,
+        error: 'No appointments available right now. Please try again later.'
+      };
+    }
+
     logger.info(
       {
         count: timeSlots.length,

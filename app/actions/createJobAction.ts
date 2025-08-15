@@ -8,13 +8,10 @@ import {
 } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
 import { ServiceTitanClient } from "@/lib/servicetitan";
-import {
-  Jpm_V2_CustomFieldModel,
-  Jpm_V2_UpdateJobRequest,
-} from "@/lib/servicetitan/generated/jpm";
-import { config } from "@/lib/config";
+import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
 import { env } from "@/lib/config/env";
 import pino from "pino";
+import { getCustomFields, getDefaultManagedTechId, } from "@/lib/appSettings/getConfig";
 
 const logger = pino({ name: "createJobAction" });
 
@@ -59,15 +56,17 @@ async function updateJobWithMeetingDetails(
   const serviceTitanClient = new ServiceTitanClient();
   const tenantId = Number(env.servicetitan.tenantId);
 
+  const customFieldsConfig = await getCustomFields();
+
   const customFields: Jpm_V2_CustomFieldModel[] = [
     {
-      typeId: config.customFields.customerJoinLink,
-      value: meetingDetails.roomUrl || null,
+      typeId: customFieldsConfig.customerJoinLink,
+      value: meetingDetails.roomUrl || null
     },
     {
-      typeId: config.customFields.technicianJoinLink,
-      value: meetingDetails.hostRoomUrl || null,
-    },
+      typeId: customFieldsConfig.technicianJoinLink,
+      value: meetingDetails.hostRoomUrl || null
+    }
   ];
 
   const updateData: Jpm_V2_UpdateJobRequest = {
@@ -212,9 +211,8 @@ export async function createJob(
   // TODO: this really needs to pull from the appointment assignments list on the job.
   try {
     if (originalTechnician && !originalTechnician.isManagedTech) {
-      const managedTechnician = await getTechnician(
-        config.defaultManagedTechId
-      );
+      const defaultManagedTechId = await getDefaultManagedTechId();
+      const managedTechnician = await getTechnician(defaultManagedTechId);
       if (managedTechnician.phoneNumber) {
         await sendTechnicianAppointmentConfirmationToManager(
           managedTechnician.phoneNumber,
