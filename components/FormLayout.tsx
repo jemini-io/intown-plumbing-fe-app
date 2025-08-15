@@ -14,14 +14,16 @@ export default function FormLayout({ children}: FormLayoutProps) {
         {/* Hero-like logo section */}
         <div className="mb-4 sm:mb-8">
           <div className="flex justify-center mb-4 sm:mb-6">
-            <Image
-              src="/intown-logo-2023.svg"
-              alt="InTown Plumbing Logo"
-              width={200}
-              height={134}
-              className="h-auto w-64 sm:w-40 lg:w-64"
-              priority
-            />
+            <a href="https://intownplumbingtx.com/" target="_blank" rel="noopener noreferrer">
+              <Image
+                src="/intown-logo-2023.svg"
+                alt="InTown Plumbing Logo"
+                width={200}
+                height={134}
+                className="h-auto w-64 sm:w-40 lg:w-64"
+                priority
+              />
+            </a>
           </div>
           
           {/* Title section with overlapping text */}
@@ -40,6 +42,13 @@ export default function FormLayout({ children}: FormLayoutProps) {
         
         <div className="bg-white p-4 sm:p-6">
           {children}
+        </div>
+
+        {/* Add tiny text to return to home page */}
+        <div className="text-xs text-center text-gray-500 mt-6">
+          <a href="https://intownplumbingtx.com/" target="_blank" rel="noopener noreferrer">
+            Return to InTown Plumbing Website
+          </a>
         </div>
       </div>
     </main>
