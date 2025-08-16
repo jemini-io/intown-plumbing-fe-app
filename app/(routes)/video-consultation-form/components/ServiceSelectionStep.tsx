@@ -2,7 +2,7 @@
 
 import FormLayout from '@/components/FormLayout';
 import Icon from '@/components/Icon';
-import { getServiceTypes } from '@/app/actions/getConfig';
+import { getServiceToJobTypes } from '@/lib/appSettings/getConfig';
 import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
 import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
@@ -35,7 +35,7 @@ export default function ServiceStep() {
       try {
         setIsLoadingJobTypes(true);
         setError(null);
-        const jobTypes = await getServiceTypes();
+        const jobTypes = await getServiceToJobTypes();
         setAvailableJobTypes(jobTypes);
         console.log('Fetched job types:', jobTypes);
       } catch (error) {

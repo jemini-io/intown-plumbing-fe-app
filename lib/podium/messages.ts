@@ -5,7 +5,7 @@ import {
   PodiumMessageResponse,
 } from "./types";
 import { createOrUpdateContact } from "./contacts";
-import { config } from "../config";
+import { getPodiumLocationId } from "@/lib/appSettings/getConfig";
 import { env } from "../config/env";
 import { logger } from './logger'
 
@@ -104,6 +104,8 @@ export async function sendTextMessage(
   // Format phone number for consistent API usage
   const formattedPhone = formatPhoneForSubmission(phoneNumber);
 
+  const podiumLocationId = await getPodiumLocationId();
+
   if (!env.podium.enabled) {
     logger.info({
       phoneNumber: formattedPhone,
@@ -127,7 +129,7 @@ export async function sendTextMessage(
         },
         createdAt: new Date().toISOString(),
         location: {
-          uid: config.podium.locationId,
+          uid: podiumLocationId,
         },
         sender: {
           uid: ""
@@ -149,7 +151,7 @@ export async function sendTextMessage(
   const response = await sendPodiumMessage({
     phoneNumber: formattedPhone,
     body: message,
-    locationUid: config.podium.locationId,
+    locationUid: podiumLocationId,
     contactName: contactName,
     channelType: "phone",
   });
