@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { env } from "@/lib/config/env";
 import { handleApiError } from "@/lib/utils/api-error-handler";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
-import { config } from "@/lib/config";
+import { getStripeConfig } from "@/lib/appSettings/getConfig"
 import pino from "pino";
 
 const logger = pino();
@@ -17,8 +17,10 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { metadata } = body;
     logger.info({ metadata }, "Metadata received");
+
+    const stripeConfig = await getStripeConfig();
     
-    const productDetails = await getProductDetails(config.stripe.virtualConsultationProductName);
+    const productDetails = await getProductDetails(stripeConfig.virtualConsultationProductName);
     logger.info({ productDetails }, "Product details fetched");
 
     const paymentIntent = await stripe.paymentIntents.create({

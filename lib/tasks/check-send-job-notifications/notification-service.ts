@@ -4,21 +4,23 @@ import { logger } from './logger'
 import { Customer, SMSResult } from './types'
 import { Jpm_V2_JobResponse } from '../../servicetitan/generated/jpm/models/Jpm_V2_JobResponse'
 import { EnrichedJob } from './types'
-import { config } from "@/lib/config";
+import { getCustomFields } from '@/lib/appSettings/getConfig'
 import { getTechnicianFromJob } from '@/app/api/job/createJob'
 import { env } from '@/lib/config/env'
 
 /**
  * Extract the customer join link from job custom fields
  */
-function getCustomerJoinLink(job: Jpm_V2_JobResponse): string | undefined {
-  const fieldId = config.customFields.customerJoinLink;
+async function getCustomerJoinLink(job: Jpm_V2_JobResponse): Promise<string | undefined> {
+  const customFields = await getCustomFields();
+  const fieldId = customFields.customerJoinLink;
   const field = job.customFields?.find(f => f.typeId === fieldId);
   return field?.value;
 }
 
-function getTechnicianJoinLink(job: Jpm_V2_JobResponse): string | undefined {
-  const fieldId = config.customFields.technicianJoinLink;
+async function getTechnicianJoinLink(job: Jpm_V2_JobResponse): Promise<string | undefined> {
+  const customFields = await getCustomFields();
+  const fieldId = customFields.technicianJoinLink;
   const field = job.customFields?.find(f => f.typeId === fieldId);
   return field?.value;
 }
@@ -36,7 +38,7 @@ function formatCustomerSMSMessage(customerName: string, customerJoinLink: string
 export async function sendCustomerConsultationReminder(job: Jpm_V2_JobResponse, customer: Customer): Promise<SMSResult> {
   try {
 
-    const customerJoinLink = getCustomerJoinLink(job)
+    const customerJoinLink = await getCustomerJoinLink(job)
     if (!customerJoinLink) {
       return {
         success: false,

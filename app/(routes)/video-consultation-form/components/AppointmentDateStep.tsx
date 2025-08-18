@@ -3,7 +3,7 @@
 import { getAvailableAppointmentsAction } from '@/app/actions/getAvailableAppointments';
 import type { TimeSlot } from '@/app/api/appointments/getAppointments';
 import FormLayout from '@/components/FormLayout';
-import { getAppointmentDuration } from '@/app/actions/getConfig';
+import { getAppointmentDuration } from '@/lib/appSettings/getConfig';
 import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 
@@ -45,7 +45,12 @@ export default function DateStep() {
         const result = await getAvailableAppointmentsAction(selectedJobType, selectedSkill);
         
         if (!result.success) {
-          throw new Error(result.error);
+          setError(result.error || 'Failed to load available time slots. Please try again.');
+          setAvailableTimeSlots([]);
+          setSelectedDate(null);
+          setSelectedTimeSlot(null);
+          setSelectedTechnician(null);
+          return;
         }
         
         setAvailableTimeSlots(result.data || []);
@@ -60,9 +65,16 @@ export default function DateStep() {
         if (availableDate) {
           setSelectedDate(availableDate.date);
         }
+        else {
+          setSelectedDate(null);
+        }
       } catch (error) {
         console.error('Error fetching time slots:', error);
         setError('Failed to load available time slots. Please try again.');
+        setAvailableTimeSlots([]);
+        setSelectedDate(null);
+        setSelectedTimeSlot(null);
+        setSelectedTechnician(null);
       } finally {
         setIsLoading(false);
       }
@@ -71,7 +83,7 @@ export default function DateStep() {
     if (selectedJobType) {
       fetchTimeSlots();
     }
-  }, [setAvailableTimeSlots, setIsLoading, setSelectedDate, selectedJobType, selectedSkill]);
+  }, [setAvailableTimeSlots, setSelectedTimeSlot, setSelectedTechnician, setIsLoading, setSelectedDate, selectedJobType, selectedSkill]);
 
   const handleDateChange = (date: string) => {
     setSelectedDate(date);
@@ -200,165 +212,178 @@ export default function DateStep() {
 
   return (
     <FormLayout>
-      <div className="space-y-6">
-        {/* Month Header */}
-        <div className="text-center">
-          <h3 className="text-2xl font-light text-gray-600 mb-6">
-            {selectedDateInfo ? selectedDateInfo.monthName : new Date().toLocaleDateString('en-US', { month: 'long' })}
-          </h3>
-        </div>
-
-        {/* Horizontal Scrollable Calendar */}
-        <div className="relative">
-          {/* Left Arrow */}
-          <button 
-            onClick={() => {
-              const container = document.querySelector('.date-scroll-container');
-              container?.scrollBy({ left: -200, behavior: 'smooth' });
-            }}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center hover:bg-gray-50"
+      {error ? (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+          <button
+            onClick={() => window.location.reload()}
+            className="ml-4 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
+            Retry
           </button>
-          
-          {/* Right Arrow */}
-          <button 
-            onClick={() => {
-              const container = document.querySelector('.date-scroll-container');
-              container?.scrollBy({ left: 200, behavior: 'smooth' });
-            }}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center hover:bg-gray-50"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-          </button>
-
-          <div 
-            className="date-scroll-container flex overflow-x-auto gap-4 pb-4 px-10 scrollbar-hide" 
-            style={{ 
-              scrollbarWidth: 'none', 
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch'
-            }}
-          >
-            <style jsx>{`
-              .scrollbar-hide::-webkit-scrollbar {
-                display: none;
-              }
-            `}</style>
-            {calendarDates.map((dateInfo) => (
-              <button
-                key={dateInfo.date}
-                onClick={() => dateInfo.isAvailable ? handleDateChange(dateInfo.date) : null}
-                disabled={!dateInfo.isAvailable}
-                className={`flex-shrink-0 min-w-[64px] w-16 h-20 rounded-lg border-2 flex flex-col items-center justify-center transition-all ${
-                  dateInfo.isSelected
-                    ? 'bg-intown-blue text-white border-intown-blue'
-                    : dateInfo.isAvailable
-                    ? 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
-                    : 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
-                }`}
-              >
-                <span className="text-xs font-medium mb-1">
-                  {dateInfo.dayName}
-                </span>
-                <span className="text-lg font-semibold">
-                  {dateInfo.dayNumber}
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
-
-        {/* Selected Date Info */}
-        {selectedDate && selectedDateInfo && (
-          <div className="text-center py-2">
-            <p className="text-lg font-medium text-gray-700">
-              Select time for {selectedDateInfo.dayName}, {selectedDateInfo.monthName} {selectedDateInfo.dayNumber}
-            </p>
+      ) : (
+        <div className="space-y-6">
+          {/* Month Header */}
+          <div className="text-center">
+            <h3 className="text-2xl font-light text-gray-600 mb-6">
+              {selectedDateInfo ? selectedDateInfo.monthName : new Date().toLocaleDateString('en-US', { month: 'long' })}
+            </h3>
           </div>
-        )}
 
-        {error && selectedDate && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-start">
-              <div className="flex-shrink-0 mr-3">
-                <svg className="h-5 w-5 text-amber-600 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-amber-800 mb-1">No Times Available</p>
-                <p className="text-sm text-amber-700">{error}</p>
-              </div>
-            </div>
-          </div>
-        )}
+          {/* Horizontal Scrollable Calendar */}
+          <div className="relative">
+            {/* Left Arrow */}
+            <button 
+              onClick={() => {
+                const container = document.querySelector('.date-scroll-container');
+                container?.scrollBy({ left: -200, behavior: 'smooth' });
+              }}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center hover:bg-gray-50"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            
+            {/* Right Arrow */}
+            <button 
+              onClick={() => {
+                const container = document.querySelector('.date-scroll-container');
+                container?.scrollBy({ left: 200, behavior: 'smooth' });
+              }}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-8 h-8 bg-white shadow-md rounded-full flex items-center justify-center hover:bg-gray-50"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
 
-        {selectedDate && selectedDateData && selectedDateData.timeSlots.length > 0 && (
-          <div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {selectedDateData.timeSlots.filter(slot => {
-                // Filter out past time slots for today
-                if (selectedDate === new Date().toISOString().split('T')[0]) {
-                  const [hours, minutes] = slot.time.split(':');
-                  const slotTime = new Date();
-                  slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
-                  return slotTime > new Date();
+            <div 
+              className="date-scroll-container flex overflow-x-auto gap-4 pb-4 px-10 scrollbar-hide" 
+              style={{ 
+                scrollbarWidth: 'none', 
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              <style jsx>{`
+                .scrollbar-hide::-webkit-scrollbar {
+                  display: none;
                 }
-                return true;
-              }).map((timeSlot) => (
+              `}</style>
+              {calendarDates.map((dateInfo) => (
                 <button
-                  key={timeSlot.time}
-                  onClick={() => handleTimeSlotClick(timeSlot)}
-                  disabled={timeSlot.technicians.length === 0}
-                  className={`intown-date-button p-4 text-sm font-medium rounded-lg border-2 transition-all ${
-                    selectedTimeSlot?.time === timeSlot.time
-                      ? 'selected'
-                      : timeSlot.technicians.length === 0
-                      ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
-                      : 'bg-white text-gray-900 border-gray-300 hover:border-gray-300 hover:bg-gray-50'
+                  key={dateInfo.date}
+                  onClick={() => dateInfo.isAvailable ? handleDateChange(dateInfo.date) : null}
+                  disabled={!dateInfo.isAvailable}
+                  className={`flex-shrink-0 min-w-[64px] w-16 h-20 rounded-lg border-2 flex flex-col items-center justify-center transition-all ${
+                    dateInfo.isSelected
+                      ? 'bg-intown-blue text-white border-intown-blue'
+                      : dateInfo.isAvailable
+                      ? 'bg-white border-gray-200 text-gray-700 hover:border-gray-300 hover:bg-gray-50'
+                      : 'bg-gray-50 border-gray-200 text-gray-400 cursor-not-allowed'
                   }`}
                 >
-                  <div className="text-center">
-                    <div className="font-semibold">{formatTime(timeSlot.time)}</div>
-                  </div>
+                  <span className="text-xs font-medium mb-1">
+                    {dateInfo.dayName}
+                  </span>
+                  <span className="text-lg font-semibold">
+                    {dateInfo.dayNumber}
+                  </span>
                 </button>
               ))}
             </div>
           </div>
-        )}
 
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <button
-            onClick={handleBackClick}
-            className="w-full sm:w-auto px-6 py-3 border-2 border-gray-300 rounded-lg text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-          >
-            <span className="flex items-center justify-center gap-2">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-              Back
-            </span>
-          </button>
-          
-          <button
-            onClick={handleNextClick}
-            disabled={!selectedDate || !selectedTimeSlot || !selectedTechnician}
-            className="next-button w-full sm:flex-1 px-6 py-3 border border-transparent rounded-lg text-base font-medium"
-          >
-            <span className="flex items-center justify-center gap-2">
-              Continue
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </span>
-          </button>
+          {/* Selected Date Info */}
+          {selectedDate && selectedDateInfo && (
+            <div className="text-center py-2">
+              <p className="text-lg font-medium text-gray-700">
+                Select time for {selectedDateInfo.dayName}, {selectedDateInfo.monthName} {selectedDateInfo.dayNumber}
+              </p>
+            </div>
+          )}
+
+          {error && selectedDate && (
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 mr-3">
+                  <svg className="h-5 w-5 text-amber-600 mt-0.5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-amber-800 mb-1">No Times Available</p>
+                  <p className="text-sm text-amber-700">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {selectedDate && selectedDateData && selectedDateData.timeSlots.length > 0 && (
+            <div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                {selectedDateData.timeSlots.filter(slot => {
+                  // Filter out past time slots for today
+                  if (selectedDate === new Date().toISOString().split('T')[0]) {
+                    const [hours, minutes] = slot.time.split(':');
+                    const slotTime = new Date();
+                    slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                    return slotTime > new Date();
+                  }
+                  return true;
+                }).map((timeSlot) => (
+                  <button
+                    key={timeSlot.time}
+                    onClick={() => handleTimeSlotClick(timeSlot)}
+                    disabled={timeSlot.technicians.length === 0}
+                    className={`intown-date-button p-4 text-sm font-medium rounded-lg border-2 transition-all ${
+                      selectedTimeSlot?.time === timeSlot.time
+                        ? 'selected'
+                        : timeSlot.technicians.length === 0
+                        ? 'bg-gray-50 text-gray-400 border-gray-200 cursor-not-allowed'
+                        : 'bg-white text-gray-900 border-gray-300 hover:border-gray-300 hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="font-semibold">{formatTime(timeSlot.time)}</div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-4 pt-4">
+            <button
+              onClick={handleBackClick}
+              className="w-full sm:w-auto px-6 py-3 border-2 border-gray-300 rounded-lg text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+            >
+              <span className="flex items-center justify-center gap-2">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+                Back
+              </span>
+            </button>
+            
+            <button
+              onClick={handleNextClick}
+              disabled={!selectedDate || !selectedTimeSlot || !selectedTechnician}
+              className="next-button w-full sm:flex-1 px-6 py-3 border border-transparent rounded-lg text-base font-medium"
+            >
+              <span className="flex items-center justify-center gap-2">
+                Continue
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </FormLayout>
   );
 } 
