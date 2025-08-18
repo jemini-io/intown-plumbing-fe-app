@@ -58,6 +58,8 @@ export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJ
       'Successfully fetched available time slots'
     );
 
+    timeSlots.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
     return {
       success: true,
       data: timeSlots

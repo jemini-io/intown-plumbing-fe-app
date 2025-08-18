@@ -41,9 +41,10 @@ export async function createJobAppointment({
     // Check if a customer already exists
     const existingCustomers = await serviceTitanClient.crm.CustomersService.customersGetList({
         tenant: tenantId,
-        name: name,
-        street: street,
-        zip: zip,
+        // Per Brittany, only match on phone.
+        // name: name,
+        // street: street,
+        // zip: zip,
         phone: phone,
     });
     let stCustomer;
@@ -66,8 +67,28 @@ export async function createJobAppointment({
             // Add locations to the customer object
             stCustomer = { ...stCustomer, locations: locationsResponse.data };
         } else {
-            logger.warn("Customer does not have any locations");
-            throw new Error('Customer does not have any locations.');
+            // create a new location
+            logger.info({
+              customerName: name,
+              customerPhone: phone,
+              customerEmail: email,
+            }, "createJobAppointment: Customer does not have any locations, creating new location");
+            const newLocation = await serviceTitanClient.crm.LocationsService.locationsCreate({
+              tenant: tenantId,
+              requestBody: {
+                customerId: Number(stCustomer.id),
+                name: `${name} Service Address`,
+                address: {
+                  street,
+                  unit,
+                  city,
+                  state,
+                  zip,
+                  country
+                },
+              }
+            });
+            stCustomer = { ...stCustomer, locations: [newLocation] };
         }
     } else {
         logger.info({
@@ -140,7 +161,13 @@ export async function createJobAppointment({
 
     // Ensure customer has at least one location
     if (!stCustomer.locations || stCustomer.locations.length === 0) {
-        logger.warn("Customer does not have any locations");
+        logger.warn({
+          customerId: stCustomer.id,
+          customerName: name,
+          customerPhone: phone,
+          customerEmail: email,
+          customerLocations: stCustomer.locations,
+        }, "Customer does not have any locations");
         throw new Error('Customer does not have any locations.');
     }
 
@@ -288,13 +315,17 @@ async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceT
                 }]
             };
 
-            logger.info({
-              paymentData: paymentData,
-            }, "createJobAppointment: Creating payment");
-            await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
-                tenant: tenantId,
-                requestBody: paymentData
-            });
+            try {
+              logger.info({
+                paymentData: paymentData,
+              }, "createJobAppointment: Creating payment");
+              await serviceTitanClient.accounting.PaymentsService.paymentsCreate({
+                  tenant: tenantId,
+                  requestBody: paymentData
+              });
+            } catch (error) {
+              logger.warn({ err: error }, "createJobAppointment: Error creating payment");
+            }
         }
     }
 }
