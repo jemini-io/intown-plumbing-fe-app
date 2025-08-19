@@ -1,6 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import pino from 'pino';
+
+const logger = pino({ name: "LoginPage" });
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
@@ -17,19 +20,27 @@ export default function LoginPage() {
     try {
       const res = await fetch("/api/login", {
         method: "POST",
-        body: JSON.stringify({ username, password }),
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, password }),
       });
-      
-      const data = await res.json();
+
+      const text = await res.text();
+      logger.info({ response: text }, "🔹 Login API: received response:");
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Respuesta no es JSON válido");
+      }
 
       if (res.ok && data.success) {
         router.push("/admin/settings");
       } else {
-        setError("Wrong User or password");
+        setError(data.error || "Wrong User or password");
       }
     } catch (err) {
-      console.error("Login error:", err);
+      logger.error(err, "💥 Error in login submission:");
       setError("Something went wrong. Try again.");
     } finally {
       setIsLoading(false);
