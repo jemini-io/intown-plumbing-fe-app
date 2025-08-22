@@ -54,6 +54,7 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@types/bcrypt": "^6.0.0",
     "@types/node": "^20.19.11",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
@@ -72,6 +73,6 @@
     "typescript": "^5.9.2"
   },
   "prisma": {
-    "seed": "ts-node --transpile-only prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts"
   }
 }

@@ -1,10 +1,11 @@
-import { PrismaClient } from "@prisma/client";
+// import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma";
 import { hashPassword } from "../lib/auth/password";
 import pino from 'pino';
 
 const logger = pino({ name: "SeedScript" });
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 async function main() {
   const adminEmail = "admin@example.com";
