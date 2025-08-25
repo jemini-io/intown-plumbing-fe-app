@@ -2,6 +2,7 @@
 import { prisma } from "../lib/prisma";
 import { hashPassword } from "../lib/auth/password";
 import pino from 'pino';
+import { log } from "console";
 
 const logger = pino({ name: "SeedScript" });
 
@@ -9,7 +10,8 @@ const logger = pino({ name: "SeedScript" });
 
 async function main() {
   const adminEmail = "admin@example.com";
-  const adminPassword = "12345678";
+  const adminPassword = process.env.ADMIN_PASSWORD || "changeme";
+  log(`Seeding admin user with email: ${adminEmail} and password: ${adminPassword}`);
 
   // Hash the password
   const passwordDigest = await hashPassword(adminPassword);
