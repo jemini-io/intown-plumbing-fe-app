@@ -31,13 +31,13 @@ export default function LoginPage() {
       try {
         data = JSON.parse(text);
       } catch {
-        throw new Error("Respuesta no es JSON válido");
+        throw new Error("The response is not valid JSON");
       }
 
       if (res.ok && data.success) {
         router.push("/admin/settings");
       } else {
-        setError(data.error || "Wrong User or password");
+        setError(data.error || "Wrong username or password");
       }
     } catch (err) {
       logger.error(err, "💥 Error in login submission:");
@@ -53,7 +53,7 @@ export default function LoginPage() {
       <form onSubmit={handleSubmit} className="space-y-2">
         <input
           type="text"
-          placeholder="Usuario"
+          placeholder="Username"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           className="border p-1 w-full"
@@ -61,7 +61,7 @@ export default function LoginPage() {
         />
         <input
           type="password"
-          placeholder="Contraseña"
+          placeholder="Password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           className="border p-1 w-full"
@@ -73,7 +73,7 @@ export default function LoginPage() {
           className="bg-blue-600 text-white px-4 py-2 rounded"
           disabled={isLoading}
         >
-          {isLoading ? "Logging in..." : "Entrar"}
+          {isLoading ? "Logging in..." : "Login"}
         </button>
       </form>
     </div>
