@@ -1,12 +1,13 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import pino from 'pino';
+import { signIn } from "next-auth/react";
+// import pino from 'pino';
 
-const logger = pino({ name: "LoginPage" });
+// const logger = pino({ name: "LoginPage" });
 
 export default function LoginPage() {
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -18,31 +19,24 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      const res = await fetch("/api/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+      const res = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        callbackUrl: "/admin/settings", // Optional: where to redirect after login
       });
 
-      const text = await res.text();
-      logger.info({ response: text }, "🔹 Login API: received response:");
+      console.log("SignIn response:", res);
 
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error("The response is not valid JSON");
-      }
-
-      if (res.ok && data.success) {
-        router.push("/admin/settings");
+      if (res?.ok) {
+        router.push(res.url || "/admin/settings");
       } else {
-        setError(data.error || "Wrong username or password");
+        setError(res?.error || "Login failed");
+        setIsLoading(false);
       }
     } catch (err) {
-      logger.error(err, "💥 Error in login submission:");
-      setError("Something went wrong. Try again.");
-    } finally {
+      console.error("Login error:", err);
+      setError("An unexpected error occurred");
       setIsLoading(false);
     }
   }
@@ -52,10 +46,10 @@ export default function LoginPage() {
       <h1 className="text-xl font-bold mb-4">Login</h1>
       <form onSubmit={handleSubmit} className="space-y-2">
         <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           className="border p-1 w-full"
           required
         />
