@@ -2,15 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { logger } from "../logger";
 import { verifyPassword } from "@/lib/auth/password"
 import { prisma } from "@/lib/prisma";
-
-
-// const VALID_USER = {
-//   username: "admin",
-//   password: "1234",
-// };
+// import { ensureAdminUser } from "@/lib/auth/ensureAdmin";
 
 export async function POST(request: NextRequest) {
   try {
+    // Ensure admin user exists before any login attempts
+    // await ensureAdminUser();
+
     const body = await request.json();
     logger.info(body, "🔹 Login API: received body:");
 
