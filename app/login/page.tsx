@@ -1,21 +1,35 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
-// import pino from 'pino';
+import pino from "pino";
 
-// const logger = pino({ name: "LoginPage" });
+const logger = pino({ name: "LoginPage" });
+
+const errorMessages: Record<string, string> = {
+  CredentialsSignin: "Invalid email or password. Please try again.",
+  default: "An unexpected error occurred. Please try again later.",
+};
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // 🔥 Leer error de la URL y luego limpiar el query param
+  useEffect(() => {
+    const error = searchParams.get("error");
+    if (error) {
+      setErrorMessage(errorMessages[error] || errorMessages.default);
+      router.replace("/login"); // limpia el ?error= de la URL
+    }
+  }, [searchParams, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
 
     try {
@@ -23,20 +37,20 @@ export default function LoginPage() {
         redirect: false,
         email,
         password,
-        callbackUrl: "/admin/settings", // Optional: where to redirect after login
+        callbackUrl: "/admin/settings",
       });
 
-      console.log("SignIn response:", res);
+      logger.info(res, "SignIn response:");
 
       if (res?.ok) {
         router.push(res.url || "/admin/settings");
-      } else {
-        setError(res?.error || "Login failed");
-        setIsLoading(false);
+      } else if (res?.error) {
+        router.push(`/login?error=${res.error}`);
       }
     } catch (err) {
-      console.error("Login error:", err);
-      setError("An unexpected error occurred");
+      logger.error(err, "Login error:");
+      setErrorMessage(errorMessages.default);
+    } finally {
       setIsLoading(false);
     }
   }
@@ -61,7 +75,11 @@ export default function LoginPage() {
           className="border p-1 w-full"
           required
         />
-        {error && <p className="text-red-600">{error}</p>}
+
+        {errorMessage && (
+          <p className="text-red-600 text-sm">{errorMessage}</p>
+        )}
+
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded"

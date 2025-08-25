@@ -9,3 +9,5 @@ test-podium/
 lib/servicetitan/generated/
 tsconfig.tsbuildinfo
 /lib/generated/prisma
+
+.nvmrc
