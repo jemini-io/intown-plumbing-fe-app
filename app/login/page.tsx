@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
 import pino from "pino";
 
 const logger = pino({ name: "LoginPage" });
@@ -18,13 +18,20 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
+  
+  const { data: session, status } = useSession();
 
-  // 🔥 Leer error de la URL y luego limpiar el query param
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/admin/settings");
+    }
+  }, [status, router]);
+
   useEffect(() => {
     const error = searchParams.get("error");
     if (error) {
       setErrorMessage(errorMessages[error] || errorMessages.default);
-      router.replace("/login"); // limpia el ?error= de la URL
+      router.replace("/login");
     }
   }, [searchParams, router]);
 
@@ -53,6 +60,14 @@ export default function LoginPage() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (status === "loading") {
+    return <p className="text-center">Loading...</p>;
+  }
+
+  if (status === "authenticated") {
+    return null;
   }
 
   return (
