@@ -28,6 +28,7 @@ export const config = {
   matcher: [
     "/video-consultation-form/:path*",
     "/api/create-payment-intent/:path*",
+    "/admin",
     "/admin/:path*",
   ],
 };

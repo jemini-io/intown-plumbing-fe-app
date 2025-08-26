@@ -23,7 +23,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/admin/settings");
+      router.replace("/admin");
     }
   }, [status, router]);
 
@@ -44,13 +44,13 @@ export default function LoginPage() {
         redirect: false,
         email,
         password,
-        callbackUrl: "/admin/settings",
+        callbackUrl: "/admin",
       });
 
       logger.info(res, "SignIn response:");
 
       if (res?.ok) {
-        router.push(res.url || "/admin/settings");
+        router.push(res.url || "/admin");
       } else if (res?.error) {
         router.push(`/login?error=${res.error}`);
       }
