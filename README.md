@@ -10,21 +10,32 @@
    npm install
    ```
 
-2. Copy environment variables:
+2. **Optional: Start local PostgreSQL database:**
+
+   ```bash
+   cd docker && docker-compose up -d
+   ```
+
+3. Copy environment variables:
 
    ```bash
    cp .example.env .env.test.local
    ```
 
-   Edit `.env` with your actual secrets and configuration.
+   Edit `.env.test.local` with your actual secrets and configuration.
+   
+   **If using local Docker database, update DATABASE_URL:**
+   ```
+   DATABASE_URL="postgresql://user:password*@localhost:5432/intown_dev"
+   ```
 
-3. Generate API SDK Files
+4. Generate API SDK Files
 
    ```bash
    npm run build:test
    ```
 
-4. Start the development server:
+5. Start the development server:
 
    ```bash
    npm run dev
