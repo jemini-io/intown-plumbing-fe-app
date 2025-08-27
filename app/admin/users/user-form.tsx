@@ -1,4 +1,3 @@
-// app/admin/users/user-form.tsx
 "use client";
 
 import { useTransition, useState, useRef } from "react";
@@ -19,7 +18,9 @@ type UserFormProps = {
 export function UserForm({ existing, onSaved }: UserFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
-  const formRef = useRef<HTMLFormElement>(null); // Added form reference
+  const formRef = useRef<HTMLFormElement>(null);
+
+  const isProtectedAdmin = existing?.email === "admin@example.com";
 
   // Handle form submit for create/update
   async function handleSubmit(formData: FormData) {
@@ -35,7 +36,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
       } else {
         await createUser({ email, name, role, password });
         setMessage({ type: "success", text: "User created successfully!" });
-        formRef.current?.reset(); // Reset form after create
+        formRef.current?.reset();
       }
       await onSaved();
     } catch (err) {
@@ -46,9 +47,8 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
     }
   }
 
-  // Handle delete with confirmation
   async function handleDelete() {
-    if (!confirm("Are you sure you want to delete this user?")) {
+    if (!confirm(`Are you sure you want to delete the user "${existing!.name} (${existing!.email})"?`)) {
       return;
     }
 
@@ -67,7 +67,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
   return (
     <div className="space-y-1">
       <form
-        ref={formRef} // Added ref here
+        ref={formRef}
         action={(formData) =>
           startTransition(async () => {
             await handleSubmit(formData);
@@ -80,16 +80,22 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
           name="email"
           placeholder="Email"
           defaultValue={existing?.email ?? ""}
-          className="border p-1"
+          className={`border p-1 ${
+            isProtectedAdmin ? "bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-0 hover:border-gray-300" : ""
+          }`}
           required
+          disabled={isProtectedAdmin}
         />
         <input
           type="text"
           name="name"
           placeholder="Name"
           defaultValue={existing?.name ?? ""}
-          className="border p-1"
+          className={`border p-1 ${
+            isProtectedAdmin ? "bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-0 hover:border-gray-300" : ""
+          }`}
           required
+          disabled={isProtectedAdmin}
         />
         <input
           type="password"
@@ -101,7 +107,10 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
         <select
           name="role"
           defaultValue={existing?.role ?? "USER"}
-          className="border p-1"
+          className={`border p-1 ${
+            isProtectedAdmin ? "bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-0 hover:border-gray-300" : ""
+          }`}
+          disabled={isProtectedAdmin}
         >
           <option value="USER">USER</option>
           <option value="ADMIN">ADMIN</option>
@@ -115,7 +124,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
           {isPending ? "Saving..." : existing ? "Update" : "Add"}
         </button>
 
-        {existing?.id && (
+        {existing?.id && !isProtectedAdmin && (
           <button
             type="button"
             onClick={() => startTransition(handleDelete)}
