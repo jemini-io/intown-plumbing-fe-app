@@ -1,22 +1,46 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import AdminHeader from "../components/AdminHeader";
-import Image from 'next/image';
+import { getUsers, UserData } from "./actions";
+import { UserForm } from "./user-form";
+
+export type User = {
+  id: number;
+  email: string;
+  name: string;
+  role: "USER" | "ADMIN";
+};
 
 export default function UsersPage() {
+  const [users, setUsers] = useState<User[]>([]);
+
+  // Refresh users list
+  async function refresh() {
+    const all = await getUsers();
+    setUsers(all);
+  }
+
+  useEffect(() => {
+    refresh();
+  }, []);
+
   return (
     <div className="space-y-6 pt-20">
       <AdminHeader />
+
       <div className="p-4">
-        <h2 className="text-lg font-bold">Users dashboard&apos;s coming soon!</h2>
-        <Image
-            src="/admin.png"
-            alt="InTown Plumbing Logo"
-            width={200}
-            height={134}
-            className="h-auto w-64 sm:w-40 lg:w-64"
-            priority
-        />
+        <h3 className="text-xl font-bold">Users</h3>
+
+        {/* Form to add new user */}
+        <UserForm onSaved={refresh} />
+
+        {/* Existing users */}
+        <div className="space-y-2 mt-4">
+          {users.map((user) => (
+            <UserForm key={user.id} existing={user} onSaved={refresh} />
+          ))}
+        </div>
       </div>
     </div>
   );
