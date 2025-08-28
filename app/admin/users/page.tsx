@@ -8,7 +8,7 @@ export default function UsersPage() {
     <div className="space-y-6 pt-20">
       <AdminHeader />
       <div className="p-4">
-        <h2 className="text-lg font-bold">Users dashboard's coming soon!</h2>
+        <h2 className="text-lg font-bold">Users dashboard&apos;s coming soon!</h2>
         <Image
             src="/admin.png"
             alt="InTown Plumbing Logo"
