@@ -109,30 +109,15 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
 
         let cancelledCount = 0;
 
-        // Cache job statuses to minimize API calls
-        const jobStatusCache = new Map<number, string>();
-        
         for (const appointment of appointments) {
-            let jobStatus = jobStatusCache.get(appointment.jobId);
-            if (!jobStatus) {
-                const job = await serviceTitanClient.jpm.JobsService.jobsGet({
-                tenant: tenantId,
-                id: appointment.jobId
-                });
-                jobStatus = job.jobStatus;
-                jobStatusCache.set(appointment.jobId, jobStatus);
-            }
-            if (jobStatus?.toLowerCase() === "cancelled") {
-                cancelledCount+=1;
-            }
-            else {
+            if (appointment.status?.toLowerCase() === "canceled") {
+                cancelledCount += 1;
+            } else {
                 activeAppointments.push(appointment);
             }
         }
 
         logger.info(`Technician ${tech.technicianName} has ${appointments.length} total appointments, ${activeAppointments.length} active, and ${cancelledCount} cancelled.`);
-        // logger.info(`Found ${activeAppointments.length} active appointments for technician ${tech.technicianName}`);
-        // logger.info(`Found ${cancelledCount} cancelled appointments for technician ${tech.technicianName}`);
 
         // Process available time slots for this technician
         shifts.forEach((shift) => {
