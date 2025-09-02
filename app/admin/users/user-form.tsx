@@ -2,13 +2,8 @@
 
 import { useTransition, useState, useRef } from "react";
 import { createUser, updateUser, deleteUser } from "./actions";
+import { User } from "./types" 
 
-type User = {
-  id?: number;
-  email: string;
-  name: string;
-  role: "USER" | "ADMIN";
-};
 
 type UserFormProps = {
   existing?: User;
@@ -31,7 +26,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
 
     try {
       if (existing?.id) {
-        await updateUser(existing.id, { email, name, role, password: password || undefined });
+        await updateUser(String(existing.id), { email, name, role, password: password || undefined });
         setMessage({ type: "success", text: "User updated successfully!" });
       } else {
         await createUser({ email, name, role, password });
@@ -53,7 +48,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
     }
 
     try {
-      await deleteUser(existing!.id!);
+      await deleteUser(String(existing!.id!));
       setMessage({ type: "success", text: "User deleted successfully!" });
       await onSaved();
     } catch (err) {

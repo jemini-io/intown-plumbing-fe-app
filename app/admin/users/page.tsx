@@ -2,15 +2,9 @@
 
 import { useEffect, useState } from "react";
 import AdminHeader from "../components/AdminHeader";
-import { getUsers, UserData } from "./actions";
+import { getUsers } from "./actions";
 import { UserForm } from "./user-form";
-
-export type User = {
-  id: number;
-  email: string;
-  name: string;
-  role: "USER" | "ADMIN";
-};
+import { User } from "./types" 
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);

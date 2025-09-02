@@ -37,8 +37,10 @@ export async function createUser(data: UserData) {
   });
 }
 
-export async function updateUser(id: number, data: Partial<UserData>) {
-  const updateData: any = { ...data };
+type UpdateUserData = Partial<UserData> & { passwordDigest?: string };
+
+export async function updateUser(id: string, data: Partial<UserData>) {
+  const updateData: UpdateUserData = { ...data };
   if (data.password) {
     updateData.passwordDigest = await bcrypt.hash(data.password, 10);
     delete updateData.password;
@@ -50,6 +52,6 @@ export async function updateUser(id: number, data: Partial<UserData>) {
   });
 }
 
-export async function deleteUser(id: number) {
+export async function deleteUser(id: string) {
   await prisma.user.delete({ where: { id } });
 }
