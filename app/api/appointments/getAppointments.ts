@@ -102,7 +102,22 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
         }
         const appointmentsResponse = await serviceTitanClient.jpm.AppointmentsService.appointmentsGetList(appointmentsQuery);
         const appointments = appointmentsResponse.data;
-        logger.info(`Found ${appointments.length} appointments for technician ${tech.technicianName}`);
+        // logger.info(`Found ${appointments.length} appointments for technician ${tech.technicianName}`);
+
+        // Filter out cancelled appointments by checking the associated job status
+        const activeAppointments: Jpm_V2_AppointmentResponse[] = [];
+
+        let cancelledCount = 0;
+
+        for (const appointment of appointments) {
+            if (appointment.status?.toLowerCase() === "canceled") {
+                cancelledCount += 1;
+            } else {
+                activeAppointments.push(appointment);
+            }
+        }
+
+        logger.info(`Technician ${tech.technicianName} has ${appointments.length} total appointments, ${activeAppointments.length} active, and ${cancelledCount} cancelled.`);
 
         // Process available time slots for this technician
         shifts.forEach((shift) => {
@@ -115,7 +130,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
                 nextTime.setMinutes(currentTime.getMinutes() + 30);
 
                 // Check if the current time block is available
-                const isAvailable = !appointments.some((appointment: Jpm_V2_AppointmentResponse) => {
+                const isAvailable = !activeAppointments.some((appointment: Jpm_V2_AppointmentResponse) => {
                     const appointmentStart = new Date(appointment.start);
                     const appointmentEnd = new Date(appointment.end);
                     return currentTime >= appointmentStart && currentTime < appointmentEnd;

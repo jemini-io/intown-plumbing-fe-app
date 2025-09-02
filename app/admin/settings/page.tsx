@@ -33,8 +33,10 @@ export default function SettingsPage() {
       <div className="p-4">
         <h3 className="text-xl font-bold">App Settings</h3>
 
+        {/* Form to add new App Setting */}
         <SettingsForm onSaved={refresh} />
         
+        {/* Existing App Settings */}
         <div className="space-y-2 mt-4">
           {settings.map((s) => (
             <SettingsForm key={s.id} existing={s} onSaved={refresh} />

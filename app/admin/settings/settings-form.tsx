@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useTransition, useState, useRef } from "react";
 import { createSetting, updateSetting, deleteSetting } from "./actions";
 
 type Setting = {
@@ -17,6 +17,7 @@ type SettingsFormProps = {
 export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   async function handleSubmit(formData: FormData) {
     const key = formData.get("key") as string;
@@ -29,17 +30,22 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
       } else {
         await createSetting({ key, value });
         setMessage({ type: "success", text: "Setting created successfully!" });
+        formRef.current?.reset(); 
       }
       await onSaved();
     } catch (err) {
       console.error(err);
       setMessage({ type: "error", text: "Something went wrong. Please try again." });
     } finally {
-      setTimeout(() => setMessage(null), 3000); // ocultar después de 3s
+      setTimeout(() => setMessage(null), 3000);
     }
   }
 
   async function handleDelete() {
+    if (!confirm(`Are you sure you want to delete the setting "${existing!.key}"?`)) {
+      return;
+    }
+
     try {
       await deleteSetting(existing!.id!);
       setMessage({ type: "success", text: "Setting deleted successfully!" });
@@ -55,6 +61,7 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
   return (
     <div className="space-y-1">
       <form
+        ref={formRef}
         action={(formData) =>
           startTransition(async () => {
             await handleSubmit(formData);
@@ -67,8 +74,11 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
           name="key"
           placeholder="Key"
           defaultValue={existing?.key ?? ""}
-          className="border p-1"
+          className={`border p-1 ${
+            existing?.id ? "bg-gray-100 text-gray-500 cursor-not-allowed focus:outline-none focus:ring-0 hover:border-gray-300" : ""
+          }`}
           required
+          readOnly={!!existing?.id}
         />
         <input
           type="text"
