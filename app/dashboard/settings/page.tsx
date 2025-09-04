@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getSettings } from "./actions";
 import { SettingsForm } from "./settings-form";
-import AdminLayout from "../components/AdminLayout";
+import DashboardLayout from "../components/DashboardLayout";
 
 type Setting = {
   id: number;
@@ -24,7 +24,7 @@ export default function SettingsPage() {
   }, []);
 
   return (
-    <AdminLayout>
+    <DashboardLayout>
       <div className="min-h-screen p-8 space-y-8">
         <h3 className="text-3xl font-bold mb-8">App Settings</h3>
 
@@ -36,6 +36,6 @@ export default function SettingsPage() {
           ))}
         </div>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 }

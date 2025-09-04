@@ -9,8 +9,8 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protect admin routes
-  if (pathname.startsWith("/admin")) {
+  // Protect dashboard routes
+  if (pathname.startsWith("/dashboard")) {
     // Get NextAuth JWT token from request
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
@@ -28,7 +28,7 @@ export const config = {
   matcher: [
     "/video-consultation-form/:path*",
     "/api/create-payment-intent/:path*",
-    "/admin",
-    "/admin/:path*",
+    "/dashboard",
+    "/dashboard/:path*",
   ],
 };

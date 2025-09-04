@@ -1,4 +1,3 @@
-// app/admin/settings/actions.ts
 "use server";
 
 import { prisma } from "@/lib/prisma";

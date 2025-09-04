@@ -1,12 +1,11 @@
 "use client";
 
-import AdminLayout from "../components/AdminLayout";
+import DashboardLayout from "./components/DashboardLayout";
 
 export default function DashboardPage() {
   return (
-    <AdminLayout>
+    <DashboardLayout>
       <div className="bg-gray-100 min-h-screen p-8 space-y-8 rounded-lg">
-        {/* Top heading */}
         <h1 className="text-3xl font-bold mb-8">Intown Plumbing App Dashboard</h1>
 
         {/* Grid section */}
@@ -41,6 +40,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
-    </AdminLayout>
+    </DashboardLayout>
   );
 }
+

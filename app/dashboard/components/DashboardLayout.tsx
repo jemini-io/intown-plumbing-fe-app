@@ -1,14 +1,14 @@
-import AdminSidebar from "./AdminSidebar";
+import DashboardSidebar from "./DashboardSidebar";
 import { ReactNode } from "react";
 
-interface AdminLayoutProps {
+interface DashboardSidebar {
   children: ReactNode;
 }
 
-export default function AdminLayout({ children }: AdminLayoutProps) {
+export default function AdminLayout({ children }: DashboardSidebar) {
   return (
     <div className="flex">
-      <AdminSidebar />
+      <DashboardSidebar />
 
       <main className="flex-1">
         {children}

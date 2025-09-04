@@ -6,21 +6,21 @@ import pino from 'pino';
 const logger = pino({ name: "SeedScript" });
 
 async function main() {
-  const adminEmail = "admin@example.com";
-  const adminPassword = process.env.ADMIN_PASSWORD || "changeme";
+  const userEmail = "admin@example.com";
+  const userPassword = process.env.ADMIN_PASSWORD || "changeme";
 
   // Hash the password
-  const passwordDigest = await hashPassword(adminPassword);
+  const passwordDigest = await hashPassword(userPassword);
 
   // Upsert ensures we don't create duplicates
   const admin = await prisma.user.upsert({
-    where: { email: adminEmail },
+    where: { email: userEmail },
     update: {
       passwordDigest,
       role: "ADMIN",
     },
     create: {
-      email: adminEmail,
+      email: userEmail,
       name: "Admin user",
       passwordDigest,
       role: "ADMIN",

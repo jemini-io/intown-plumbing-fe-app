@@ -1,7 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { loginAction } from "../actions/login";
 import pino from "pino";
 
 const logger = pino({ name: "LoginForm" });
@@ -24,7 +25,7 @@ export default function LoginForm() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/admin");
+      router.replace("/dashboard");
     }
   }, [status, router]);
 
@@ -41,17 +42,12 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const res = await signIn("credentials", {
-        redirect: false,
-        email,
-        password,
-        callbackUrl: "/admin",
-      });
+      const res = await loginAction({ email, password });
 
-      logger.info(res, "SignIn response:");
+      logger.info(res, "LoginAction response:");
 
       if (res?.ok) {
-        router.push(res.url || "/admin");
+        router.push(res.url || "/dashboard");
       } else if (res?.error) {
         router.push(`/login?error=${res.error}`);
       }
