@@ -25,7 +25,8 @@ export default function SettingsPage() {
 
   return (
     <AdminLayout>
-        <h3 className="text-xl font-bold">App Settings</h3>
+      <div className="min-h-screen p-8 space-y-8">
+        <h3 className="text-3xl font-bold mb-8">App Settings</h3>
 
         <SettingsForm onSaved={refresh} />
         
@@ -34,6 +35,7 @@ export default function SettingsPage() {
             <SettingsForm key={s.id} existing={s} onSaved={refresh} />
           ))}
         </div>
+      </div>
     </AdminLayout>
   );
 }

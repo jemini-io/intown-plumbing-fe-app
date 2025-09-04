@@ -1,8 +1,13 @@
 "use client";
 
-import { signOut } from "next-auth/react";
 import Link from "next/link";
-import { HomeIcon, ChartBarIcon, Cog6ToothIcon, UserGroupIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
+import { HomeIcon, 
+         ChartBarIcon, 
+         Cog6ToothIcon, 
+         UserGroupIcon, 
+         ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
+import { logoutAction } from "@/app/actions/logout";
+
 
 export default function AdminSidebar() {
   return (
@@ -24,7 +29,7 @@ export default function AdminSidebar() {
       </div>
 
       <button
-        onClick={() => signOut({ callbackUrl: "/login" })}
+        onClick={() => logoutAction()}
         title="Logout"
         className="mt-auto flex items-center justify-center p-2 rounded hover:bg-gray-200"
       >

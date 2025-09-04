@@ -21,16 +21,18 @@ export default function UsersPage() {
 
   return (
     <AdminLayout>
-      <h3 className="text-xl font-bold">Users</h3>
+      <div className="min-h-screen p-8 space-y-8">
+        <h3 className="text-3xl font-bold mb-8">Users</h3>
 
-      {/* Form to add new user */}
-      <UserForm onSaved={refresh} />
+        {/* Form to add new user */}
+        <UserForm onSaved={refresh} />
 
-      {/* Existing users */}
-      <div className="space-y-2 mt-4">
-        {users.map((user) => (
-          <UserForm key={user.id} existing={user} onSaved={refresh} />
-        ))}
+        {/* Existing users */}
+        <div className="space-y-2 mt-4">
+          {users.map((user) => (
+            <UserForm key={user.id} existing={user} onSaved={refresh} />
+          ))}
+        </div>
       </div>
     </AdminLayout>
   );

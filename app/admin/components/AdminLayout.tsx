@@ -10,7 +10,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     <div className="flex">
       <AdminSidebar />
 
-      <main className="flex-1 p-6">
+      <main className="flex-1">
         {children}
       </main>
     </div>
