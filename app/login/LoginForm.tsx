@@ -20,7 +20,7 @@ export default function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   logger.info(session, "Current session:");
 
   useEffect(() => {
@@ -42,15 +42,20 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const res = await loginAction({ email, password });
+      const res = await loginAction({ 
+        email, 
+        password,
+      });
 
       logger.info(res, "LoginAction response:");
 
       if (res?.ok) {
-        router.push(res.url || "/dashboard");
+        await update();
+        router.replace(res.url || "/dashboard");
       } else if (res?.error) {
-        router.push(`/login?error=${res.error}`);
+        router.replace(`/login?error=${res.error}`);
       }
+
     } catch (err) {
       logger.error(err, "Login error:");
       setErrorMessage(errorMessages.default);

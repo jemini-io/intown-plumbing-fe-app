@@ -14,8 +14,10 @@ export async function middleware(request: NextRequest) {
     // Get NextAuth JWT token from request
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
-    // If no token or role is not ADMIN, redirect to login
-    if (!token || token.role !== "ADMIN") {
+    const allowedRoles = ["ADMIN", "USER"];
+
+    // If no token or role is not allowed, redirect to login
+    if (!token || !allowedRoles.includes(token.role as string)) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
   }

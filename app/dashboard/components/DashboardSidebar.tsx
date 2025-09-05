@@ -1,15 +1,27 @@
 "use client";
 
 import Link from "next/link";
-import { HomeIcon, 
+import { useSession } from "next-auth/react";
+import { HomeIcon,
          ChartBarIcon, 
          Cog6ToothIcon, 
          UserGroupIcon, 
          ArrowRightOnRectangleIcon } from "@heroicons/react/24/outline";
 import { logoutAction } from "@/app/actions/logout";
 
+interface SessionWithRole {
+  user: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+    role?: "USER" | "ADMIN";
+  };
+}
 
-export default function AdminSidebar() {
+export default function DashboardSidebar() {
+  const { data: session } = useSession() as { data: SessionWithRole | null };;
+  const role = session?.user?.role;
+
   return (
     <aside className="top-0 left-0 h-screen w-20 bg-gray-50 border-r p-4 flex flex-col items-center sticky z-50">
       
@@ -20,12 +32,17 @@ export default function AdminSidebar() {
         <Link href="/dashboard" title="Dashboard" className="hover:text-gray-900">
           <ChartBarIcon className="h-6 w-6 text-gray-700" />
         </Link>
-        <Link href="/dashboard/settings" title="Settings" className="hover:text-gray-900">
-          <Cog6ToothIcon className="h-6 w-6 text-gray-700" />
-        </Link>
-        <Link href="/dashboard/users" title="Users" className="hover:text-gray-900">
-          <UserGroupIcon className="h-6 w-6 text-gray-700" />
-        </Link>
+
+        {role === "ADMIN" && (
+        <>
+          <Link href="/dashboard/settings" title="Settings" className="hover:text-gray-900">
+            <Cog6ToothIcon className="h-6 w-6 text-gray-700" />
+          </Link>
+          <Link href="/dashboard/users" title="Users" className="hover:text-gray-900">
+            <UserGroupIcon className="h-6 w-6 text-gray-700" />
+          </Link>
+        </>
+        )}
       </div>
 
       <button
