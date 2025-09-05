@@ -22,6 +22,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Restrict access to admin-only pages
+  if (pathname.startsWith("/dashboard/settings") || pathname.startsWith("/dashboard/users")) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
+  }
+
   return NextResponse.next();
 }
 
