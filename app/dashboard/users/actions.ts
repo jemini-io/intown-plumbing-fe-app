@@ -18,6 +18,7 @@ export async function getUsers() {
       email: true,
       name: true,
       role: true,
+      image: true,
     },
   });
 }
@@ -33,6 +34,7 @@ export async function createUser(data: UserData) {
       name: data.name,
       passwordDigest: hashedPassword || "",
       role: data.role,
+      image: data.image || null,
     },
   });
 }
@@ -41,11 +43,6 @@ type UpdateUserData = Partial<UserData> & { passwordDigest?: string };
 
 export async function updateUser(id: string, data: Partial<UserData>) {
   const updateData: UpdateUserData = { ...data };
-  if (data.password) {
-    updateData.passwordDigest = await bcrypt.hash(data.password, 10);
-    delete updateData.password;
-  }
-
   await prisma.user.update({
     where: { id },
     data: updateData,

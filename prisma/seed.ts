@@ -24,6 +24,7 @@ async function main() {
       name: "Admin user",
       passwordDigest,
       role: "ADMIN",
+      image: null,
     },
   });
 

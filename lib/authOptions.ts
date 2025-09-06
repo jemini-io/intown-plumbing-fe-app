@@ -10,6 +10,7 @@ const logger = pino({ name: "Auth" });
 
 export interface UserWithRole extends AdapterUser {
   role: "USER" | "ADMIN";
+  image: string | null;
 }
 
 export const authOptions: NextAuthOptions = {
@@ -32,6 +33,7 @@ export const authOptions: NextAuthOptions = {
         // Check if user exists
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          include: { image: true },
         });
 
         if (!user) {
@@ -48,14 +50,14 @@ export const authOptions: NextAuthOptions = {
 
         if (!isValid) return null;
 
-        return user;
-      
-        // return {
-        //   id: user.id,
-        //   email: user.email,
-        //   name: user.name,
-        //   role: user.role,
-        // };
+        // Return a plain object matching the expected User shape
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          image: user.image ? user.image.url : null,
+        };
       },
     }),
   ],
@@ -65,13 +67,21 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user }) {
       if (user) {
         const u = user as UserWithRole;
-        token.role = u.role;  
+        token.role = u.role;
+        token.name = u.name;
+        // If user.image is an object, get the URL
+        token.image = typeof u.image === "object" && u.image !== null ? u.image.url : u.image;
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user = { ...session.user, role: token.role } as typeof session.user & { role: string };
+        session.user = {
+          ...session.user,
+          role: token.role,
+          name: token.name,
+          image: token.image,
+        } as typeof session.user & { role: string; name?: string; image?: string };
       }
       return session;
     },

@@ -20,6 +20,8 @@ model User {
   name           String?
   passwordDigest String
   role           Role     @default(USER)
+  imageId       String? @unique
+  image          UserImage? @relation(fields: [imageId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -27,6 +29,14 @@ model User {
 enum Role {
   USER
   ADMIN
+}
+
+model UserImage {
+  id        String   @id @default(uuid())
+  url       String
+  publicId  String
+  uploadedAt DateTime @default(now())
+  user      User?     @relation
 }
 
 model AppSetting {
