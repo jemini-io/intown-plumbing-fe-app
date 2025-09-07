@@ -116,6 +116,9 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
               style={{ resize: "none" }}
             />
           )}
+          {isJson(value) && (
+            <input type="hidden" name="value" value={value} />
+          )}
         </div>
         <div className="col-span-2 flex justify-center mt-2">
           <button
