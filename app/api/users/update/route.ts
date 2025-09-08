@@ -5,10 +5,19 @@ import { deleteFromCloudinary } from "@/lib/cloudinary/delete";
 import { hashPassword } from "@/lib/auth/password";
 import pino from "pino";
 import { cleanupOldUserImage } from "@/lib/services/imageCleanupService";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 const logger = pino({ name: "user-update-route" });
 
 export async function POST(req: NextRequest) {
+  // Check authentication
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    logger.warn("Unauthorized attempt to update user");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const formData = await req.formData();
   const userId = formData.get("id") as string;
   const imageFile = formData.get("image") as File | null;
@@ -65,7 +74,7 @@ export async function POST(req: NextRequest) {
         logger.info({ userId }, "Delegating image cleanup to background...");
         cleanupOldUserImage(userId, user.image.id, user.image.publicId);
 
-        logger.info({ userId }, "Returning response to frontend and delegating image cleanup to background");
+        logger.info({ userId }, "Returning response to frontend (image cleanup delegated to background)");
         return NextResponse.json({ success: true });
       } catch (err) {
         logger.error({ userId, err }, "Error removing image");
@@ -107,11 +116,12 @@ export async function POST(req: NextRequest) {
     logger.info({ userId }, "User updated successfully");
 
     // 4. If new image was uploaded and user had an old image, delete the old image
+     logger.info({ userId }, "Delegating old image cleanup to background...");
     if (imageFile && user?.image?.publicId && user?.image?.id) {
       cleanupOldUserImage(userId, user.image.id, user.image.publicId);
     }
 
-    logger.info({ userId }, "Returning response to frontend and delegating old image cleanup to background");
+    logger.info({ userId }, "Returning response to frontend (old image cleanup delegated to background)");
     return NextResponse.json({ success: true });
   } catch (err) {
     logger.error({ userId, err }, "Error updating user");

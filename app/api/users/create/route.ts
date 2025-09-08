@@ -1,11 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { uploadToCloudinaryServer, deleteFromCloudinary } from "@/lib/cloudinary";
+import { hashPassword } from "@/lib/auth/password";
 import pino from "pino";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/authOptions";
 
 const logger = pino({ name: "user-create-route" });
 
 export async function POST(req: NextRequest) {
+  // Check authentication
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    logger.warn("Unauthorized attempt to create user");
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const formData = await req.formData();
   const email = formData.get("email") as string;
   const name = formData.get("name") as string;
@@ -17,13 +27,19 @@ export async function POST(req: NextRequest) {
   let userImage = null;
   let user = null;
 
+  if (!password) {
+    logger.warn("Password is required to create user");
+    return NextResponse.json({ error: "Password is required." }, { status: 400 });
+  }
+  const hashedPassword = await hashPassword(password);
+
   // 1. Create just the user (without an associated image)
   try {
     user = await prisma.user.create({
       data: {
         email,
         name,
-        passwordDigest: password,
+        passwordDigest: hashedPassword,
         role,
       },
     });
