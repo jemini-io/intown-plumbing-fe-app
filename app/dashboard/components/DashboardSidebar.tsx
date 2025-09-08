@@ -2,13 +2,11 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { HomeIcon,
-         ChartBarIcon, 
+import { ChartBarIcon, 
          Cog6ToothIcon, 
          UserGroupIcon,
          UserCircleIcon,
          ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
-import Image from "next/image";
 import { logoutAction } from "@/app/actions/logout";
 
 interface SessionWithRole {
@@ -45,7 +43,7 @@ export default function DashboardSidebar() {
 
         {role === "ADMIN" && (
         <>
-          <Link href="/dashboard/settings" title="Settings" className="hover:text-gray-900">
+          <Link href="/dashboard/settings" title="App Settings" className="hover:text-gray-900">
             <div className="h-10 w-10 rounded-full flex items-center justify-center rounded hover:bg-gray-200">
               <Cog6ToothIcon className="h-6 w-6 text-gray-700" />
             </div>

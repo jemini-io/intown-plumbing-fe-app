@@ -8,6 +8,7 @@ import { PencilIcon, ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/2
 import { isJson } from "@/lib/utils/isJson";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 
 type Setting = {
   id: number;
@@ -16,14 +17,7 @@ type Setting = {
 };
 
 function ValueCell({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false);
-
-  function handleCopy() {
-    navigator.clipboard.writeText(value);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1200);
-  }
-
+  const { copied, handleCopy } = useCopyToClipboard();
   const isJsonValue = isJson(value);
 
   return (
@@ -52,7 +46,31 @@ function ValueCell({ value }: { value: string }) {
         type="button"
         className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-1 shadow hover:bg-gray-100"
         title="Copy value"
-        onClick={handleCopy}
+        onClick={() => handleCopy(value)}
+      >
+        {copied ? (
+          <span className="flex items-center gap-1 text-green-600 font-semibold text-xs">
+            <CheckIcon className="h-4 w-4" /> Copied!
+          </span>
+        ) : (
+          <ClipboardDocumentIcon className="h-5 w-5 text-gray-500" />
+        )}
+      </button>
+    </div>
+  );
+}
+
+function KeyCell({ value }: { value: string }) {
+  const { copied, handleCopy } = useCopyToClipboard();
+
+  return (
+    <div className="group relative min-h-[40px] flex items-center">
+      <span className="font-mono">{value}</span>
+      <button
+        type="button"
+        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-1 shadow hover:bg-gray-100"
+        title="Copy key"
+        onClick={() => handleCopy(value)}
       >
         {copied ? (
           <span className="flex items-center gap-1 text-green-600 font-semibold text-xs">
@@ -130,7 +148,7 @@ export default function SettingsPage() {
               {settings.map((s) => (
                 <tr key={s.id} className="border-b hover:bg-blue-50">
                   <td className="px-4 py-2 font-mono text-gray-700 w-48">
-                    {s.key}
+                    <KeyCell value={s.key} />
                   </td>
                   <td className="px-4 py-2 text-gray-600 w-64">
                     <ValueCell value={s.value} />
@@ -153,7 +171,7 @@ export default function SettingsPage() {
         {modalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
             <div
-              className="bg-white rounded shadow-lg p-8 w-[700px] overflow-auto relative"
+              className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative"
               style={{
                 minWidth: 400,
                 maxHeight: isJson(selectedSetting?.value ?? "") ? "90vh" : "600px",
@@ -180,3 +198,4 @@ export default function SettingsPage() {
     </DashboardLayout>
   );
 }
+

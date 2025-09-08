@@ -1,2 +1,2 @@
-export { uploadToCloudinary } from "./upload";
+export { uploadToCloudinaryServer } from "./upload";
 export { deleteFromCloudinary } from "./delete";
