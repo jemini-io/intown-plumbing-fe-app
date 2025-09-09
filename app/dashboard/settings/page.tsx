@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { getSettings } from "./actions";
 import { SettingsForm } from "./settings-form";
 import DashboardLayout from "../components/DashboardLayout";
-import { PencilIcon, ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, ClipboardDocumentIcon, CheckIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { isJson } from "@/lib/utils/isJson";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -133,7 +133,15 @@ export default function SettingsPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen p-8 space-y-8">
-        <h3 className="text-3xl font-bold mb-8">App Settings</h3>
+        <div className="flex items-center justify-between mb-8">
+          <h3 className="text-3xl font-bold">App Settings</h3>
+          <button
+            className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
+            title="Add new user"
+          >
+            <PlusIcon className="h-6 w-6" />
+          </button>
+        </div>
 
         <div className="bg-white rounded-xl shadow p-6">
           <table className="min-w-full table-auto">
