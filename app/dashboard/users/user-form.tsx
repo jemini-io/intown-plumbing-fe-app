@@ -145,7 +145,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
             defaultValue={existing?.role ?? "USER"}
             className="w-full border rounded p-2"
             required
-            disabled={existing?.email === "admin@example.com"}
+            disabled={isProtectedAdmin}
           >
             <option value="USER">USER</option>
             <option value="ADMIN">ADMIN</option>
@@ -160,7 +160,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
             defaultValue={existing?.email ?? ""}
             className="w-full border rounded p-2"
             required
-            disabled={existing?.email === "admin@example.com"}
+            disabled={isProtectedAdmin}
           />
         </div>
         {/* Password */}
@@ -174,7 +174,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
           />
         </div>
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Picture</label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
         </div>
         {/* Pic Preview | Upload input */}
         <div className="col-span-2 flex items-center gap-6">
@@ -182,10 +182,12 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
           <div className="relative">
             {imagePreview ? (
               <>
-                <img
+                <Image
                   src={imagePreview}
                   alt="User image"
-                  className="h-16 w-16 rounded-full object-cover border"
+                  width={100}
+                  height={100}
+                  className="rounded-full object-cover"
                 />
                 <button
                   type="button"

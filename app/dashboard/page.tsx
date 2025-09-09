@@ -1,6 +1,19 @@
 "use client";
 
+import { get } from "http";
 import DashboardLayout from "./components/DashboardLayout";
+
+
+
+const fakeTechnicians = [
+  { name: "John Smith", role: "Plumber" },
+  { name: "Anderson Smith", role: "Technician" },
+  { name: "Jason Smith", role: "Supervisor" },
+];
+
+const technicians = fakeTechnicians.slice(0, 3); // Show only 3 for brevity
+// const technicians = getTechnicians(); // Assume this fetches the actual list of technicians
+
 
 export default function DashboardPage() {
   return (
@@ -31,7 +44,25 @@ export default function DashboardPage() {
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-xl font-semibold">Technician Overview</h2>
-              <p className="mt-2 text-gray-600">Technician stats here...</p>
+              
+              {/* Reduced list of 3 technicians */}
+              <div className="mt-4">
+                <ul className="divide-y divide-gray-200">
+                  {technicians.map((tech, idx) => (
+                    <li key={idx} className="py-2 flex items-center gap-3">
+                      <span className="font-medium">{tech.name}</span>
+                      <span className="text-xs text-gray-500">{tech.role}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Button to view all technicians */}
+              <div className="mt-4">
+                <button className="text-blue-500 hover:underline font-medium">
+                  View All Technicians
+                </button>
+              </div>
             </div>
             <div className="bg-white p-6 rounded-lg shadow">
               <h2 className="text-xl font-semibold">Appointments and Links</h2>

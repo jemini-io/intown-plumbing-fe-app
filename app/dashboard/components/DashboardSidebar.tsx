@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import Image from "next/image";
 import { ChartBarIcon, 
          Cog6ToothIcon, 
          UserGroupIcon,
@@ -65,11 +66,14 @@ export default function DashboardSidebar() {
       className="hover:text-gray-900 rounded hover:bg-gray-200"
     >
       {userImageUrl ? (
-        <img
+        <Image
           src={userImageUrl}
           alt={userName || "User"}
-          className="h-8 w-8 rounded-full object-cover"
-        />  
+          width={32}
+          height={32}
+          className="rounded-full object-cover"
+          unoptimized
+        />
       ) : (
         <div className="h-10 w-10 rounded-full flex items-center justify-center rounded hover:bg-gray-200">
           <UserCircleIcon className="h-6 w-6 text-gray-700" />

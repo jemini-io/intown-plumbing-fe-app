@@ -6,6 +6,7 @@ import { getUsers, deleteUser } from "./actions";
 import { UserForm } from "./user-form";
 import { User } from "./types";
 import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 function Modal({
   open,
@@ -83,49 +84,54 @@ export default function UsersPage() {
           <table className="min-w-full table-auto">
             <thead>
               <tr className="bg-gray-100">
+                <th className="px-4 py-2 text-left">Image</th>
                 <th className="px-4 py-2 text-left">Name</th>
                 <th className="px-4 py-2 text-left">Email</th>
                 <th className="px-4 py-2 text-left">Role</th>
-                <th className="px-4 py-2 text-left">Image</th>
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user) => (
                 <tr key={user.id} className="border-b hover:bg-blue-50">
-                  <td className="px-4 py-2">{user.name}</td>
-                  <td className="px-4 py-2">{user.email}</td>
-                  <td className="px-4 py-2">{user.role}</td>
-                  <td className="px-4 py-2">
+                  <td className="pl-2 pr-1 py-2 w-12">
                     {user.image?.url ? (
-                      <img
+                      <Image
                         src={user.image.url}
                         alt={user.name || "User"}
-                        className="h-8 w-8 rounded-full object-cover"
+                        width={45}
+                        height={45}
+                        className="rounded-full object-cover"
+                        unoptimized
                       />
                     ) : (
-                      <div className="h-10 w-10 rounded-full flex items-center justify-center rounded hover:bg-gray-200">
-                        <UserCircleIcon className="h-6 w-6 text-gray-700" />
+                      <div className="h-12 w-12 rounded-full flex items-center justify-center">
+                        <UserCircleIcon className="text-gray-700" />
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-2 flex gap-2">
-                    <button
-                      onClick={() => handleEditUser(user)}
-                      className="text-blue-600 hover:text-blue-800 p-1 rounded transition"
-                      title="Edit user"
-                    >
-                      <PencilIcon className="h-5 w-5" />
-                    </button>
-                    {user.email !== "admin@example.com" && (
+                  <td className="py-2 pl-0">{user.name}</td>
+                  <td className="px-4 py-2">{user.email}</td>
+                  <td className="px-4 py-2">{user.role}</td>
+                  <td className="px-4 py-2 h-[50px]">
+                    <div className="flex items-center gap-2 h-full">
                       <button
-                        onClick={() => handleDeleteUser(user)}
-                        className="text-red-600 hover:text-red-800 p-1 rounded transition"
-                        title="Delete user"
+                        onClick={() => handleEditUser(user)}
+                        className="text-blue-600 hover:text-blue-800 p-1 rounded transition"
+                        title="Edit user"
                       >
-                        <TrashIcon className="h-5 w-5" />
+                        <PencilIcon className="h-5 w-5" />
                       </button>
-                    )}
+                      {user.email !== "admin@example.com" && (
+                        <button
+                          onClick={() => handleDeleteUser(user)}
+                          className="text-red-600 hover:text-red-800 p-1 rounded transition"
+                          title="Delete user"
+                        >
+                          <TrashIcon className="h-5 w-5" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

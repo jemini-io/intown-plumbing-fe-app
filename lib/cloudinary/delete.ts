@@ -1,5 +1,3 @@
-// import axios from "axios";
-// import { cloudinaryConfig } from "./config";
 import cloudinary from "cloudinary";
 
 export async function deleteFromCloudinary(publicId: string): Promise<boolean> {

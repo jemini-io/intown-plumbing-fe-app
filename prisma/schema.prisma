@@ -14,6 +14,11 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
@@ -24,11 +29,6 @@ model User {
   image          UserImage? @relation(fields: [imageId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-}
-
-enum Role {
-  USER
-  ADMIN
 }
 
 model UserImage {

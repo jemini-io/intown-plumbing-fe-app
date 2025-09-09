@@ -8,12 +8,6 @@ async function main() {
   const userEmail = "admin@example.com";
   const userPassword = process.env.ADMIN_PASSWORD || "changeme";
   const passwordDigest = await hashPassword(userPassword);
-  const adminImage = await prisma.userImage.create({
-    data: {
-      url: "",
-      publicId: "",
-    },
-  });
 
   // Upsert ensures we don't create duplicates
   const admin = await prisma.user.upsert({
@@ -21,14 +15,12 @@ async function main() {
     update: {
       passwordDigest,
       role: "ADMIN",
-      imageId: adminImage.id,
     },
     create: {
       email: userEmail,
-      name: "Admin user",
+      name: "Default Admin User",
       passwordDigest,
       role: "ADMIN",
-      imageId: adminImage.id,
     },
   });
 
