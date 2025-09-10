@@ -1,5 +1,5 @@
-import React from "react";
-import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import React, { useState } from "react";
+import { PlusIcon } from "@heroicons/react/24/outline";
 
 type IconsData = {
   plusIconTitle?: string;
@@ -7,32 +7,80 @@ type IconsData = {
   removeIconTitle?: string;
 };
 
-export type DashboardCardObject = {
-  name: string;
-  description?: string;
+export type FormComponentProps = {
+  existing?: unknown;
+  onSaved: () => void;
 };
 
 type DashboardCardProps = {
   cardTitle: string;
-  objects: Array<DashboardCardObject>;
-  onAdd?: () => void;
-  onEdit?: (object: DashboardCardObject) => void;
-  onRemove?: (object: DashboardCardObject) => void;
   viewAllLabel?: string;
   onViewAll?: () => void;
   iconsData?: IconsData;
+  listView: React.ComponentType<{
+    cardTitle: string;
+    iconsData?: IconsData;
+    onEdit: (object: unknown) => void;
+    onRemove?: (object: unknown) => void;
+  }>;
+  form: React.ComponentType<FormComponentProps>;
 };
+
+function Modal({
+  open,
+  onClose,
+  children,
+}: {
+  open: boolean;
+  onClose: () => void;
+  children: React.ReactNode;
+}) {
+  if (!open) return null;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+      <div className="bg-white rounded-xl shadow-lg p-8 min-w-[350px] relative">
+        <button
+          onClick={onClose}
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+        >
+          ×
+        </button>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export function DashboardCard({
   cardTitle,
-  objects,
-  onAdd,
-  onEdit,
-  onRemove,
   viewAllLabel = "View All",
   onViewAll,
   iconsData = {},
+  listView: ListViewComponent,
+  form: FormComponent,
 }: DashboardCardProps) {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedObject, setSelectedObject] = useState<unknown>(undefined);
+
+  function handleAdd() {
+    setSelectedObject(undefined);
+    setModalOpen(true);
+  }
+
+  function handleEdit(object: unknown) {
+    setSelectedObject(object);
+    setModalOpen(true);
+  }
+
+  function handleModalClose() {
+    setModalOpen(false);
+    setSelectedObject(undefined);
+  }
+
+  function handleSaved() {
+    handleModalClose();
+  }
+
   return (
     <div className="bg-white p-6 rounded-lg shadow">
       <div className="flex items-center justify-between mb-8">
@@ -40,45 +88,17 @@ export function DashboardCard({
         <button
           className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
           title={iconsData.plusIconTitle || `Add new ${cardTitle}`}
-          onClick={onAdd}
+          onClick={handleAdd}
         >
           <PlusIcon className="h-6 w-6" />
         </button>
       </div>
       <div className="mt-4">
-        <ul className="divide-y divide-gray-200">
-          {objects.map((object, idx) => (
-            <li key={idx} className="flex items-center justify-between p-2 hover:bg-blue-50">
-              <div>
-                <span className="font-medium">{object.name}</span>
-                {object.description && (
-                  <p className="text-sm text-gray-500">{object.description.split('\n').map((line, idx) => (
-                    <React.Fragment key={idx}>
-                      {line}
-                      <br />
-                    </React.Fragment>
-                  ))}</p>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <button
-                  className="text-blue-500 hover:underline font-medium px-1"
-                  onClick={() => onEdit?.(object)}
-                  title={iconsData.editIconTitle || `Edit ${cardTitle}`}
-                >
-                  <PencilIcon className="h-4 w-4 inline-block" />
-                </button>
-                <button
-                  className="text-red-500 hover:underline font-medium px-1"
-                  onClick={() => onRemove?.(object)}
-                  title={iconsData.removeIconTitle || `Remove ${cardTitle}`}
-                >
-                  <TrashIcon className="h-4 w-4 inline-block" />
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
+        <ListViewComponent
+          iconsData={iconsData}
+          onEdit={handleEdit}
+          onRemove={undefined}
+        />
       </div>
       <div className="mt-4">
         <button
@@ -88,6 +108,9 @@ export function DashboardCard({
           {viewAllLabel}
         </button>
       </div>
+      <Modal open={modalOpen} onClose={handleModalClose}>
+        <FormComponent existing={selectedObject} onSaved={handleSaved} />
+      </Modal>
     </div>
   );
 }

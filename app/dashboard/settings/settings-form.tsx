@@ -3,7 +3,7 @@
 import { useTransition, useState, useRef } from "react";
 import { updateSetting } from "./actions";
 import { isJson } from "@/lib/utils/isJson";
-import ReactJsonView from "react-json-view";
+import ReactJsonView, { InteractionProps } from "react-json-view";
 
 type Setting = {
   id?: number;
@@ -28,7 +28,7 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
     setRows(Math.max(2, e.target.value.split("\n").length));
   }
 
-  function handleJsonEdit(edit: any) {
+  function handleJsonEdit(edit: InteractionProps) {
     setValue(JSON.stringify(edit.updated_src, null, 2));
   }
 

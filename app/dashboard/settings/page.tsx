@@ -9,12 +9,7 @@ import { isJson } from "@/lib/utils/isJson";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
-
-type Setting = {
-  id: number;
-  key: string;
-  value: string;
-};
+import { Setting } from "@/lib/types/setting";
 
 function ValueCell({ value }: { value: string }) {
   const { copied, handleCopy } = useCopyToClipboard();
