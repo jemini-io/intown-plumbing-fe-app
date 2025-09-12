@@ -1,5 +1,6 @@
 export interface ServiceToJobType {
-    displayName: number;
+    id: number;
+    displayName: string;
     serviceTitanId: string;
     serviceTitanName: string;
     emoji: string

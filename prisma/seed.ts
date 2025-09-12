@@ -1,4 +1,3 @@
-// import { PrismaClient } from "@prisma/client";
 import { prisma } from "../lib/prisma";
 import { hashPassword } from "../lib/auth/password";
 import pino from 'pino';
@@ -6,22 +5,20 @@ import pino from 'pino';
 const logger = pino({ name: "SeedScript" });
 
 async function main() {
-  const adminEmail = "admin@example.com";
-  const adminPassword = process.env.ADMIN_PASSWORD || "changeme";
-
-  // Hash the password
-  const passwordDigest = await hashPassword(adminPassword);
+  const userEmail = "admin@example.com";
+  const userPassword = process.env.ADMIN_PASSWORD || "changeme";
+  const passwordDigest = await hashPassword(userPassword);
 
   // Upsert ensures we don't create duplicates
   const admin = await prisma.user.upsert({
-    where: { email: adminEmail },
+    where: { email: userEmail },
     update: {
       passwordDigest,
       role: "ADMIN",
     },
     create: {
-      email: adminEmail,
-      name: "Admin user",
+      email: userEmail,
+      name: "Default Admin User",
       passwordDigest,
       role: "ADMIN",
     },
