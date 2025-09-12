@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
 import { Setting } from "@/lib/types/setting";
 import { getTechnicianToSkillsSetting, deleteTechnician } from "../actions";
@@ -19,6 +19,11 @@ export function TechnicianToSkillsListView() {
     refresh();
   }, []);
 
+  function handleAdd() {
+    setSelectedTechnician(null);
+    setModalOpen(true);
+  }
+
   function handleEdit(technician: TechnicianToSkillsType) {
     setSelectedTechnician(technician);
     setModalOpen(true);
@@ -35,6 +40,16 @@ export function TechnicianToSkillsListView() {
 
   return (
     <>
+      <div className="flex items-center justify-between mb-8">
+        <h2 className="text-xl font-semibold">Technicians</h2>
+        <button
+          className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
+          title="Add new technician"
+          onClick={handleAdd}
+        >
+          <PlusIcon className="h-6 w-6" />
+        </button>
+      </div>
       <ul className="divide-y divide-gray-200">
         {technicians.map((technician, idx) => (
           <li key={idx} className="flex items-start justify-between p-2 hover:bg-blue-50">

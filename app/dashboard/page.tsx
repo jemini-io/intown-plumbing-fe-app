@@ -2,8 +2,8 @@
 
 import DashboardLayout from "./components/DashboardLayout";
 import { DashboardCard } from "./components/DashboardCard";
-import { ServiceToJobTypesForm, ServiceToJobTypesListView } from "./services/components";
-import { TechnicianToSkillsForm, TechnicianToSkillsListView } from "./technicians/components";
+import { ServiceToJobTypesListView } from "./services/components";
+import { TechnicianToSkillsListView } from "./technicians/components";
 
 
 export default function DashboardPage() {
@@ -19,14 +19,12 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-6">
               <DashboardCard
-                cardTitle="Services Offered"
                 viewAllLabel="View All Services"
                 onViewAll={() => {}}
                 iconsData={{
                   plusIconTitle: "Add Service",
                 }}
                 listView={ServiceToJobTypesListView}
-                form={ServiceToJobTypesForm}
               />
             </div>
           </div>
@@ -42,7 +40,6 @@ export default function DashboardPage() {
                   plusIconTitle: "Add Technician",
                 }}
                 listView={TechnicianToSkillsListView}
-                form={TechnicianToSkillsForm}
               />
             </div>
           </div>

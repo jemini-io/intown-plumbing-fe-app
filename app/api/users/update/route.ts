@@ -92,6 +92,7 @@ export async function POST(req: NextRequest) {
     email: string;
     role: string;
     passwordDigest?: string;
+    image?: { connect: { id: string } } | { disconnect: true };
   } = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,

@@ -36,8 +36,15 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
     setSkills(skills.filter((_, i) => i !== idx));
   }
 
-   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+
+    // Validación: debe haber al menos una skill
+    if (skills.length === 0) {
+      setMessage({ type: "error", text: "Please add at least one skill." });
+      return;
+    }
+
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
 
