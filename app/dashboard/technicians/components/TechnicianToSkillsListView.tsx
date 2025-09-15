@@ -4,11 +4,16 @@ import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
 import { Setting } from "@/lib/types/setting";
 import { getTechnicianToSkillsSetting, deleteTechnician } from "../actions";
 import { TechnicianToSkillsForm } from "./TechnicianToSkillsForm";
+import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
 export function TechnicianToSkillsListView() {
   const [TechnicianToSkillsSetting, setTechnicianToSkillsSetting] = useState<Setting | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkillsType | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [technicianToDelete, setTechnicianToDelete] = useState<TechnicianToSkillsType | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
 
   async function refresh() {
     const s = await getTechnicianToSkillsSetting();
@@ -30,8 +35,22 @@ export function TechnicianToSkillsListView() {
   }
 
   function handleDeleteTechnician(technician: TechnicianToSkillsType) {
-    if (!confirm(`Are you sure you want to delete "${technician.technicianName}"?`)) return;
-    deleteTechnician(String(technician.technicianId)).then(() => refresh());
+    // if (!confirm(`Are you sure you want to delete "${technician.technicianName}"?`)) return;
+    // deleteTechnician(String(technician.technicianId)).then(() => refresh());
+    setTechnicianToDelete(technician);
+    setConfirmOpen(true);
+  }
+
+  const confirmDelete = () => {
+    if (technicianToDelete) {
+      setDeleting(true);
+      deleteTechnician(String(technicianToDelete.technicianId)).then(() => {
+        setDeleting(false);
+        refresh();
+        setConfirmOpen(false);
+        setTechnicianToDelete(null);
+      });
+    }
   }
 
   const technicians: TechnicianToSkillsType[] = TechnicianToSkillsSetting?.value
@@ -103,6 +122,18 @@ export function TechnicianToSkillsListView() {
             />
           </div>
         </div>
+      )}
+      {confirmOpen && technicianToDelete && (
+        <DeleteConfirmModal
+          open={confirmOpen}
+          title="Confirm Deletion"
+          message={`Are you sure you want to delete the technician "${technicianToDelete.technicianName}"? This action cannot be undone.`}
+          onCancel={() => {
+            if (!deleting) setConfirmOpen(false);
+          }}
+          onConfirm={confirmDelete}
+          loading={deleting}
+        />
       )}
     </>
   );

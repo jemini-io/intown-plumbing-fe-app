@@ -7,6 +7,7 @@ import { UserForm } from "./user-form";
 import { User } from "./types";
 import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
 function Modal({
   open,
@@ -37,6 +38,9 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Refresh users list
   async function refresh() {
@@ -61,9 +65,23 @@ export default function UsersPage() {
   }
 
   function handleDeleteUser(user: User) {
-    if (user.email === "admin@example.com") return;
-    if (!confirm(`Are you sure you want to delete "${user.name || user.email}"?`)) return;
-    deleteUser(String(user.id)).then(() => refresh());
+    setUserToDelete(user);
+    setConfirmOpen(true);
+    // if (user.email === "admin@example.com") return;
+    // if (!confirm(`Are you sure you want to delete "${user.name || user.email}"?`)) return;
+    // deleteUser(String(user.id)).then(() => refresh());
+  }
+
+  function confirmDeleteUser() {
+    if (userToDelete) {
+      setDeleting(true);
+      deleteUser(String(userToDelete.id)).then(() => {
+        setDeleting(false);
+        refresh();
+        setConfirmOpen(false);
+        setUserToDelete(null);
+      });
+    }
   }
 
   return (
@@ -139,9 +157,41 @@ export default function UsersPage() {
           </table>
         </div>
 
-        <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
+        {/* <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
           <UserForm existing={selectedUser ?? undefined} onSaved={refresh} />
-        </Modal>
+        </Modal> */}
+
+        {modalOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+              <button
+                onClick={() => setModalOpen(false)}
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+              >
+                ×
+              </button>
+              <UserForm
+                existing={selectedUser}
+                onSaved={async () => {
+                  setModalOpen(false);
+                  await refresh();
+                }}
+              />
+            </div>
+          </div>
+        )}
+        {confirmOpen && userToDelete && (
+          <DeleteConfirmModal
+            open={confirmOpen}
+            title="Confirm Deletion"
+            message={`Are you sure you want to delete the user "${userToDelete.name}"? This action cannot be undone.`}
+            onCancel={() => {
+              if (!deleting) setConfirmOpen(false);
+            }}
+            onConfirm={confirmDeleteUser}
+            loading={deleting}
+          />
+        )}
       </div>
     </DashboardLayout>
   );

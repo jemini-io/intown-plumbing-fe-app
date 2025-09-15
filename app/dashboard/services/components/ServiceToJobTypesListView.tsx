@@ -4,11 +4,15 @@ import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { Setting } from "@/lib/types/setting";
 import { getServiceToJobsTypeSetting, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
+import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
 export function ServiceToJobTypesListView() {
   const [serviceToJobsTypeSetting, setServiceToJobsTypeSetting] = useState<Setting | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceToJobType | null>(null);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [serviceToDelete, setServiceToDelete] = useState<ServiceToJobType | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function refresh() {
     const s = await getServiceToJobsTypeSetting();
@@ -30,9 +34,21 @@ export function ServiceToJobTypesListView() {
   }
 
   function handleDeleteService(service: ServiceToJobType) {
-    if (!confirm(`Are you sure you want to delete "${service.displayName}"?`)) return;
-    deleteService(String(service.serviceTitanId)).then(() => refresh());
+    setServiceToDelete(service);
+    setConfirmOpen(true);
   }
+
+  const confirmDelete = () => {
+    if (serviceToDelete) {
+      setDeleting(true);
+      deleteService(String(serviceToDelete.serviceTitanId)).then(() => {
+        setDeleting(false);
+        refresh();
+        setConfirmOpen(false);
+        setServiceToDelete(null);
+      });
+    }
+  };
 
   const services: ServiceToJobType[] = serviceToJobsTypeSetting?.value
     ? JSON.parse(serviceToJobsTypeSetting.value)
@@ -98,6 +114,18 @@ export function ServiceToJobTypesListView() {
             />
           </div>
         </div>
+      )}
+      {confirmOpen && serviceToDelete && (
+        <DeleteConfirmModal
+          open={confirmOpen}
+          title="Confirm Deletion"
+          message={`Are you sure you want to delete the service "${serviceToDelete.displayName}"? This action cannot be undone.`}
+          onCancel={() => {
+            if (!deleting) setConfirmOpen(false);
+          }}
+          onConfirm={confirmDelete}
+          loading={deleting}
+        />
       )}
     </>
   );
