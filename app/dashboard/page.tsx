@@ -4,6 +4,7 @@ import DashboardLayout from "./components/DashboardLayout";
 import { DashboardCard } from "./components/DashboardCard";
 import { ServiceToJobTypesListView } from "./services/components";
 import { TechnicianToSkillsListView } from "./technicians/components";
+import { BookingsListView } from "./bookings/components/BookingsListView";
 
 
 export default function DashboardPage() {
@@ -25,6 +26,16 @@ export default function DashboardPage() {
                   plusIconTitle: "Add Service",
                 }}
                 listView={ServiceToJobTypesListView}
+              />
+            </div>
+            <div className="flex flex-col gap-6">
+              <DashboardCard
+                viewAllLabel="View All Bookings"
+                onViewAll={() => {}}
+                iconsData={{
+                  plusIconTitle: "Add Service",
+                }}
+                listView={BookingsListView}
               />
             </div>
           </div>

@@ -48,3 +48,19 @@ model AppSetting {
 
   @@unique([key])
 }
+
+model Booking {
+  id           String      @id @default(uuid())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  customerId   String
+  serviceId    String
+  technicianId String?
+  scheduledFor DateTime
+  status       String
+  notes        String?
+
+  // customer     Customer    @relation(fields: [customerId], references: [id])
+  // service      Service     @relation(fields: [serviceId], references: [id])
+  // technician   Technician? @relation(fields: [technicianId], references: [id])
+}
