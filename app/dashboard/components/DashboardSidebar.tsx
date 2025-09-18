@@ -7,7 +7,8 @@ import { ChartBarIcon,
          Cog6ToothIcon, 
          UserGroupIcon,
          UserCircleIcon,
-         ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
+         ArrowRightOnRectangleIcon,
+         CalendarDaysIcon } from "@heroicons/react/24/solid";
 import { logoutAction } from "@/app/actions/logout";
 
 interface SessionWithRole {
@@ -52,6 +53,11 @@ export default function DashboardSidebar() {
           <Link href="/dashboard/users" title="Users" className="hover:text-gray-900">
             <div className="h-10 w-10 rounded-full flex items-center justify-center rounded hover:bg-gray-200">
               <UserGroupIcon className="h-6 w-6 text-gray-700" />
+            </div>
+          </Link>
+          <Link href="/dashboard/bookings" title="Bookings" className="hover:text-gray-900">
+            <div className="h-10 w-10 rounded-full flex items-center justify-center rounded hover:bg-gray-200">
+              <CalendarDaysIcon className="h-6 w-6 text-gray-700" />
             </div>
           </Link>
         </>

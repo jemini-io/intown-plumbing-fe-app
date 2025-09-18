@@ -17,38 +17,38 @@ export type BookingData = {
 
 export async function getAllBookings() {
   return prisma.booking.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { scheduledFor: "desc" },
   });
 }
 
-export async function addBooking(bookingData: BookingData): Promise<Booking> {
-  return prisma.booking.create({
-    data: {
-        customerId: bookingData.customerId,
-        serviceId: bookingData.serviceId,
-        technicianId: bookingData.technicianId,
-        scheduledFor: bookingData.scheduledFor,
-        status: bookingData.status,
-        notes: bookingData.notes,
-    },
+// export async function addBooking(bookingData: BookingData) {  
+//   return prisma.booking.create({
+//     data: {
+//         customerId: bookingData.customerId,
+//         serviceId: bookingData.serviceId,
+//         technicianId: bookingData.technicianId,
+//         scheduledFor: new Date(bookingData.scheduledFor),
+//         status: bookingData.status,
+//         notes: bookingData.notes,
+//     },
+//   });
+// }
+
+export async function updateBooking(bookingId: string, bookingData: BookingData) {
+  return prisma.booking.update({
+      where: { id: bookingId },
+      data: {
+          customerId: bookingData.customerId,
+          serviceId: bookingData.serviceId,
+          technicianId: bookingData.technicianId,
+          scheduledFor: new Date(bookingData.scheduledFor),
+          status: bookingData.status,
+          notes: bookingData.notes,
+      },
   });
 }
 
-export async function updateBooking(bookingId: string, bookingData: BookingData): Promise<Booking> {
-    return prisma.booking.update({
-        where: { id: bookingId },
-        data: {
-            customerId: bookingData.customerId,
-            serviceId: bookingData.serviceId,
-            technicianId: bookingData.technicianId,
-            scheduledFor: bookingData.scheduledFor,
-            status: bookingData.status,
-            notes: bookingData.notes,
-        },
-    });
-}
-
-export async function deleteBooking(bookingId: string): Promise<Booking> {
+export async function deleteBooking(bookingId: string) {
   return prisma.booking.delete({
     where: { id: bookingId },
   });

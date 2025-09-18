@@ -2,7 +2,7 @@
 
 import { useTransition, useState, useRef } from "react";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
-import { addBooking, updateBooking } from "@/app/dashboard/bookings/actions";
+import { updateBooking } from "@/app/dashboard/bookings/actions";
 import { Booking } from "@/lib/types/booking";
 
 type BookingFormProps = FormComponentProps & {
@@ -33,19 +33,31 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         if (existing) {
           await updateBooking(existing.id, booking);
           setMessage({ type: "success", text: "Booking updated successfully!" });
-        } else {
-          await addBooking(booking);
-          setMessage({ type: "success", text: "Booking created successfully!" });
-          formRef.current?.reset();
+          setTimeout(() => {
+            setMessage(null);
+            onSaved();
+          }, 1500);
         }
-        setTimeout(() => {
-          setMessage(null);
-          onSaved();
-        }, 1500);
       } catch (err) {
         setMessage({ type: "error", text: "BOOKING(add/update): Something went wrong. Please try again." });
       }
     });
+  }
+
+  function toDatetimeLocalValue(date: Date | string) {
+    const d = typeof date === "string" ? new Date(date) : date;
+    const pad = (n: number) => n.toString().padStart(2, '0');
+    return (
+      d.getFullYear() +
+      '-' +
+      pad(d.getMonth() + 1) +
+      '-' +
+      pad(d.getDate()) +
+      'T' +
+      pad(d.getHours()) +
+      ':' +
+      pad(d.getMinutes())
+    );
   }
 
   return (
@@ -105,7 +117,11 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           <input
             type="datetime-local"
             name="scheduledFor"
-            defaultValue={existing?.scheduledFor ? existing.scheduledFor.slice(0, 16) : ""}
+            defaultValue={
+              existing?.scheduledFor
+                ? toDatetimeLocalValue(existing.scheduledFor)
+                : ""
+            }
             className="w-full border rounded p-2"
             required
           />
@@ -113,14 +129,17 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         {/* Status */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-          <input
-            type="text"
+          <select
             name="status"
-            defaultValue={existing?.status ?? ""}
+            defaultValue={existing?.status ?? "pending"}
             className="w-full border rounded p-2"
             required
-            placeholder="e.g. pending, confirmed, cancelled"
-          />
+          >
+            <option value="pending">Pending</option>
+            <option value="scheduled">Scheduled</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="canceled">Canceled</option>
+          </select>
         </div>
         {/* Notes */}
         <div className="col-span-2">

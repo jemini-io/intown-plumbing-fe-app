@@ -3,7 +3,7 @@ export type Booking = {
   customerId: string;
   serviceId: string;
   technicianId: string;
-  scheduledFor: string;
+  scheduledFor: Date;
   status: string;
   notes: string;
 };
