@@ -8,6 +8,7 @@ import { getServiceTitanConfig, getStripeConfig, getDefaultManagedTechId } from 
 import type { Customer, Job, Location } from './types';
 import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
 import { logger } from "../logger";
+import { createLocalBookingFromJob } from '@/lib/services/createLocalBookingFromJobService';
 
 const tenantId = Number(env.servicetitan.tenantId);
 
@@ -239,6 +240,17 @@ export async function createJobAppointment({
     } catch (error) {
       logger.error({ err: error }, "createJobAppointment: Error updating invoice and payment");
     }
+
+    logger.info("Delegating local booking creation to background...");
+    await createLocalBookingFromJob({
+      customerId: String(stCustomer.id),
+      serviceId: String(jobTypeId),
+      technicianId: String(technicianId),
+      scheduledFor: new Date(startTime),
+      status: jobResponse.jobStatus,
+      notes: summary || "",
+    });
+    logger.info("Local booking creation delegated.");
 
     return jobResponse;
 }
