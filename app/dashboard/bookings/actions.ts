@@ -8,6 +8,7 @@ const logger = pino({ name: "bookings-actions" });
 
 export type BookingData = {
   customerId: string;
+  jobId: string;
   serviceId: string;
   technicianId: string;
   scheduledFor: string;
@@ -25,6 +26,7 @@ export async function getAllBookings() {
 //   return prisma.booking.create({
 //     data: {
 //         customerId: bookingData.customerId,
+//         jobId: bookingData.jobId,
 //         serviceId: bookingData.serviceId,
 //         technicianId: bookingData.technicianId,
 //         scheduledFor: new Date(bookingData.scheduledFor),
@@ -39,6 +41,7 @@ export async function updateBooking(bookingId: string, bookingData: BookingData)
       where: { id: bookingId },
       data: {
           customerId: bookingData.customerId,
+          jobId: bookingData.jobId,
           serviceId: bookingData.serviceId,
           technicianId: bookingData.technicianId,
           scheduledFor: new Date(bookingData.scheduledFor),

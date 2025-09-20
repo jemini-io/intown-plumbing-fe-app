@@ -42,6 +42,7 @@ CREATE TABLE "public"."Booking" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "customerId" TEXT NOT NULL,
+    "jobId" TEXT,
     "serviceId" TEXT NOT NULL,
     "technicianId" TEXT,
     "scheduledFor" TIMESTAMP(3) NOT NULL,
@@ -59,6 +60,9 @@ CREATE UNIQUE INDEX "User_imageId_key" ON "public"."User"("imageId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "AppSetting_key_key" ON "public"."AppSetting"("key");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Booking_jobId_key" ON "public"."Booking"("jobId");
 
 -- AddForeignKey
 ALTER TABLE "public"."User" ADD CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."UserImage"("id") ON DELETE SET NULL ON UPDATE CASCADE;

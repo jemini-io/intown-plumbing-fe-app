@@ -5,6 +5,7 @@ const logger = pino({ name: "create-local-booking-from-job-background-service" }
 
 export async function createLocalBookingFromJob({
   customerId,
+  jobId,
   serviceId,
   technicianId,
   scheduledFor,
@@ -12,6 +13,7 @@ export async function createLocalBookingFromJob({
   notes,
 }: {
   customerId: string;
+  jobId: string;
   serviceId: string;
   technicianId: string;
   scheduledFor: Date;
@@ -24,6 +26,7 @@ export async function createLocalBookingFromJob({
       const booking = await prisma.booking.create({
             data: {
               customerId: customerId,
+              jobId: jobId,
               serviceId: serviceId,
               technicianId: technicianId,
               scheduledFor: scheduledFor,

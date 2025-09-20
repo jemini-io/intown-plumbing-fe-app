@@ -22,9 +22,10 @@ function statusColor(status: string) {
 }
 
 const columns = [
-  { key: "scheduledFor", label: "Date" },
-  { key: "technicianId", label: "Technician" },
-  { key: "customerId", label: "Customer" },
+  { key: "scheduledFor", label: "Date & Time" },
+  { key: "customerId", label: "Customer ID" },
+  { key: "jobId", label: "Job ID" },
+  { key: "technicianId", label: "Technician ID" },
   { key: "status", label: "Status" },
 ];
 
@@ -64,6 +65,17 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
     ? uniqueCustomers
     : uniqueCustomers.filter((cust) =>
         cust.toLowerCase().includes(customerQuery.toLowerCase())
+      );
+
+  // Job filter state
+  const [jobFilter, setJobFilter] = useState("");
+  const [jobQuery, setJobQuery] = useState("");
+  const [openJob, setOpenJob] = useState(false);
+  const uniqueJobs = Array.from(new Set((bookings || []).map(b => b.jobId).filter(Boolean)));
+  const filteredJobs = jobQuery === ""
+    ? uniqueJobs
+    : uniqueJobs.filter((job) =>
+        job.toLowerCase().includes(jobQuery.toLowerCase())
       );
 
   // Technician combobox open state
@@ -155,7 +167,7 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
                     role="button"
                     title="Sort by date"
                   >
-                    Date
+                    Date&Time
                     <span className="inline-block align-middle">
                       <span className={"text-lg " + (sortBy === "scheduledFor" && sortDir === "asc" ? "text-blue-600" : "text-gray-300")}>▲</span>
                       <span className={"text-lg ml-0.5 " + (sortBy === "scheduledFor" && sortDir === "desc" ? "text-blue-600" : "text-gray-300")}>▼</span>
@@ -170,10 +182,83 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
                   />
                 </span>
               </th>
+              {/* Customer */}
+              <th className="px-4 py-2 text-left">
+                <span className="flex items-center gap-2">
+                  CustomerID
+                  <Combobox value={customerFilter} onChange={setCustomerFilter} as="div">
+                    <div className="relative">
+                      <Combobox.Input
+                        className="border rounded text-xs ml-2"
+                        placeholder="Customer"
+                        onChange={e => setCustomerQuery(e.target.value)}
+                        displayValue={(val: string) => (!val ? "All" : val)}
+                        style={{ minWidth: 0, width: "110px" }}
+                        onFocus={() => setCustomerQuery("")}
+                      />
+                      {customerQuery !== undefined && (
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                          <Combobox.Option value="">
+                            All
+                          </Combobox.Option>
+                          {filteredCustomers.map((cust) => (
+                            <Combobox.Option key={cust} value={cust} as={Fragment}>
+                              {({ active, selected }) => (
+                                <li
+                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                >
+                                  {cust}
+                                </li>
+                              )}
+                            </Combobox.Option>
+                          ))}
+                        </Combobox.Options>
+                      )}
+                    </div>
+                  </Combobox>
+                </span>
+              </th>
+              {/* Job ID */}
+              <th className="px-4 py-2 text-left">
+                <span className="flex items-center gap-2">
+                  JobID
+                  <Combobox value={jobFilter} onChange={setJobFilter} as="div">
+                    <div className="relative">
+                      <Combobox.Input
+                        className="border rounded text-xs ml-2"
+                        placeholder="Job"
+                        onChange={e => setJobQuery(e.target.value)}
+                        displayValue={(val: string) => (!val ? "All" : val)}
+                        style={{ minWidth: 0, width: "110px" }}
+                        onFocus={() => setOpenJob(true)}
+                        onBlur={() => setTimeout(() => setOpenJob(false), 100)}
+                      />
+                      {openJob && (
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                          <Combobox.Option value="">
+                            All
+                          </Combobox.Option>
+                          {filteredJobs.map((job) => (
+                            <Combobox.Option key={job} value={job} as={Fragment}>
+                              {({ active, selected }) => (
+                                <li
+                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                >
+                                  {job}
+                                </li>
+                              )}
+                            </Combobox.Option>
+                          ))}
+                        </Combobox.Options>
+                      )}
+                    </div>
+                  </Combobox>
+                </span>
+              </th>
               {/* Technician */}
               <th className="px-4 py-2 text-left">
                 <span className="flex items-center gap-2">
-                  Technician
+                  TechnicianID
                   <Combobox value={technicianFilter} onChange={setTechnicianFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
@@ -197,42 +282,6 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
                                   className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {tech}
-                                </li>
-                              )}
-                            </Combobox.Option>
-                          ))}
-                        </Combobox.Options>
-                      )}
-                    </div>
-                  </Combobox>
-                </span>
-              </th>
-              {/* Customer */}
-              <th className="px-4 py-2 text-left">
-                <span className="flex items-center gap-2">
-                  Customer
-                  <Combobox value={customerFilter} onChange={setCustomerFilter} as="div">
-                    <div className="relative">
-                      <Combobox.Input
-                        className="border rounded text-xs ml-2"
-                        placeholder="Customer"
-                        onChange={e => setCustomerQuery(e.target.value)}
-                        displayValue={(val: string) => (!val ? "All" : val)}
-                        style={{ minWidth: 0, width: "110px" }}
-                        onFocus={() => setCustomerQuery("")}
-                      />
-                      {customerQuery !== undefined && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
-                          <Combobox.Option value="">
-                            All
-                          </Combobox.Option>
-                          {filteredCustomers.map((cust) => (
-                            <Combobox.Option key={cust} value={cust} as={Fragment}>
-                              {({ active, selected }) => (
-                                <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
-                                >
-                                  {cust}
                                 </li>
                               )}
                             </Combobox.Option>
@@ -271,10 +320,11 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
           <tbody>
             {sortedBookings.map((booking) => (
               <tr key={booking.id} className="hover:bg-blue-50">
-                <td className="px-4 py-2">{new Date(booking.scheduledFor).toLocaleString()}</td>
-                <td className="px-4 py-2">{booking.technicianId || "-"}</td>
-                <td className="px-4 py-2">{booking.customerId || "-"}</td>
-                <td className="px-4 py-2">
+                <td className="px-4 py-2 text-right">{new Date(booking.scheduledFor).toLocaleString()}</td>
+                <td className="px-4 py-2 text-right">{booking.customerId || "-"}</td>
+                <td className="px-4 py-2 text-right">{booking.jobId || "-"}</td>
+                <td className="px-4 py-2 text-right">{booking.technicianId || "-"}</td>
+                <td className="px-4 py-2 text-right">
                   <span className={"text-xs font-bold px-2 py-1 rounded uppercase " + statusColor(booking.status)}>
                     {booking.status.toUpperCase()}
                   </span>

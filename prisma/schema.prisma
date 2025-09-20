@@ -54,6 +54,7 @@ model Booking {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   customerId   String
+  jobId        String?     @unique
   serviceId    String
   technicianId String?
   scheduledFor DateTime

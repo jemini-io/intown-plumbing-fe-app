@@ -76,6 +76,21 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         onSubmit={handleSubmit}
         className="grid grid-cols-2 gap-4 items-start"
       >
+        {/* Scheduled For */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled For</label>
+          <input
+            type="datetime-local"
+            name="scheduledFor"
+            defaultValue={
+              existing?.scheduledFor
+                ? toDatetimeLocalValue(existing.scheduledFor)
+                : ""
+            }
+            className="w-full border rounded p-2"
+            required
+          />
+        </div>
         {/* Customer ID */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Customer ID</label>
@@ -86,6 +101,18 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             className="w-full border rounded p-2"
             required
             placeholder="e.g. customer123"
+          />
+        </div>
+        {/* Job ID */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Job ID</label>
+          <input
+            type="text"
+            name="jobId"
+            defaultValue={existing?.jobId ?? ""}
+            className="w-full border rounded p-2"
+            required
+            placeholder="e.g. job123"
           />
         </div>
         {/* Service ID */}
@@ -109,21 +136,6 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             defaultValue={existing?.technicianId ?? ""}
             className="w-full border rounded p-2"
             placeholder="e.g. technician123"
-          />
-        </div>
-        {/* Scheduled For */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled For</label>
-          <input
-            type="datetime-local"
-            name="scheduledFor"
-            defaultValue={
-              existing?.scheduledFor
-                ? toDatetimeLocalValue(existing.scheduledFor)
-                : ""
-            }
-            className="w-full border rounded p-2"
-            required
           />
         </div>
         {/* Status */}

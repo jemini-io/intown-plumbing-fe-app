@@ -244,6 +244,7 @@ export async function createJobAppointment({
     logger.info("Delegating local booking creation to background...");
     await createLocalBookingFromJob({
       customerId: String(stCustomer.id),
+      jobId: String(jobResponse.id),
       serviceId: String(jobTypeId),
       technicianId: String(technicianId),
       scheduledFor: new Date(startTime),
