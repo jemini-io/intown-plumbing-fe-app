@@ -241,6 +241,17 @@ export async function createJobAppointment({
       logger.error({ err: error }, "createJobAppointment: Error updating invoice and payment");
     }
 
+    // Get invoice by jobId
+    const invoiceResponse = await serviceTitanClient.accounting.InvoicesService.invoicesGetList({
+        tenant: tenantId,
+        jobId: Number(jobResponse.id)
+    });
+
+    let revenue = 0.0;
+    if (invoiceResponse.data && invoiceResponse.data.length > 0) {
+        revenue = Number(invoiceResponse.data[0].total) || 0.0;
+    }
+
     logger.info("Delegating local booking creation to background...");
     await createLocalBookingFromJob({
       customerId: String(stCustomer.id),
@@ -249,6 +260,7 @@ export async function createJobAppointment({
       technicianId: String(technicianId),
       scheduledFor: new Date(startTime),
       status: jobResponse.jobStatus,
+      revenue,
       notes: summary || "",
     });
     logger.info("Local booking creation delegated.");

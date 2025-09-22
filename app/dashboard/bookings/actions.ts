@@ -13,6 +13,7 @@ export type BookingData = {
   technicianId: string;
   scheduledFor: string;
   status: string;
+  revenue?: string;
   notes: string;
 };
 
@@ -31,6 +32,7 @@ export async function getAllBookings() {
 //         technicianId: bookingData.technicianId,
 //         scheduledFor: new Date(bookingData.scheduledFor),
 //         status: bookingData.status,
+//         revenue: Number(bookingData.revenue),
 //         notes: bookingData.notes,
 //     },
 //   });
@@ -46,6 +48,7 @@ export async function updateBooking(bookingId: string, bookingData: BookingData)
           technicianId: bookingData.technicianId,
           scheduledFor: new Date(bookingData.scheduledFor),
           status: bookingData.status,
+          revenue: Number(bookingData.revenue),
           notes: bookingData.notes,
       },
   });

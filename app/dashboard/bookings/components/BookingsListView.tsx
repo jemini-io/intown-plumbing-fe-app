@@ -136,7 +136,6 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
     }
   }
 
-  // Filtra bookings antes de ordenar
   const filteredBookings = (bookings || []).filter(b =>
     (!statusFilter || b.status === statusFilter) &&
     (!technicianFilter || b.technicianId === technicianFilter) &&
@@ -145,6 +144,11 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
   );
 
   const sortedBookings = filteredBookings.sort(sortBookings);
+
+  const totalRevenue = (sortedBookings || []).reduce((sum, booking) => {
+    const revenue = Number(booking.revenue);
+    return sum + (isNaN(revenue) ? 0 : revenue);
+  }, 0);
 
   return (
     <>
@@ -312,6 +316,8 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
               </th>
               {/* Notes */}
               <th className="px-4 py-2 text-left">Notes</th>
+              {/* Revenue */}
+              <th className="px-4 py-2 text-left">Revenue</th>
               {(canEdit || canDelete) && (
                 <th className="px-4 py-2 text-left">Actions</th>
               )}
@@ -330,29 +336,45 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
                   </span>
                 </td>
                 <td className="px-4 py-2">{booking.notes || "-"}</td>
+                <td className="px-4 py-2 text-right">$ {Number(booking.revenue).toFixed(2)}</td>
                 {(canEdit || canDelete) && (
-                  <td className="px-4 py-2 flex gap-2">
-                    {canEdit && (
-                      <button
-                        className="text-blue-500 hover:underline font-medium px-1"
-                        onClick={() => handleEdit(booking)}
-                      >
-                        <PencilIcon title={`Edit booking`} className="h-4 w-4 inline-block" />
-                      </button>
-                    )}
-                    {canDelete && (
-                      <button
-                        className="text-red-500 hover:underline font-medium px-1"
-                        onClick={() => handleDeleteBooking(booking)}
-                      >
-                        <TrashIcon title={`Remove booking`} className="h-4 w-4 inline-block" />
-                      </button>
-                    )}
+                  <td className="px-4 py-2 h-full">
+                    <div className="flex gap-2 items-center h-full">
+                      {canEdit && (
+                        <button
+                          className="text-blue-500 hover:underline font-medium px-1"
+                          onClick={() => handleEdit(booking)}
+                        >
+                          <PencilIcon title={`Edit booking`} className="h-4 w-4 inline-block" />
+                        </button>
+                      )}
+                      {canDelete && (
+                        <button
+                          className="text-red-500 hover:underline font-medium px-1"
+                          onClick={() => handleDeleteBooking(booking)}
+                        >
+                          <TrashIcon title={`Remove booking`} className="h-4 w-4 inline-block" />
+                        </button>
+                      )}
+                    </div>
                   </td>
                 )}
               </tr>
             ))}
           </tbody>
+          <tfoot>
+            <tr className="bg-gray-100">
+              {/* empty cells for alignment */}
+              {columns.map((_, idx) => (
+                <td key={idx}></td>
+              ))}
+              {/* Revenue total */}
+              <td className="px-4 py-2 font-bold text-right" colSpan={2}>
+                ${totalRevenue.toFixed(2)}
+              </td>
+              {(canEdit || canDelete) && <td></td>}
+            </tr>
+          </tfoot>
         </table>
       </div>
       {modalOpen && (
@@ -378,7 +400,7 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
         <DeleteConfirmModal
           open={confirmOpen}
           title="Confirm Deletion"
-          message={`Are you sure you want to delete the booking "${bookingToDelete.status}"? This action cannot be undone.`}
+          message={`Are you sure you want to delete the booking with job ID "${bookingToDelete.jobId}"? This action cannot be undone.`}
           onCancel={() => {
             if (!deleting) setConfirmOpen(false);
           }}

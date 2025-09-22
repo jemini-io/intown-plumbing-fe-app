@@ -10,6 +10,7 @@ export async function createLocalBookingFromJob({
   technicianId,
   scheduledFor,
   status,
+  revenue,
   notes,
 }: {
   customerId: string;
@@ -18,6 +19,7 @@ export async function createLocalBookingFromJob({
   technicianId: string;
   scheduledFor: Date;
   status: string;
+  revenue: number;
   notes: string;
 }) {
   setImmediate(async () => {
@@ -31,6 +33,7 @@ export async function createLocalBookingFromJob({
               technicianId: technicianId,
               scheduledFor: scheduledFor,
               status: status,
+              revenue: revenue,
               notes: notes,
             }
         });

@@ -58,6 +58,7 @@ model Booking {
   serviceId    String
   technicianId String?
   scheduledFor DateTime
+  revenue      Float?     @default(0.0)
   status       String
   notes        String?
 

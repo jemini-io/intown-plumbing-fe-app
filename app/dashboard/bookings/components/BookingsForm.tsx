@@ -26,6 +26,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         technicianId: formData.get("technicianId") as string,
         scheduledFor: formData.get("scheduledFor") as string,
         status: formData.get("status") as string,
+        revenue: Number(formData.get("revenue") || 0),
         notes: formData.get("notes") as string,
       };
 
@@ -39,7 +40,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           }, 1500);
         }
       } catch (err) {
-        setMessage({ type: "error", text: "BOOKING(add/update): Something went wrong. Please try again." });
+        setMessage({ type: "error", text: "Booking Form(update): Something went wrong. Please try again." });
       }
     });
   }
@@ -152,6 +153,19 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             <option value="confirmed">Confirmed</option>
             <option value="canceled">Canceled</option>
           </select>
+        </div>
+        {/* Revenue */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Revenue ($)</label>
+          <input
+            type="number"
+            name="revenue"
+            defaultValue={existing?.revenue ?? ""}
+            className="w-full border rounded p-2"
+            step="0.01"
+            min="0"
+            placeholder="e.g. 35.00"
+          />
         </div>
         {/* Notes */}
         <div className="col-span-2">
