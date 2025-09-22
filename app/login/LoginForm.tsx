@@ -25,7 +25,6 @@ export default function LoginForm() {
   const searchParams = useSearchParams();
 
   const { data: session, status, update } = useSession();
-  logger.info(session, "Current session:");
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {

@@ -41,12 +41,15 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        logger.info(user, 'User found');
+        logger.info({
+          email: user.email,
+          role: user.role,
+        }, 'User found for login');
 
         // Verify password
         const isValid = await bcrypt.compare(credentials.password, user.passwordDigest);
 
-        logger.info(isValid, 'Password valid');
+        logger.info({isValid}, 'Password valid');
 
         if (!isValid) return null;
 
