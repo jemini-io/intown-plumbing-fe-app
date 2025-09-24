@@ -9,7 +9,7 @@ import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 export function TechnicianToSkillsListView() {
   const [TechnicianToSkillsSetting, setTechnicianToSkillsSetting] = useState<Setting | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkillsType | null>(null);
+  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkillsType | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [technicianToDelete, setTechnicianToDelete] = useState<TechnicianToSkillsType | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -25,7 +25,7 @@ export function TechnicianToSkillsListView() {
   }, []);
 
   function handleAdd() {
-    setSelectedTechnician(null);
+    setSelectedTechnician(undefined);
     setModalOpen(true);
   }
 

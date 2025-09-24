@@ -1,10 +1,13 @@
-import { NextAuthOptions } from "next-auth";
+// import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { AdapterUser } from "next-auth/adapters";
 import pino from "pino";
+import type { Session, User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+// import type NextAuth from "next-auth/next";
 
 const logger = pino({ name: "Auth" });
 
@@ -13,7 +16,8 @@ export interface UserWithRole extends AdapterUser {
   image: string | null;
 }
 
-export const authOptions: NextAuthOptions = {
+// export const authOptions: NextAuthOptions = {
+export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -64,20 +68,35 @@ export const authOptions: NextAuthOptions = {
       },
     }),
   ],
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt" as const,
+  },
   pages: { signIn: "/login?error=" },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({
+      token,
+      user
+    }: {
+      token: JWT;
+      user?: User | AdapterUser | null;
+    }) {
       if (user) {
         const u = user as UserWithRole;
         token.role = u.role;
-        token.name = u.name;
-        // If user.image is an object, get the URL
-        token.image = typeof u.image === "object" && u.image !== null ? u.image.url : u.image;
+        token.name = u.name ?? undefined;
+        token.image = u.image ?? undefined;
+        // // If user.image is an object, get the URL
+        // token.image = typeof u.image === "object" && u.image !== null ? u.image.url : u.image;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ 
+      session, 
+      token 
+    }: { 
+      session: Session; 
+      token: JWT 
+    }) {
       if (session.user) {
         session.user = {
           ...session.user,
@@ -89,4 +108,4 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
-};
+} //satisfies Parameters<typeof NextAuth>[0];

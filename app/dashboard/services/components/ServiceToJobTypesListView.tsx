@@ -9,7 +9,7 @@ import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 export function ServiceToJobTypesListView() {
   const [serviceToJobsTypeSetting, setServiceToJobsTypeSetting] = useState<Setting | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<ServiceToJobType | null>(null);
+  const [selectedService, setSelectedService] = useState<ServiceToJobType | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<ServiceToJobType | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -24,7 +24,7 @@ export function ServiceToJobTypesListView() {
   }, []);
 
   function handleAdd() {
-    setSelectedService(null);
+    setSelectedService(undefined);
     setModalOpen(true);
   }
 

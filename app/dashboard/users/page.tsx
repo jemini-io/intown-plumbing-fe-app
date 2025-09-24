@@ -37,7 +37,7 @@ function Modal({
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUser, setSelectedUser] = useState<User | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
@@ -46,7 +46,7 @@ export default function UsersPage() {
   async function refresh() {
     const all = await getUsers();
     setUsers(all);
-    setSelectedUser(null);
+    setSelectedUser(undefined);
     setModalOpen(false);
   }
 
@@ -55,7 +55,7 @@ export default function UsersPage() {
   }, []);
 
   function handleAddNew() {
-    setSelectedUser(null);
+    setSelectedUser(undefined);
     setModalOpen(true);
   }
 

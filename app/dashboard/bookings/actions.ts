@@ -11,9 +11,9 @@ export type BookingData = {
   jobId: string;
   serviceId: string;
   technicianId: string;
-  scheduledFor: string;
+  scheduledFor: Date;
   status: string;
-  revenue?: string;
+  revenue?: number;
   notes: string;
 };
 
@@ -46,9 +46,9 @@ export async function updateBooking(bookingId: string, bookingData: BookingData)
           jobId: bookingData.jobId,
           serviceId: bookingData.serviceId,
           technicianId: bookingData.technicianId,
-          scheduledFor: new Date(bookingData.scheduledFor),
+          scheduledFor: bookingData.scheduledFor,
           status: bookingData.status,
-          revenue: Number(bookingData.revenue),
+          revenue: bookingData.revenue,
           notes: bookingData.notes,
       },
   });

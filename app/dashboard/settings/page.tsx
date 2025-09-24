@@ -1,39 +1,92 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getSettings } from "./actions";
-import { SettingsForm } from "./settings-form";
+// import { SettingsForm } from "./settings-form";
 import DashboardLayout from "../components/DashboardLayout";
 import { PencilIcon, ClipboardDocumentIcon, CheckIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { isJson } from "@/lib/utils/isJson";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
-import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
-import { Setting } from "@/lib/types/setting";
+import dynamic from "next/dynamic";
+import type { Setting } from "@/lib/types/setting"; // <-- agrega este import
+
+// Cargar react-syntax-highlighter solo en cliente
+const SyntaxHighlighter = dynamic(
+  () => import("react-syntax-highlighter").then((m) => m.Prism),
+  { ssr: false, loading: () => <pre className="text-xs whitespace-pre-wrap" /> }
+);
+
+// Cargar el tema solo en cliente (más abajo con import() en useEffect)
+
+// Cargar el formulario solo en cliente (usa el export nombrado)
+const SettingsForm = dynamic(
+  () => import("./settings-form").then(m => m.SettingsForm), // <-- quitar ?? m.default
+  {
+    ssr: false,
+    loading: () => <div className="p-4 text-sm text-gray-500">Cargando…</div>,
+  }
+);
+
+// Hook local de copiado sin tocar document en SSR
+function useCopy() {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = useCallback(async (text: string) => {
+    try {
+      if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+      }
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
+    } catch {
+      // noop
+    }
+  }, []);
+  return { copied, handleCopy };
+}
+
+type PrismStyle = Record<string, unknown>;
 
 function ValueCell({ value }: { value: string }) {
-  const { copied, handleCopy } = useCopyToClipboard();
+  const { copied, handleCopy } = useCopy();
   const isJsonValue = isJson(value);
+
+  const [prismStyle, setPrismStyle] = useState<PrismStyle | null>(null);
+  useEffect(() => {
+    let active = true;
+    if (isJsonValue) {
+      import("react-syntax-highlighter/dist/esm/styles/prism")
+        .then((m) => { if (active) setPrismStyle(m.oneLight as PrismStyle); })
+        .catch(() => {});
+    } else {
+      setPrismStyle(null);
+    }
+    return () => { active = false; };
+  }, [isJsonValue]);
 
   return (
     <div className={`group relative ${isJsonValue ? "min-h-[80px]" : "min-h-[40px]"}`}>
       {isJsonValue ? (
-        <SyntaxHighlighter
-          language="json"
-          style={oneLight}
-          customStyle={{
-            fontSize: "0.85rem",
-            borderRadius: "6px",
-            padding: "8px",
-            background: "#f8fafc",
-            minHeight: 80,
-            maxHeight: 300,
-            overflow: "auto",
-          }}
-          showLineNumbers={false}
-        >
-          {JSON.stringify(JSON.parse(value), null, 2)}
-        </SyntaxHighlighter>
+        prismStyle ? (
+          <SyntaxHighlighter
+            language="json"
+            style={prismStyle}
+            customStyle={{
+              fontSize: "0.85rem",
+              borderRadius: "6px",
+              padding: "8px",
+              background: "#f8fafc",
+              minHeight: 80,
+              maxHeight: 300,
+              overflow: "auto",
+            }}
+            showLineNumbers={false}
+          >
+            {JSON.stringify(JSON.parse(value), null, 2)}
+          </SyntaxHighlighter>
+        ) : (
+          <pre className="text-xs whitespace-pre-wrap bg-slate-50 rounded p-2 min-h-[80px]">
+            {value}
+          </pre>
+        )
       ) : (
         <div className="truncate">{value}</div>
       )}
@@ -56,8 +109,7 @@ function ValueCell({ value }: { value: string }) {
 }
 
 function KeyCell({ value }: { value: string }) {
-  const { copied, handleCopy } = useCopyToClipboard();
-
+  const { copied, handleCopy } = useCopy();
   return (
     <div className="group relative min-h-[40px] flex items-center">
       <span className="font-mono">{value}</span>
@@ -103,6 +155,7 @@ export default function SettingsPage() {
     setSelectedSetting(null);
   }
 
+  // Estos efectos solo corren en cliente (ok):
   useEffect(() => {
     if (!modalOpen) return;
     function handleKeyDown(e: KeyboardEvent) {
@@ -115,13 +168,16 @@ export default function SettingsPage() {
   }, [modalOpen]);
 
   useEffect(() => {
+    if (typeof document === "undefined") return;
     if (modalOpen) {
       document.body.classList.add("overflow-hidden");
     } else {
       document.body.classList.remove("overflow-hidden");
     }
     return () => {
-      document.body.classList.remove("overflow-hidden");
+      if (typeof document !== "undefined") {
+        document.body.classList.remove("overflow-hidden");
+      }
     };
   }, [modalOpen]);
 
@@ -130,10 +186,7 @@ export default function SettingsPage() {
       <div className="min-h-screen p-8 space-y-8">
         <div className="flex items-center justify-between mb-8">
           <h3 className="text-3xl font-bold">App Settings</h3>
-          <button
-            className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
-            title="Add new user"
-          >
+          <button className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition" title="Add new user">
             <PlusIcon className="h-6 w-6" />
           </button>
         </div>
@@ -157,11 +210,7 @@ export default function SettingsPage() {
                     <ValueCell value={s.value} />
                   </td>
                   <td className="px-4 py-2 w-16">
-                    <button
-                      onClick={() => handleEdit(s)}
-                      className="p-1 rounded hover:bg-gray-200"
-                      title="Edit"
-                    >
+                    <button onClick={() => handleEdit(s)} className="p-1 rounded hover:bg-gray-200" title="Edit">
                       <PencilIcon className="h-5 w-5 text-blue-600" />
                     </button>
                   </td>
@@ -181,10 +230,7 @@ export default function SettingsPage() {
                 height: isJson(selectedSetting?.value ?? "") ? "90vh" : "auto",
               }}
             >
-              <button
-                onClick={handleModalClose}
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
-              >
+              <button onClick={handleModalClose} className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold">
                 ×
               </button>
               <SettingsForm

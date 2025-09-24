@@ -8,6 +8,7 @@ import { cleanupOldUserImage } from "@/lib/services/imageCleanupService";
 import { cleanupCloudinaryImage } from "@/lib/services/cloudinaryCleanupService";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
+import { Role } from "@/lib/generated/prisma";
 
 const logger = pino({ name: "user-update-route" });
 
@@ -90,13 +91,13 @@ export async function POST(req: NextRequest) {
   const updateData: {
     name: string;
     email: string;
-    role: string;
+    role: Role;
     passwordDigest?: string;
     image?: { connect: { id: string } } | { disconnect: true };
   } = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,
-    role: formData.get("role") as string,
+    role: formData.get("role") as Role,
   };
 
   if (userImageId) {

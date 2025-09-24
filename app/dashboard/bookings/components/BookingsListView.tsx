@@ -42,10 +42,10 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   // Filter state
-  const [statusFilter, setStatusFilter] = useState("");
-  const [technicianFilter, setTechnicianFilter] = useState("");
-  const [customerFilter, setCustomerFilter] = useState("");
-  const [dateFilter, setDateFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [technicianFilter, setTechnicianFilter] = useState<string | null>("");
+  const [customerFilter, setCustomerFilter] = useState<string | null>("");
+  const [dateFilter, setDateFilter] = useState<string>("");
 
   // Obtén los valores únicos de technicianId y customerId
   const uniqueTechnicians = Array.from(new Set((bookings || []).map(b => b.technicianId).filter(Boolean)));
@@ -68,7 +68,7 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
       );
 
   // Job filter state
-  const [jobFilter, setJobFilter] = useState("");
+  const [jobFilter, setJobFilter] = useState<string | null>("");
   const [jobQuery, setJobQuery] = useState("");
   const [openJob, setOpenJob] = useState(false);
   const uniqueJobs = Array.from(new Set((bookings || []).map(b => b.jobId).filter(Boolean)));
@@ -138,9 +138,10 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
 
   const filteredBookings = (bookings || []).filter(b =>
     (!statusFilter || b.status === statusFilter) &&
-    (!technicianFilter || b.technicianId === technicianFilter) &&
+    (!technicianFilter || b.technicianId === technicianFilter) && 
     (!customerFilter || b.customerId === customerFilter) &&
-    (!dateFilter || new Date(b.scheduledFor).toISOString().slice(0, 10) === dateFilter)
+    (!dateFilter || new Date(b.scheduledFor).toISOString().slice(0, 10) === dateFilter) &&
+    (!jobFilter || b.jobId === jobFilter)
   );
 
   const sortedBookings = filteredBookings.sort(sortBookings);
@@ -387,7 +388,7 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
               ×
             </button>
             <BookingsForm
-              existing={selectedBooking}
+              existing={selectedBooking || undefined}
               onSaved={async () => {
                 setModalOpen(false);
                 await refresh();

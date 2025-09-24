@@ -1,7 +1,16 @@
+export type Role = "USER" | "ADMIN";
+
+export type UserImage = {
+  id: string;
+  url: string;
+  publicId: string;
+  uploadedAt: string | Date;
+};
+
 export type User = {
   id: string;
-  email: string;
   name: string | null;
-  role: "USER" | "ADMIN";
-  image: string | null;
+  email: string;
+  role: Role;
+  image: UserImage | null; // antes: string | null
 };

@@ -6,6 +6,6 @@ export type Booking = {
   technicianId: string;
   scheduledFor: Date;
   status: string;
-  revenue: string;
+  revenue: number;
   notes: string;
 };

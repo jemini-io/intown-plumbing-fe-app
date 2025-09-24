@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState, useRef, useEffect } from "react";
-import { createUser, updateUser, deleteUser } from "./actions";
+import { deleteUser } from "./actions";
 import { User } from "./types";
 import Image from "next/image";
 import { UserCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -20,7 +20,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
     existing?.image?.url ?? null
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [password, setPassword] = useState<string>(existing?.password ?? "");
+  const [password, setPassword] = useState<string>(""); // antes: existing?.password ?? ""
   const [removeImage, setRemoveImage] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { data: session, update } = useSession();
@@ -51,6 +51,10 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
       }
       if (removeImage) {
         formData.set("removeImage", "true");
+      }
+      // asegúrate de enviar el password del estado
+      if (password) {
+        formData.set("password", password);
       }
 
       try {

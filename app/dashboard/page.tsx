@@ -6,6 +6,9 @@ import { ServiceToJobTypesListView } from "./services/components";
 import { TechnicianToSkillsListView } from "./technicians/components";
 import { BookingsListView } from "./bookings/components/BookingsListView";
 
+const BookingsListViewWrapper = () => (
+  <BookingsListView showHeader={false} canEdit={false} canDelete={false} />
+);
 
 export default function DashboardPage() {
   return (
@@ -22,9 +25,7 @@ export default function DashboardPage() {
               <DashboardCard
                 viewAllLabel="View All Services"
                 onViewAll={() => {}}
-                iconsData={{
-                  plusIconTitle: "Add Service",
-                }}
+                iconsData={{ plusIconTitle: "Add Service" }}
                 listView={ServiceToJobTypesListView}
               />
             </div>
@@ -32,10 +33,8 @@ export default function DashboardPage() {
               <DashboardCard
                 viewAllLabel="View All Bookings"
                 onViewAll={() => {}}
-                iconsData={{
-                  plusIconTitle: "Add Service",
-                }}
-                listView={BookingsListView}
+                iconsData={{ plusIconTitle: "Add Booking" }}
+                listView={BookingsListViewWrapper}
               />
             </div>
           </div>
@@ -44,12 +43,9 @@ export default function DashboardPage() {
           <div className="flex flex-col gap-6">
             <div className="flex flex-col gap-6">
               <DashboardCard
-                cardTitle="Technicians"
                 viewAllLabel="View All Technicians"
                 onViewAll={() => {}}
-                iconsData={{
-                  plusIconTitle: "Add Technician",
-                }}
+                iconsData={{ plusIconTitle: "Add Technician" }}
                 listView={TechnicianToSkillsListView}
               />
             </div>

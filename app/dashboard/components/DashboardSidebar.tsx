@@ -11,18 +11,18 @@ import { ChartBarIcon,
          CalendarDaysIcon } from "@heroicons/react/24/solid";
 import { logoutAction } from "@/app/actions/logout";
 
-interface SessionWithRole {
-  user: {
-    name?: string | null;
-    email?: string | null;
-    image?: string | null;
-    role?: "USER" | "ADMIN";
-  };
-}
+// interface SessionWithRole {
+//   user: {
+//     name?: string | null;
+//     email?: string | null;
+//     image?: string | null;
+//     role?: "USER" | "ADMIN";
+//   };
+// }
 
 export default function DashboardSidebar() {
-  const { data: session, update } = useSession() as { data: SessionWithRole | null };;
-  const role = session?.user?.role;
+  const { data: session, update } = useSession(); // as { data: SessionWithRole | null };
+  const role = session?.user?.role as ("USER" | "ADMIN") | undefined;
   const userImageUrl = session?.user?.image;
   const userName = session?.user?.name || "User";
 

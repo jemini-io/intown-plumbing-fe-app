@@ -54,13 +54,13 @@ model Booking {
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
   customerId   String
-  jobId        String?     @unique
+  jobId        String     @unique
   serviceId    String
-  technicianId String?
+  technicianId String
   scheduledFor DateTime
-  revenue      Float?     @default(0.0)
+  revenue      Float     @default(0.0)
   status       String
-  notes        String?
+  notes        String
 
   // customer     Customer    @relation(fields: [customerId], references: [id])
   // service      Service     @relation(fields: [serviceId], references: [id])

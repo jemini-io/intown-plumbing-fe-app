@@ -22,9 +22,10 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
       const booking: Booking = {
         id: existing?.id ?? "",
         customerId: formData.get("customerId") as string,
+        jobId: formData.get("jobId") as string,
         serviceId: formData.get("serviceId") as string,
         technicianId: formData.get("technicianId") as string,
-        scheduledFor: formData.get("scheduledFor") as string,
+        scheduledFor: new Date(formData.get("scheduledFor") as string),
         status: formData.get("status") as string,
         revenue: Number(formData.get("revenue") || 0),
         notes: formData.get("notes") as string,
