@@ -41,7 +41,7 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
           setMessage(null);
           onSaved();
         }, 1500);
-      } catch (err) {
+      } catch {
         setMessage({ type: "error", text: "Something went wrong. Please try again." });
       }
     });

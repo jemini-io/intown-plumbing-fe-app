@@ -9,31 +9,6 @@ import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/reac
 import Image from "next/image";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
-function Modal({
-  open,
-  onClose,
-  children,
-}: {
-  open: boolean;
-  onClose: () => void;
-  children: React.ReactNode;
-}) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-      <div className="bg-white rounded-xl shadow-lg p-8 min-w-[350px] relative">
-        <button
-          onClick={onClose}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
-        >
-          ×
-        </button>
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
@@ -67,9 +42,6 @@ export default function UsersPage() {
   function handleDeleteUser(user: User) {
     setUserToDelete(user);
     setConfirmOpen(true);
-    // if (user.email === "admin@example.com") return;
-    // if (!confirm(`Are you sure you want to delete "${user.name || user.email}"?`)) return;
-    // deleteUser(String(user.id)).then(() => refresh());
   }
 
   function confirmDeleteUser() {
@@ -156,11 +128,6 @@ export default function UsersPage() {
             </tbody>
           </table>
         </div>
-
-        {/* <Modal open={modalOpen} onClose={() => setModalOpen(false)}>
-          <UserForm existing={selectedUser ?? undefined} onSaved={refresh} />
-        </Modal> */}
-
         {modalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>

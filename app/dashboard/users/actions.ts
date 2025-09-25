@@ -1,7 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import bcrypt from "bcrypt";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 
 export type UserData = {

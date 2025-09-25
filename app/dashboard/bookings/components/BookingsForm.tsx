@@ -40,7 +40,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             onSaved();
           }, 1500);
         }
-      } catch (err) {
+      } catch {
         setMessage({ type: "error", text: "Booking Form(update): Something went wrong. Please try again." });
       }
     });

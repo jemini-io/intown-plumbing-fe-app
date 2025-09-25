@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { loginAction } from "../actions/login";
-import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import pino from "pino";
 import PasswordInput from "@/components/PasswordInput";
@@ -18,13 +17,12 @@ const errorMessages: Record<string, string> = {
 export default function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const { data: session, status, update } = useSession();
+  const { status, update } = useSession();
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {

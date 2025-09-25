@@ -45,7 +45,7 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
           setMessage(null);
           onSaved();
         }, 1500);
-      } catch (err) {
+      } catch {
         setMessage({ type: "error", text: "Something went wrong. Please try again." });
         setTimeout(() => setMessage(null), 2000);
       }

@@ -21,7 +21,6 @@ type DashboardCardProps = {
 export function DashboardCard({
   viewAllLabel = "View All",
   onViewAll,
-  iconsData = {},
   listView: ListViewComponent,
 }: DashboardCardProps) {
   return (

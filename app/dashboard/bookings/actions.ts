@@ -1,10 +1,6 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { Booking } from "@/lib/types/booking";
-import pino from "pino";
-
-const logger = pino({ name: "bookings-actions" });
 
 export type BookingData = {
   customerId: string;

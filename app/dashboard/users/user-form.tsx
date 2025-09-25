@@ -1,7 +1,6 @@
 "use client";
 
 import { useTransition, useState, useRef, useEffect } from "react";
-import { deleteUser } from "./actions";
 import { User } from "./types";
 import Image from "next/image";
 import { UserCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
@@ -20,7 +19,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
     existing?.image?.url ?? null
   );
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [password, setPassword] = useState<string>(""); // antes: existing?.password ?? ""
+  const [password, setPassword] = useState<string>("");
   const [removeImage, setRemoveImage] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { data: session, update } = useSession();
@@ -52,7 +51,6 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
       if (removeImage) {
         formData.set("removeImage", "true");
       }
-      // asegúrate de enviar el password del estado
       if (password) {
         formData.set("password", password);
       }
@@ -93,25 +91,10 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
         } else {
           setMessage({ type: "error", text: result.error || "Something went wrong. Please try again." });
         }
-      } catch (err) {
+      } catch {
         setMessage({ type: "error", text: "Something went wrong. Please try again." });
       }
     });
-  }
-
-  async function handleDelete() {
-    if (!confirm(`Are you sure you want to delete the user "${existing!.name} (${existing!.email})"?`)) return;
-
-    try {
-      await deleteUser(String(existing!.id!));
-      setMessage({ type: "success", text: "User deleted successfully!" });
-      await onSaved();
-    } catch (err) {
-      console.error(err);
-      setMessage({ type: "error", text: "Delete failed. Please try again." });
-    } finally {
-      setTimeout(() => setMessage(null), 3000);
-    }
   }
 
   return (
