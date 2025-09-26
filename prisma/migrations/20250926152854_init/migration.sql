@@ -42,12 +42,13 @@ CREATE TABLE "public"."Booking" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "customerId" TEXT NOT NULL,
-    "jobId" TEXT,
+    "jobId" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
-    "technicianId" TEXT,
+    "technicianId" TEXT NOT NULL,
     "scheduledFor" TIMESTAMP(3) NOT NULL,
+    "revenue" DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     "status" TEXT NOT NULL,
-    "notes" TEXT,
+    "notes" TEXT NOT NULL,
 
     CONSTRAINT "Booking_pkey" PRIMARY KEY ("id")
 );

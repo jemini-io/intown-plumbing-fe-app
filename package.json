@@ -29,6 +29,7 @@
     "import:prod": "DATABASE_URL=$DATABASE_URL_PROD node scripts/importAppSettings.js prod",
     "import:dev": "dotenv -e .env -- node scripts/importAppSettings.js prod",
     "import:test": "dotenv -e .env.test -- node scripts/importAppSettings.js test",
+    "import:bookings:test": "dotenv -e .env.test -- node scripts/importBookingsFixtures.js test",
     "setup:prod": "npm run db:prod:create && npm run migrate:prod && npm run import:prod",
     "setup:dev": "npm run db:dev:create && npm run migrate:dev && npm run import:dev",
     "setup:test": "npm run db:test:create && npm run migrate:test && npm run import:test",

@@ -7,7 +7,7 @@ import { TechnicianToSkillsListView } from "./technicians/components";
 import { BookingsListView } from "./bookings/components/BookingsListView";
 
 const BookingsListViewWrapper = () => (
-  <BookingsListView showHeader={false} canEdit={false} canDelete={false} />
+  <BookingsListView showHeader={true} canEdit={false} canDelete={false} />
 );
 
 export default function DashboardPage() {

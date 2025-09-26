@@ -1,15 +1,18 @@
 const fs = require('fs');
 const path = require('path');
+const pino = require("pino");
 const yaml = require('js-yaml');
 const { PrismaClient } = require('../lib/generated/prisma');
 
 const prisma = new PrismaClient();
 
+const logger = pino({ name: "ImportAppSettings" });
+
 // Get environment from command-line argument
 const env = process.argv[2]; // 'prod' or 'test'
 
 if (!env) {
-  console.error('You must pass the environment name (e.g., prod or test).');
+  logger.error('You must pass the environment name (e.g., prod or test).');
   process.exit(1);
 }
 
@@ -57,7 +60,7 @@ async function importSettings(env) {
     });
   }
 
-  console.log(`✔ Imported ${flatEntries.length} settings for environment: ${env}`);
+  console.log(`✅ Imported ${flatEntries.length} settings for the ${env} env`);
 }
 
 // Run the script
@@ -67,7 +70,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
+  logger.error(err, `❌ Error while importing App Settings for the ${env} env`);
   prisma.$disconnect();
   process.exit(1);
 });
