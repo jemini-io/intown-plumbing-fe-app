@@ -2,31 +2,25 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { getSettings } from "./actions";
-// import { SettingsForm } from "./settings-form";
 import DashboardLayout from "../components/DashboardLayout";
 import { PencilIcon, ClipboardDocumentIcon, CheckIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { isJson } from "@/lib/utils/isJson";
 import dynamic from "next/dynamic";
-import type { Setting } from "@/lib/types/setting"; // <-- agrega este import
+import type { Setting } from "@/lib/types/setting";
 
-// Cargar react-syntax-highlighter solo en cliente
 const SyntaxHighlighter = dynamic(
   () => import("react-syntax-highlighter").then((m) => m.Prism),
   { ssr: false, loading: () => <pre className="text-xs whitespace-pre-wrap" /> }
 );
 
-// Cargar el tema solo en cliente (más abajo con import() en useEffect)
-
-// Cargar el formulario solo en cliente (usa el export nombrado)
 const SettingsForm = dynamic(
-  () => import("./settings-form").then(m => m.SettingsForm), // <-- quitar ?? m.default
+  () => import("./settings-form").then(m => m.SettingsForm), 
   {
     ssr: false,
-    loading: () => <div className="p-4 text-sm text-gray-500">Cargando…</div>,
+    loading: () => <div className="p-4 text-sm text-gray-500">Loading...</div>,
   }
 );
 
-// Hook local de copiado sin tocar document en SSR
 function useCopy() {
   const [copied, setCopied] = useState(false);
   const handleCopy = useCallback(async (text: string) => {
@@ -247,4 +241,3 @@ export default function SettingsPage() {
     </DashboardLayout>
   );
 }
-
