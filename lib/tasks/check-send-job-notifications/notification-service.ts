@@ -109,7 +109,7 @@ export async function sendTechnicianConsultationReminder(job: Jpm_V2_JobResponse
     };
   }
   // get join link
-  const joinLink = getTechnicianJoinLink(job);
+  const joinLink = await getTechnicianJoinLink(job);
   if (!joinLink) {
     return {
       success: false,

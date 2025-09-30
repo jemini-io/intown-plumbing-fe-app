@@ -9,14 +9,24 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // Protect admin routes
-  if (pathname.startsWith("/admin")) {
+  // Protect dashboard routes
+  if (pathname.startsWith("/dashboard")) {
     // Get NextAuth JWT token from request
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
 
-    // If no token or role is not ADMIN, redirect to login
-    if (!token || token.role !== "ADMIN") {
+    const allowedRoles = ["ADMIN", "USER"];
+
+    // If no token or role is not allowed, redirect to login
+    if (!token || !allowedRoles.includes(token.role as string)) {
       return NextResponse.redirect(new URL("/login", request.url));
+    }
+  }
+
+  // Restrict access to admin-only pages
+  if (pathname.startsWith("/dashboard/settings") || pathname.startsWith("/dashboard/users")) {
+    const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
+    if (!token || token.role !== "ADMIN") {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
     }
   }
 
@@ -28,7 +38,7 @@ export const config = {
   matcher: [
     "/video-consultation-form/:path*",
     "/api/create-payment-intent/:path*",
-    "/admin",
-    "/admin/:path*",
+    "/dashboard",
+    "/dashboard/:path*",
   ],
 };

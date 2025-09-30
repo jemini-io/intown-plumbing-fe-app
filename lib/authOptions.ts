@@ -1,18 +1,23 @@
-import { NextAuthOptions } from "next-auth";
+// import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcrypt";
 import { AdapterUser } from "next-auth/adapters";
 import pino from "pino";
+import type { Session, User } from "next-auth";
+import type { JWT } from "next-auth/jwt";
+// import type NextAuth from "next-auth/next";
 
 const logger = pino({ name: "Auth" });
 
 export interface UserWithRole extends AdapterUser {
   role: "USER" | "ADMIN";
+  image: string | null;
 }
 
-export const authOptions: NextAuthOptions = {
+// export const authOptions: NextAuthOptions = {
+export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
@@ -32,6 +37,7 @@ export const authOptions: NextAuthOptions = {
         // Check if user exists
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          include: { image: true },
         });
 
         if (!user) {
@@ -39,34 +45,67 @@ export const authOptions: NextAuthOptions = {
           return null;
         }
 
-        logger.info(user, 'User found');
+        logger.info({
+          email: user.email,
+          role: user.role,
+        }, 'User found for login');
 
         // Verify password
         const isValid = await bcrypt.compare(credentials.password, user.passwordDigest);
 
-        logger.info(isValid, 'Password valid');
+        logger.info({isValid}, 'Password valid');
 
         if (!isValid) return null;
 
-        return user;
+        // Return a plain object matching the expected User shape
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          image: user.image ? user.image.url : null,
+        };
       },
     }),
   ],
-  session: { strategy: "jwt" },
+  session: {
+    strategy: "jwt" as const,
+  },
   pages: { signIn: "/login?error=" },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({
+      token,
+      user
+    }: {
+      token: JWT;
+      user?: User | AdapterUser | null;
+    }) {
       if (user) {
         const u = user as UserWithRole;
-        token.role = u.role;  
+        token.role = u.role;
+        token.name = u.name ?? undefined;
+        token.image = u.image ?? undefined;
+        // // If user.image is an object, get the URL
+        // token.image = typeof u.image === "object" && u.image !== null ? u.image.url : u.image;
       }
       return token;
     },
-    async session({ session, token }) {
+    async session({ 
+      session, 
+      token 
+    }: { 
+      session: Session; 
+      token: JWT 
+    }) {
       if (session.user) {
-        session.user = { ...session.user, role: token.role } as typeof session.user & { role: string };
+        session.user = {
+          ...session.user,
+          role: token.role,
+          name: token.name,
+          image: token.image,
+        } as typeof session.user & { role: string; name?: string; image?: string };
       }
       return session;
     },
   },
-};
+} //satisfies Parameters<typeof NextAuth>[0];

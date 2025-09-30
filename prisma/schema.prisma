@@ -14,19 +14,29 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
   name           String?
   passwordDigest String
   role           Role     @default(USER)
+  imageId       String? @unique
+  image          UserImage? @relation(fields: [imageId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
 
-enum Role {
-  USER
-  ADMIN
+model UserImage {
+  id        String   @id @default(uuid())
+  url       String
+  publicId  String
+  uploadedAt DateTime @default(now())
+  user      User?     @relation
 }
 
 model AppSetting {
@@ -37,4 +47,22 @@ model AppSetting {
   updatedAt DateTime @updatedAt 
 
   @@unique([key])
+}
+
+model Booking {
+  id           String      @id @default(uuid())
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  customerId   String
+  jobId        String     @unique
+  serviceId    String
+  technicianId String
+  scheduledFor DateTime
+  revenue      Float     @default(0.0)
+  status       String
+  notes        String
+
+  // customer     Customer    @relation(fields: [customerId], references: [id])
+  // service      Service     @relation(fields: [serviceId], references: [id])
+  // technician   Technician? @relation(fields: [technicianId], references: [id])
 }

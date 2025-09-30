@@ -9,6 +9,7 @@ module.exports = {
         hostname: 'media1.giphy.com',
       },
     ],
+    domains: ["res.cloudinary.com"],
   },
   async headers() {
     const allowedOrigins = process.env.ALLOWED_IFRAME_ORIGINS?.split(',') || [];
