@@ -16,7 +16,12 @@ export default function BookingsPage() {
           {/* Puedes agregar aquí un icono o botón si lo necesitas solo para admins */}
         </div>
         <div className="bg-white rounded-lg shadow p-6">
-          <BookingsListView showHeader={false} canEdit={isAdmin} canDelete={isAdmin} />
+          <BookingsListView 
+            showHeader={false}
+            canEdit={isAdmin} 
+            canDelete={isAdmin}
+            limit={10}
+          />
         </div>
       </div>
     </DashboardLayout>

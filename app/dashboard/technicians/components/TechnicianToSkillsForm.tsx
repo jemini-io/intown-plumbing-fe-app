@@ -14,9 +14,9 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // Tag input state
   const [skills, setSkills] = useState<string[]>(existing?.skills ?? []);
   const [skillInput, setSkillInput] = useState("");
+  const [enabled, setEnabled] = useState<boolean>(existing ? existing.enabled : true);
 
   function handleAddSkill(e: React.KeyboardEvent<HTMLInputElement> | React.MouseEvent<HTMLButtonElement>) {
     if (
@@ -39,7 +39,6 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
 
-    // Validación: debe haber al menos una skill
     if (skills.length === 0) {
       setMessage({ type: "error", text: "Please add at least one skill." });
       return;
@@ -47,11 +46,11 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
 
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
-
       const technician: TechnicianToSkillsType = {
         technicianId: formData.get("technicianId") as string,
         technicianName: formData.get("technicianName") as string,
         skills,
+        enabled,
       };
 
       try {
@@ -112,6 +111,26 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
             required
             placeholder="e.g. 78123456"
           />
+        </div>
+        {/* Enabled pill toggle */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-700">Enabled</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            onClick={() => setEnabled(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+              enabled ? "bg-green-500" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                enabled ? "translate-x-5" : "translate-x-1"
+              }`}
+            />
+          </button>
+          <input type="hidden" name="enabled" value={enabled ? "true" : "false"} />
         </div>
         {/* Skills Tag Input */}
         <div className="col-span-2">

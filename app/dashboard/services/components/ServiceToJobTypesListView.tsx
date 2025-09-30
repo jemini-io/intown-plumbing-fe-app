@@ -6,7 +6,11 @@ import { getServiceToJobsTypeSetting, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
-export function ServiceToJobTypesListView() {
+export interface ServiceToJobTypesListViewProps {
+  limit?: number;
+}
+
+export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps) {
   const [serviceToJobsTypeSetting, setServiceToJobsTypeSetting] = useState<Setting | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceToJobType | undefined>(undefined);
@@ -54,6 +58,8 @@ export function ServiceToJobTypesListView() {
     ? JSON.parse(serviceToJobsTypeSetting.value)
     : [];
 
+  const servicesToRender = props.limit ? services.slice(0, props.limit) : services;
+
   return (
     <>
       <div className="flex items-center justify-between mb-8">
@@ -67,7 +73,7 @@ export function ServiceToJobTypesListView() {
         </button>
       </div>
       <ul className="divide-y divide-gray-200">
-        {services?.map((service, idx) => (
+        {servicesToRender?.map((service, idx) => (
           <li key={idx} className="flex items-center justify-between p-2 hover:bg-blue-50">
             <div>
               <span className="font-medium">{service.displayName}</span>

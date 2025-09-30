@@ -6,6 +6,8 @@ import { BookingsForm } from "./BookingsForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 import { Combobox } from "@headlessui/react";
 
+
+
 function statusColor(status: string) {
   switch (status.toLowerCase()) {
     case "confirmed":
@@ -29,7 +31,19 @@ const columns = [
   { key: "status", label: "Status" },
 ];
 
-export function BookingsListView({ showHeader = true, canEdit, canDelete }: { showHeader?: boolean; canEdit: boolean; canDelete: boolean }) {
+export interface BookingsListViewProps {
+  showHeader?: boolean;
+  canEdit?: boolean;
+  canDelete?: boolean;
+  limit?: number;
+}
+
+export function BookingsListView({ 
+  showHeader = true, 
+  canEdit, 
+  canDelete, 
+  limit 
+}: BookingsListViewProps) {
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -150,6 +164,8 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
     const revenue = Number(booking.revenue);
     return sum + (isNaN(revenue) ? 0 : revenue);
   }, 0);
+
+  const bookingsToRender = limit ? sortedBookings.slice(0, limit) : sortedBookings;
 
   return (
     <>
@@ -310,8 +326,8 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
                     <option value="">All</option>
                     <option value="pending">Pending</option>
                     <option value="scheduled">Scheduled</option>
-                    <option value="confirmed">Confirmed</option>
                     <option value="canceled">Canceled</option>
+                    <option value="completed">Completed</option>
                   </select>
                 </span>
               </th>
@@ -325,7 +341,7 @@ export function BookingsListView({ showHeader = true, canEdit, canDelete }: { sh
             </tr>
           </thead>
           <tbody>
-            {sortedBookings.map((booking) => (
+            {bookingsToRender.map((booking) => (
               <tr key={booking.id} className="hover:bg-blue-50">
                 <td className="px-4 py-2 text-right">{new Date(booking.scheduledFor).toLocaleString()}</td>
                 <td className="px-4 py-2 text-right">{booking.customerId || "-"}</td>

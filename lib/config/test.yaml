@@ -62,10 +62,12 @@ technicianToSkills:
       - "Virtual Quote - Water Filtration"
       - "Virtual Quote - Remodel Project"
       - "Virtual Service"
+    enabled: true
   - technicianId: 76734742
     technicianName: "David G."
     skills:
       - "Virtual Service"
+    enabled: true
   - technicianId: 49786183
     technicianName: "Doug W."
     skills:
@@ -73,37 +75,45 @@ technicianToSkills:
       - "Virtual Quote - Water Filtration"
       - "Virtual Quote - Remodel Project"
       - "Virtual Service"
+    enabled: true
   - technicianId: 16109753
     technicianName: "Francisco J."
     skills:
       - "Virtual Service"
+    enabled: true
   - technicianId: 60829405
     technicianName: "Greg S."
     skills:
       - "Virtual Quote - Repair/Install"
       - "Virtual Quote - Water Filtration"
+    enabled: true
   - technicianId: 78123939
     technicianName: "Ian F."
     skills:
       - "Virtual Quote - Remodel Project"
+    enabled: true
   - technicianId: 45406649
     technicianName: "Kyler B."
     skills:
       - "Virtual Service"
+    enabled: true
   - technicianId: 2513668
     technicianName: "Michael G."
     skills:
       - "Virtual Quote - Remodel Project"
       - "Virtual Quote - Water Filtration"
+    enabled: true
   - technicianId: 34365881
     technicianName: "Pedro H."
     skills:
       - "Virtual Quote - Water Filtration"
       - "Virtual Quote - Repair/Install"
+    enabled: true
   - technicianId: 60804414
     technicianName: "Trevar S."
     skills:
       - "Virtual Service"
+    enabled: true
 
 # Custom Fields Mapping
 customFields:

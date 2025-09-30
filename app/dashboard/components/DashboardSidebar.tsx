@@ -34,9 +34,8 @@ export default function DashboardSidebar() {
   console.log("Session user image:", session?.user?.image);
 
   return (
-    <aside className="top-0 left-0 h-screen w-20 bg-gray-50 border-r p-4 flex flex-col items-center sticky z-50">
-      
-      <div className="flex flex-col items-center space-y-6 mt-4">
+    <aside className="fixed top-0 left-0 bottom-0 w-20 bg-gray-50 border-r p-4 flex flex-col items-center z-50 overflow-y-auto">
+      <div className="flex flex-col items-center space-y-6 mt-4 flex-shrink-0">
         <div className="h-10 w-10 rounded-full flex items-center justify-center rounded hover:bg-gray-200">
           <Link href="/dashboard" title="Dashboard" className="hover:text-gray-900 rounded hover:bg-gray-200">
             <ChartBarIcon className="h-6 w-6 text-gray-700" />
@@ -64,38 +63,35 @@ export default function DashboardSidebar() {
         )}
       </div>
 
-  <div className="mt-auto flex flex-col items-center space-y-2">
-    {/* Avatar */}
-    <Link 
-      href="#"
-      title={userName}
-      className="hover:text-gray-900 rounded hover:bg-gray-200"
-    >
-      {userImageUrl ? (
-        <Image
-          src={userImageUrl}
-          alt={userName || "User"}
-          width={32}
-          height={32}
-          className="rounded-full object-cover"
-          unoptimized
-        />
-      ) : (
-        <div className="h-10 w-10 rounded-full flex items-center justify-center rounded hover:bg-gray-200">
-          <UserCircleIcon className="h-6 w-6 text-gray-700" />
+      <div className="mt-auto flex flex-col items-center space-y-2 pb-4 flex-shrink-0">
+        {/* user avatar (non-interactive) */}
+        <div
+          title={userName}
+          aria-label={`Signed in as ${userName}`}
+          className="h-10 w-10 rounded-full flex items-center justify-center"
+        >
+          {userImageUrl ? (
+            <Image
+              src={userImageUrl}
+              alt={userName}
+              width={40}
+              height={40}
+              className="rounded-full object-cover"
+              unoptimized
+            />
+          ) : (
+            <UserCircleIcon className="h-6 w-6 text-gray-700" />
+          )}
         </div>
-      )}
-    </Link>
 
-    {/* Botón logout */}
-    <button
-      onClick={handleLogout}
-      title="Logout"
-      className="flex items-center justify-center p-2 rounded hover:bg-gray-200"
-    >
-      <ArrowRightOnRectangleIcon className="h-6 w-6 text-gray-700" />
-    </button>
-  </div>
+        <button
+          onClick={handleLogout}
+          title="Logout"
+          className="flex items-center justify-center p-2 rounded hover:bg-gray-200"
+        >
+          <ArrowRightOnRectangleIcon className="h-6 w-6 text-gray-700" />
+        </button>
+      </div>
     </aside>
   );
 }
