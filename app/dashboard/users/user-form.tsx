@@ -10,9 +10,10 @@ import { useSession } from "next-auth/react";
 type UserFormProps = {
   existing?: User;
   onSaved: () => void;
+  title?: string;
 };
 
-export function UserForm({ existing, onSaved }: UserFormProps) {
+export function UserForm({ existing, onSaved, title }: UserFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(
@@ -100,7 +101,7 @@ export function UserForm({ existing, onSaved }: UserFormProps) {
   return (
     <div>
       <h2 className="text-xl font-semibold mb-4 text-center">
-        {existing ? "Edit User" : "Add New User"}
+        {title ?? (existing ? `Edit user ${existing.name}` : "Add new user")}
       </h2>
       {message && (
         <div className={`mb-4 text-center text-base font-medium transition-all

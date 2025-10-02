@@ -10,6 +10,7 @@ import { ChartBarIcon,
          ArrowRightOnRectangleIcon,
          CalendarDaysIcon } from "@heroicons/react/24/solid";
 import { logoutAction } from "@/app/actions/logout";
+import { useRouter } from "next/navigation";
 
 // interface SessionWithRole {
 //   user: {
@@ -25,6 +26,7 @@ export default function DashboardSidebar() {
   const role = session?.user?.role as ("USER" | "ADMIN") | undefined;
   const userImageUrl = session?.user?.image;
   const userName = session?.user?.name || "User";
+  const router = useRouter();
 
   const handleLogout = async () => {
     await logoutAction();
@@ -65,10 +67,12 @@ export default function DashboardSidebar() {
 
       <div className="mt-auto flex flex-col items-center space-y-2 pb-4 flex-shrink-0">
         {/* user avatar (non-interactive) */}
-        <div
+        <button
+          type="button"
+          onClick={() => router.push("/dashboard/profile")}
           title={userName}
-          aria-label={`Signed in as ${userName}`}
-          className="h-10 w-10 rounded-full flex items-center justify-center"
+          aria-label={`Profile of ${userName}`}
+          className="h-10 w-10 rounded-full flex items-center justify-center hover:bg-gray-200 transition"
         >
           {userImageUrl ? (
             <Image
@@ -82,7 +86,7 @@ export default function DashboardSidebar() {
           ) : (
             <UserCircleIcon className="h-6 w-6 text-gray-700" />
           )}
-        </div>
+        </button>
 
         <button
           onClick={handleLogout}
