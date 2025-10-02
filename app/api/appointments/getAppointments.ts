@@ -3,7 +3,6 @@ import { env } from "@/lib/config/env";
 import { Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
 import { QuoteSkill, TechnicianToSkillsMapping } from '@/lib/config/types';
 import { getTechnicianToSkills } from '@/lib/appSettings/getConfig';
-
 import pino from 'pino';
 
 const logger = pino({ name: 'getAvailableTimeSlots' });
