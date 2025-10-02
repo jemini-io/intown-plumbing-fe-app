@@ -5,4 +5,5 @@ export interface ServiceToJobType {
     emoji: string
     icon: string;
     description: string;
+    enabled: boolean;
 }
