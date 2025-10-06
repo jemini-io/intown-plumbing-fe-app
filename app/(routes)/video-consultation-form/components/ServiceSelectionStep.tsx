@@ -4,7 +4,7 @@ import FormLayout from '@/components/FormLayout';
 import Icon from '@/components/Icon';
 import { getServiceToJobTypes } from '@/lib/appSettings/getConfig';
 import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 
 export default function ServiceStep() {
@@ -75,6 +75,18 @@ export default function ServiceStep() {
     return <span className="text-2xl">{jobType.emoji}</span>;
   };
 
+  // Memoized list of enabled job types
+  const enabledJobTypes = useMemo(
+    () => availableJobTypes.filter(j => j.enabled === true),
+    [availableJobTypes]
+  );
+
+  useEffect(() => {
+    if (selectedJobType && !selectedJobType.enabled) {
+      setSelectedJobType(null);
+      setSelectedSkill(null);
+    }
+  }, [selectedJobType, setSelectedJobType, setSelectedSkill]);
 
   if (isLoadingJobTypes) {
     return (
@@ -107,8 +119,6 @@ export default function ServiceStep() {
       </FormLayout>
     );
   }
-
-  const enabledJobTypes = availableJobTypes.filter(jobType => jobType.enabled);
 
   return (
     <FormLayout>
@@ -240,4 +250,4 @@ export default function ServiceStep() {
       </div>
     </FormLayout>
   );
-} 
+}
