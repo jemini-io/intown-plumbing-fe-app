@@ -138,6 +138,13 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
             <option value="USER">USER</option>
             <option value="ADMIN">ADMIN</option>
           </select>
+          {isProtectedAdmin && (
+            <input
+              type="hidden"
+              name="role"
+              value={existing?.role ?? "USER"}
+            />
+          )}
         </div>
         {/* Email */}
         <div>
@@ -150,6 +157,13 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
             required
             disabled={isProtectedAdmin}
           />
+          {isProtectedAdmin && (
+            <input
+              type="hidden"
+              name="email"
+              value={existing?.email ?? ""}
+            />
+          )}
         </div>
         {/* Password */}
         <div>
