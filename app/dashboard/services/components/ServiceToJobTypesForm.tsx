@@ -13,6 +13,7 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
+  const [enabled, setEnabled] = useState<boolean>(existing ? existing.enabled : true);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -26,6 +27,7 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
         emoji: formData.get("emoji") as string,
         icon: formData.get("icon") as string,
         description: formData.get("description") as string,
+        enabled,
       };
 
       try {
@@ -36,6 +38,7 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
           await addService(service);
           setMessage({ type: "success", text: "Service created successfully!" });
           formRef.current?.reset();
+          setEnabled(true);
         }
         setTimeout(() => {
           setMessage(null);
@@ -53,8 +56,11 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
         {existing ? "Edit Service" : "Add New Service"}
       </h2>
       {message && (
-        <div className={`mb-4 text-center text-base font-medium transition-all
-          ${message.type === "success" ? "text-green-600" : "text-red-600"}`}>
+        <div
+          className={`mb-4 text-center text-base font-medium transition-all ${
+            message.type === "success" ? "text-green-600" : "text-red-600"
+          }`}
+        >
           {message.text}
         </div>
       )}
@@ -123,6 +129,26 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
             required
             placeholder="e.g. wrench"
           />
+        </div>
+        {/* Enabled pill toggle */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-700">Enabled</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            onClick={() => setEnabled(v => !v)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+              enabled ? "bg-green-500" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                enabled ? "translate-x-5" : "translate-x-1"
+              }`}
+            />
+          </button>
+          <input type="hidden" name="enabled" value={enabled ? "true" : "false"} />
         </div>
         {/* Description */}
         <div className="col-span-2">

@@ -1,4 +1,3 @@
-// import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
@@ -7,16 +6,15 @@ import { AdapterUser } from "next-auth/adapters";
 import pino from "pino";
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
-// import type NextAuth from "next-auth/next";
+import type { Role } from "@/types/next-auth";
 
 const logger = pino({ name: "Auth" });
 
 export interface UserWithRole extends AdapterUser {
-  role: "USER" | "ADMIN";
+  role: Role;
   image: string | null;
 }
 
-// export const authOptions: NextAuthOptions = {
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -82,6 +80,7 @@ export const authOptions = {
     }) {
       if (user) {
         const u = user as UserWithRole;
+        token.id = u.id;
         token.role = u.role;
         token.name = u.name ?? undefined;
         token.image = u.image ?? undefined;
@@ -90,20 +89,38 @@ export const authOptions = {
       }
       return token;
     },
-    async session({ 
-      session, 
-      token 
-    }: { 
-      session: Session; 
-      token: JWT 
+    async session({
+      session,
+      token
+    }: {
+      session: Session;
+      token: JWT;
     }) {
-      if (session.user) {
+      if (!token.id) return session;
+      try {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          include: { image: true }
+        });
+        if (dbUser) {
+          session.user = {
+            id: dbUser.id,
+            email: dbUser.email,
+            name: dbUser.name,
+            role: dbUser.role,
+            image: dbUser.image ? dbUser.image.url : null
+          };
+        }
+      } catch (e) {
+        logger.error({ e }, "session callback user fetch failed");
+        // fallback to what's in token
         session.user = {
           ...session.user,
-          role: token.role,
-          name: token.name,
-          image: token.image,
-        } as typeof session.user & { role: string; name?: string; image?: string };
+          id: (token.id as string) || "",
+          role: (token.role as Role) || "USER",
+          name: token.name ?? null,
+          image: (token.image as string) || null
+        };
       }
       return session;
     },

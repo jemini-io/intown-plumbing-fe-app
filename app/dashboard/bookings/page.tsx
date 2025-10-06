@@ -13,7 +13,6 @@ export default function BookingsPage() {
       <div className="min-h-screen p-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Bookings</h1>
-          {/* Puedes agregar aquí un icono o botón si lo necesitas solo para admins */}
         </div>
         <div className="bg-white rounded-lg shadow p-6">
           <BookingsListView 

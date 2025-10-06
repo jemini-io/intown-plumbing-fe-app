@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { Setting } from "@/lib/types/setting";
-import { getServiceToJobsTypeSetting, deleteService } from "../actions";
+import { getServiceToJobsTypeSetting, updateService, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
@@ -17,6 +17,8 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<ServiceToJobType | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [services, setServices] = useState<ServiceToJobType[]>([]);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   async function refresh() {
     const s = await getServiceToJobsTypeSetting();
@@ -26,6 +28,24 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   useEffect(() => {
     refresh();
   }, []);
+
+  useEffect(() => {
+    if (!serviceToJobsTypeSetting?.value) {
+      setServices([]);
+      return;
+    }
+    try {
+      const parsed: ServiceToJobType[] = JSON.parse(serviceToJobsTypeSetting.value);
+      setServices(
+        parsed.map(s => ({
+          ...s,
+          enabled: s.enabled !== false // default true if missing (backward compatibility)
+        }))
+      );
+    } catch {
+      setServices([]);
+    }
+  }, [serviceToJobsTypeSetting?.value]);
 
   function handleAdd() {
     setSelectedService(undefined);
@@ -54,11 +74,35 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
     }
   };
 
-  const services: ServiceToJobType[] = serviceToJobsTypeSetting?.value
-    ? JSON.parse(serviceToJobsTypeSetting.value)
-    : [];
-
   const servicesToRender = props.limit ? services.slice(0, props.limit) : services;
+
+  async function handleToggleEnabled(svc: ServiceToJobType) {
+    const id = String(svc.serviceTitanId);
+    const next = !svc.enabled;
+    setUpdatingId(id);
+    // Optimistic update
+    setServices(prev =>
+      prev.map(item =>
+        String(item.serviceTitanId) === id ? { ...item, enabled: next } : item
+      )
+    );
+    try {
+      const updatedList = await updateService(id, { enabled: next });
+      // Sync with persisted result (normalize)
+      const normalized = updatedList.map(s => ({
+        ...s,
+        enabled: s.enabled !== false
+      }));
+      setServices(normalized);
+      setServiceToJobsTypeSetting(prev =>
+        prev ? { ...prev, value: JSON.stringify(updatedList) } : prev
+      );
+    } catch {
+      await refresh(); // revert
+    } finally {
+      setUpdatingId(null);
+    }
+  }
 
   return (
     <>
@@ -72,31 +116,64 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
           <PlusIcon className="h-6 w-6" />
         </button>
       </div>
-      <ul className="divide-y divide-gray-200">
-        {servicesToRender?.map((service, idx) => (
-          <li key={idx} className="flex items-center justify-between p-2 hover:bg-blue-50">
-            <div>
+      {/* Header */}
+      <div className="grid grid-cols-12 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+        <div className="col-span-3">Name</div>
+        <div className="col-span-5">Description</div>
+        <div className="col-span-2 text-center">Enabled</div>
+        <div className="col-span-2 text-right">Actions</div>
+      </div>
+      <ul>
+        {servicesToRender?.map(service => (
+          <li
+            key={service.serviceTitanId}
+            className="grid grid-cols-12 items-start px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
+          >
+            <div className="col-span-3 pr-2">
               <span className="font-medium">{service.displayName}</span>
-              <p className="text-sm text-gray-500">{service.description}</p>
             </div>
-            <div className="flex gap-2">
+            <div className="col-span-5 pr-2">
+              <p className="text-sm text-gray-600 whitespace-pre-line">
+                {service.description}
+              </p>
+            </div>
+            <div className="col-span-2 flex items-center justify-center">
               <button
-                className="text-blue-500 hover:underline font-medium px-1"
-                onClick={() => handleEdit(service)}
+                type="button"
+                role="switch"
+                aria-checked={service.enabled}
+                onClick={() => handleToggleEnabled(service)}
+                disabled={updatingId === String(service.serviceTitanId)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                  service.enabled ? "bg-green-500" : "bg-gray-300"
+                } ${
+                  updatingId === String(service.serviceTitanId)
+                    ? "opacity-60 cursor-wait"
+                    : "cursor-pointer"
+                }`}
+                title={service.enabled ? "Disable service" : "Enable service"}
               >
-                <PencilIcon
-                  title={`Edit "${service.displayName}" service`}
-                  className="h-4 w-4 inline-block"
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                    service.enabled ? "translate-x-5" : "translate-x-1"
+                  }`}
                 />
               </button>
+            </div>
+            <div className="col-span-2 flex items-center justify-end gap-1">
               <button
-                className="text-red-500 hover:underline font-medium px-1"
-                onClick={() => handleDeleteService?.(service)}
+                className="text-blue-500 hover:text-blue-700 p-1"
+                title="Edit"
+                onClick={() => handleEdit(service)}
               >
-                <TrashIcon
-                  title={`Remove "${service.displayName}" service`}
-                  className="h-4 w-4 inline-block"
-                />
+                <PencilIcon className="h-4 w-4" />
+              </button>
+              <button
+                className="text-red-500 hover:text-red-700 p-1"
+                title="Delete"
+                onClick={() => handleDeleteService(service)}
+              >
+                <TrashIcon className="h-4 w-4" />
               </button>
             </div>
           </li>

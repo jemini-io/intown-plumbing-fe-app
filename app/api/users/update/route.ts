@@ -118,6 +118,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    logger.info({ userId, updateData }, "Updating user in DB");
     await prisma.user.update({
       where: { id: userId },
       data: updateData,
