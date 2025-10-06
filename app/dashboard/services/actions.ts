@@ -59,7 +59,7 @@ export async function updateService(
 
   const current = list[idx];
 
-  // Permitir cambio de ID si no existe colisión
+  // Allow ID change if no collision exists
   let nextId = current.serviceTitanId;
   if (updated.serviceTitanId && String(updated.serviceTitanId) !== String(originalServiceTitanId)) {
     const collision = list.some(

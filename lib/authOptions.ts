@@ -1,4 +1,3 @@
-// import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +7,6 @@ import pino from "pino";
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
 import type { Role } from "@/types/next-auth";
-// import type NextAuth from "next-auth/next";
 
 const logger = pino({ name: "Auth" });
 
@@ -17,7 +15,6 @@ export interface UserWithRole extends AdapterUser {
   image: string | null;
 }
 
-// export const authOptions: NextAuthOptions = {
 export const authOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
@@ -116,7 +113,7 @@ export const authOptions = {
         }
       } catch (e) {
         logger.error({ e }, "session callback user fetch failed");
-        // fallback a lo que haya en token
+        // fallback to what's in token
         session.user = {
           ...session.user,
           id: (token.id as string) || "",
