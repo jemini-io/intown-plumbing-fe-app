@@ -32,4 +32,5 @@ export interface TechnicianToSkillsMapping {
   technicianId: number;
   technicianName: string;
   skills: SUPPORTED_SKILLS[];
+  enabled: boolean;
 }

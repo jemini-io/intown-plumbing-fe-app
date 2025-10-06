@@ -47,6 +47,14 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     // const allTechs = getTechsList.data || getTechsList;
     const techsSkillsList: TechnicianToSkillsMapping[]  = await getTechnicianToSkills();
 
+    // Filter to only enabled technicians
+    const enabledTechsSkillsList = techsSkillsList.filter(tech => tech.enabled === true);
+    logger.info(`Found ${enabledTechsSkillsList.length} enabled technicians with skills: ${enabledTechsSkillsList.map(tech => tech.technicianName).join(', ')}`);
+
+    if (enabledTechsSkillsList.length === 0) {
+      logger.warn("No enabled technicians available");
+      return [];
+    }
 
     // Get ST Job Type
     const jobTypeResponse = await serviceTitanClient.jpm.JobTypesService.jobTypesGet({
@@ -56,14 +64,14 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     const jobTypeSkills = jobTypeResponse.skills;
 
     // Filter techs for matching skills
-    let filteredTechs = techsSkillsList;
+    let filteredTechs = enabledTechsSkillsList;
     if (jobType.skill) {
         // If a specific skill is provided, filter for that skill
-        filteredTechs = techsSkillsList.filter((tech) => tech.skills.includes(jobType.skill as QuoteSkill));
+        filteredTechs = enabledTechsSkillsList.filter((tech) => tech.skills.includes(jobType.skill as QuoteSkill));
         logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
     } else {
         // Otherwise, filter by jobTypeSkills as before
-        filteredTechs = techsSkillsList.filter((tech) => {
+        filteredTechs = enabledTechsSkillsList.filter((tech) => {
             return tech.skills.some((skill) => jobTypeSkills.includes(skill));
         });
         logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
