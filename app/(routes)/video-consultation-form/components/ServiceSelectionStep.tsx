@@ -108,16 +108,18 @@ export default function ServiceStep() {
     );
   }
 
+  const enabledJobTypes = availableJobTypes.filter(jobType => jobType.enabled);
+
   return (
     <FormLayout>
       <div className="survey-container space-y-6">
-        {availableJobTypes.length === 0 ? (
+        {enabledJobTypes.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 text-sm sm:text-base">No services available at this time.</p>
           </div>
         ) : (
           <div className="button-row flex items-stretch">
-            {availableJobTypes.map(jobType => (
+            {enabledJobTypes.map(jobType => (
               <div key={jobType.id} className="flex mr-2 mb-2 flex-1">
                 <div className="relative flex-1">
                   <button

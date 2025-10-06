@@ -7,6 +7,7 @@ export interface ServiceToJobTypeMapping {
   icon?: string; // New field for icon path
   description: string; // Added description field
   skills?: typeof QUOTE_SKILLS;
+  enabled: boolean; // New field to indicate if the job type is enabled
 }
 
 export const QUOTE_SKILLS = [
