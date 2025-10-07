@@ -21,6 +21,7 @@ async function main() {
       name: "Default Admin User",
       passwordDigest,
       role: "ADMIN",
+      enabled: true,
     },
   });
 

@@ -202,10 +202,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
           </div>
         )}
 
-        {!isCurrentUserAnAdmin && (
-            <input type="hidden" name="enabled" value={existing ? (existing.enabled === true ? "true" : "false") : "true"} />
-          )
-        }
+        <input type="hidden" name="enabled" value={enabled === true ? "true" : "false"} />
 
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
