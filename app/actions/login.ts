@@ -15,12 +15,21 @@ export async function loginAction({
   redirect = false,
   callbackUrl = "/dashboard",
 }: LoginParams) {
-  const res = await signIn("credentials", {
-    redirect,
-    email,
-    password,
-    callbackUrl,
-  });
+  try {
+    const res = await signIn("credentials", {
+      redirect,
+      email,
+      password,
+      callbackUrl,
+    });
 
-  return res;
+    // Normalize when signIn returns undefined (happens in some cases)
+    if (!res) return { error: "CredentialsSignin" };
+
+    return res;
+  } catch (err: unknown) {
+    const message =
+      err instanceof Error ? err.message : typeof err === "string" ? err : "CredentialsSignin";
+    return { error: message };
+  }
 }

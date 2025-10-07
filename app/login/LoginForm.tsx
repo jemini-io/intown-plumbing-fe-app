@@ -4,13 +4,14 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { loginAction } from "../actions/login";
 import Image from "next/image";
-import pino from "pino";
+// import pino from "pino";
 import PasswordInput from "@/components/PasswordInput";
 
-const logger = pino({ name: "LoginForm" });
+// const logger = pino({ name: "LoginForm" });
 
 const errorMessages: Record<string, string> = {
   CredentialsSignin: "Invalid email or password. Please try again.",
+  NotAllowed: "Your account has been temporarily disabled. Please contact the administrator.",
   default: "An unexpected error occurred. Please try again later.",
 };
 
@@ -46,21 +47,31 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      const res = await loginAction({
+      type LoginSuccess = { ok?: boolean; url?: string };
+      type LoginError = { error: string | null };
+      const res: LoginSuccess | LoginError = await loginAction({
         email,
         password,
       });
 
-      logger.info(res, "LoginAction response:");
-
-      if (res?.ok) {
+      // signIn returns { ok: true, error: null, url } on success (so check ok)
+      if ("ok" in res && (res as LoginSuccess).ok) {
+        // console.log("Login successful, updating session...");
         await update();
-        router.replace(res.url || "/dashboard");
-      } else if (res?.error) {
-        router.replace(`/login?error=${res.error}`);
+        const successRes = res as { url?: string };
+        router.replace(successRes.url || "/dashboard");
+        return;
       }
-    } catch (err) {
-      logger.error(err, "Login error:");
+
+      // Handle error (res.error may be a string code)
+      const errMsg = (res as LoginError).error;
+      if (errMsg) {
+        setErrorMessage(errorMessages[errMsg] || errMsg || errorMessages.default);
+      } else {
+        // fallback when signIn returned undefined or unexpected shape
+        setErrorMessage(errorMessages.default);
+      }
+    } catch {
       setErrorMessage(errorMessages.default);
     } finally {
       setIsLoading(false);

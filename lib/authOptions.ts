@@ -13,6 +13,7 @@ const logger = pino({ name: "Auth" });
 export interface UserWithRole extends AdapterUser {
   role: Role;
   image: string | null;
+  enabled: boolean;
 }
 
 export const authOptions = {
@@ -30,17 +31,25 @@ export const authOptions = {
           return null;
         }
 
-        logger.info(credentials.email, 'Attempting login for email');
+        logger.info({email: credentials.email}, 'Attempting login for');
 
         // Check if user exists
         const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
+          where: { email: credentials.email},
           include: { image: true },
         });
 
         if (!user) {
-          logger.info(credentials.email, "User not found");
+          logger.info({email: credentials.email}, "User not found with");
           return null;
+        }
+
+        logger.info({email: credentials.email}, "User found");
+
+        if (user.enabled == false) {
+          logger.info({email: credentials.email, enabled: user.enabled}, "User sign-in doesn't proceed: The user is marked as NOT enabled");
+          // return null;
+          throw new Error("Your account has been temporarily disabled. Please contact the administrator.");
         }
 
         logger.info({
@@ -62,6 +71,7 @@ export const authOptions = {
           name: user.name,
           role: user.role,
           image: user.image ? user.image.url : null,
+          enabled: user.enabled,
         };
       },
     }),
@@ -84,6 +94,8 @@ export const authOptions = {
         token.role = u.role;
         token.name = u.name ?? undefined;
         token.image = u.image ?? undefined;
+        token.email = u.email ?? undefined;
+        token.enabled = u.enabled ?? true;
         // // If user.image is an object, get the URL
         // token.image = typeof u.image === "object" && u.image !== null ? u.image.url : u.image;
       }
@@ -108,7 +120,8 @@ export const authOptions = {
             email: dbUser.email,
             name: dbUser.name,
             role: dbUser.role,
-            image: dbUser.image ? dbUser.image.url : null
+            image: dbUser.image ? dbUser.image.url : null,
+            enabled: dbUser.enabled,
           };
         }
       } catch (e) {
@@ -119,7 +132,8 @@ export const authOptions = {
           id: (token.id as string) || "",
           role: (token.role as Role) || "USER",
           name: token.name ?? null,
-          image: (token.image as string) || null
+          image: (token.image as string) || null,
+          enabled: token.enabled ?? true,
         };
       }
       return session;

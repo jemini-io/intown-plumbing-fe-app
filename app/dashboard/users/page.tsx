@@ -8,6 +8,7 @@ import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/reac
 import Image from "next/image";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 import { UserForm } from "./user-form";
+import { useSession } from "next-auth/react";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -17,6 +18,7 @@ export default function UsersPage() {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const { data: session, update } = useSession();
 
   // Refresh users list
   async function refresh() {
@@ -51,6 +53,12 @@ export default function UsersPage() {
 
        const res = await fetch("/api/users/update", { method: "POST", body: formData });
        if (!res.ok) throw new Error("Failed to update");
+
+       // If the toggle was for the current user, refresh session to get latest enabled state
+       if (session?.user?.email === u.email) {
+         await update();
+       }
+
        // refresh from server to keep canonical state (and update settings)
        await refresh();
      } catch {
@@ -94,17 +102,40 @@ export default function UsersPage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen p-8">
-        <div className="flex items-center justify-between mb-8">
-          <h3 className="text-3xl font-bold">Users</h3>
-          <button
-            onClick={handleAddNew}
-            className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
-            title="Add new user"
+      <div className="min-h-screen p-8" aria-busy={Boolean(updatingId)}>
+        {/* Blocking overlay shown while a toggle/update is in progress */}
+        {updatingId && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+            role="status"
+            aria-live="polite"
           >
-            <PlusIcon className="h-6 w-6" />
-          </button>
-        </div>
+            <div className="flex flex-col items-center gap-3">
+              <svg
+                className="animate-spin h-10 w-10 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+              >
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+              </svg>
+              <span className="text-white text-sm">Updating…</span>
+            </div>
+          </div>
+        )}
+         <div className="flex items-center justify-between mb-8">
+           <h3 className="text-3xl font-bold">Users</h3>
+           <button
+             onClick={handleAddNew}
+             className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
+             title="Add new user"
+             disabled={Boolean(updatingId)}
+           >
+             <PlusIcon className="h-6 w-6" />
+           </button>
+         </div>
 
         <div className="bg-white rounded-xl shadow p-6">
           <table className="min-w-full table-auto">

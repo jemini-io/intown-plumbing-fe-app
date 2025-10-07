@@ -8,12 +8,9 @@ declare module "next-auth" {
     image: string | null;
     name: string | null;
     email: string | null;
+    enabled: boolean;
   }
 
-  // interface Session {
-  //   user?: (DefaultSession["user"] & { role?: string | null }) | null;
-  //   // Note: we don't redefine `expires`; it stays from DefaultSession
-  // }
   interface Session {
     user: {
       id: string;
@@ -21,17 +18,10 @@ declare module "next-auth" {
       name: string | null;
       email: string | null;
       image: string | null;
+      enabled: boolean;
     } & DefaultSession["user"];
   }
 }
-
-// declare module "next-auth/jwt" {
-//   interface JWT {
-//     role?: string | null;
-//     name?: string | null;
-//     image?: string | null;
-//   }
-// }
 
 declare module "next-auth/jwt" {
   interface JWT {
@@ -40,5 +30,6 @@ declare module "next-auth/jwt" {
     name?: string | null;
     email?: string | null;
     image?: string | null;
+    enabled?: boolean;
   }
 }

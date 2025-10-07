@@ -15,6 +15,7 @@ interface SessionUser {
   email?: string | null;
   image?: string | null;
   role?: string | null;
+  enabled?: boolean;
 }
 
 interface UserImage {
@@ -30,6 +31,7 @@ interface UserFormExisting {
   email: string;
   role: Role;
   image: UserImage | null;
+  enabled: boolean;
 }
 
 export default function ProfilePage() {
@@ -49,6 +51,7 @@ export default function ProfilePage() {
   const email = user?.email || "";
   const role = (user?.role as Role) || "user";
   const image = user?.image || null;
+  const enabled = user?.enabled ?? true;
 
   const existingUser = useMemo<UserFormExisting>(
     () => ({
@@ -63,9 +66,10 @@ export default function ProfilePage() {
             publicId: "self-image-public-id",
             uploadedAt: new Date().toISOString(),
           }
-        : null
+        : null,
+      enabled,
     }),
-    [user?.id, name, email, role, image]
+    [user, name, email, role, image, enabled]
   );
 
   if (status === "loading") {
