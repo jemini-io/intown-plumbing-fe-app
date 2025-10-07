@@ -27,7 +27,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
   const { data: session, update } = useSession();
 
   // Only show the enabled pill to admins editing other users (not for self-edit)
-  const isAdmin = session?.user?.role === "ADMIN";
+  const isCurrentUserAnAdmin = session?.user?.role === "ADMIN";
   // const isSelf = !!existing && String(session?.user?.id) === String(existing.id);
   const isProtectedAdmin = existing?.email === "admin@example.com";
   const adminStateClass = isProtectedAdmin ? "opacity-60 cursor-not-allowed" : "";
@@ -138,12 +138,12 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
             defaultValue={existing?.role ?? "USER"}
             className="w-full border rounded p-2"
             required
-            disabled={isProtectedAdmin}
+            disabled={isProtectedAdmin || !isCurrentUserAnAdmin}
           >
             <option value="USER">USER</option>
             <option value="ADMIN">ADMIN</option>
           </select>
-          {isProtectedAdmin && (
+          {(isProtectedAdmin || !isCurrentUserAnAdmin) && (
             <input
               type="hidden"
               name="role"
@@ -181,11 +181,12 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
           />
         </div>
 
-        {isAdmin && (
+        {isCurrentUserAnAdmin && (
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-gray-700">Enabled</span>
             <button
               type="button"
+              name="enabled"
               role="switch"
               aria-checked={enabled}
               aria-disabled={isProtectedAdmin}
@@ -198,9 +199,13 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
                 className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${enabled ? "translate-x-5" : "translate-x-1"}`}
               />
             </button>
-            <input type="hidden" name="enabled" value={enabled === true ? "true" : "false"} />
           </div>
         )}
+
+        {!isCurrentUserAnAdmin && (
+            <input type="hidden" name="enabled" value={existing ? (existing.enabled === true ? "true" : "false") : "true"} />
+          )
+        }
 
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
