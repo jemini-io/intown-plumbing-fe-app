@@ -29,6 +29,7 @@ model User {
   image          UserImage? @relation(fields: [imageId], references: [id])
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  enabled        Boolean  @default(true)
 }
 
 model UserImage {

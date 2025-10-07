@@ -13,4 +13,5 @@ export type User = {
   email: string;
   role: Role;
   image: UserImage | null; // antes: string | null
+  enabled: boolean;
 };

@@ -92,13 +92,32 @@ export async function POST(req: NextRequest) {
     name: string;
     email: string;
     role: Role;
+    enabled: boolean;
     passwordDigest?: string;
     image?: { connect: { id: string } } | { disconnect: true };
   } = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,
     role: formData.get("role") as Role,
+    enabled: formData.get("enabled") === "true",
   };
+
+  // Handle enabled flag coming from the form
+  // Only allow toggling enabled if requester is ADMIN; protect special admin account
+  const requestedEnabledRaw = formData.get("enabled");
+  if (typeof requestedEnabledRaw === "string") {
+    const requestedEnabled = requestedEnabledRaw === "true";
+    const isRequesterAdmin = session.user?.role === "ADMIN";
+    const isTargetProtectedAdmin = user?.email === "admin@example.com";
+
+    if (!isRequesterAdmin) {
+      // Non-admins cannot change enabled flag — preserve current
+      updateData.enabled = user?.enabled ?? true;
+    } else {
+      // Admins can change, but do not allow disabling protected admin account
+      updateData.enabled = isTargetProtectedAdmin ? true : requestedEnabled;
+    }
+  } 
 
   if (userImageId) {
     updateData.image = { connect: { id: userImageId } };

@@ -8,6 +8,7 @@ export type UserData = {
   name: string;
   password?: string;
   role: "USER" | "ADMIN";
+  enabled: boolean;
 };
 
 export async function getUsers() {
@@ -19,6 +20,7 @@ export async function getUsers() {
       name: true,
       role: true,
       image: true,
+      enabled: true,
     },
   });
 }

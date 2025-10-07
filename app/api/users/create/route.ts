@@ -23,6 +23,13 @@ export async function POST(req: NextRequest) {
   const role = formData.get("role") as "USER" | "ADMIN";
   const imageFile = formData.get("image") as File | null;
 
+  // parse enabled flag; only admins can set it explicitly, otherwise default true
+  const requestedEnabledRaw = formData.get("enabled");
+  const requesterIsAdmin = session.user?.role === "ADMIN";
+  const enabled = typeof requestedEnabledRaw === "string" && requesterIsAdmin
+    ? requestedEnabledRaw === "true"
+    : true;
+
   let uploadedImage = null;
   let userImage = null;
   let user = null;
@@ -41,6 +48,7 @@ export async function POST(req: NextRequest) {
         name,
         passwordDigest: hashedPassword,
         role,
+        enabled,
       },
     });
 

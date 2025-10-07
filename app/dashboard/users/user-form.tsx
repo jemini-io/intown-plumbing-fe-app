@@ -22,10 +22,12 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [password, setPassword] = useState<string>("");
   const [removeImage, setRemoveImage] = useState(false);
+  const [enabled, setEnabled] = useState<boolean>(existing ? (existing.enabled ?? true) : true);
   const formRef = useRef<HTMLFormElement>(null);
   const { data: session, update } = useSession();
 
   const isProtectedAdmin = existing?.email === "admin@example.com";
+  const adminStateClass = isProtectedAdmin ? "opacity-60 cursor-not-allowed" : "";
 
   useEffect(() => {
     if (imageFile) {
@@ -175,6 +177,27 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
             placeholder={existing ? "Leave blank to keep current password" : "••••••••"}
           />
         </div>
+
+        {/* Enabled pill */}
+        <div className="flex items-center gap-3">
+          <span className="text-sm font-medium text-gray-700">Enabled</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={enabled}
+            aria-disabled={isProtectedAdmin}
+            onClick={() => setEnabled(v => !v)}
+            disabled={isProtectedAdmin}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${enabled ? "bg-green-500" : "bg-gray-300"} ${adminStateClass}`}
+            title={isProtectedAdmin ? "Protected admin — not editable" : enabled ? "Disable user" : "Enable user"}
+          >
+            <span
+              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${enabled ? "translate-x-5" : "translate-x-1"}`}
+            />
+          </button>
+          <input type="hidden" name="enabled" value={enabled === true ? "true" : "false"} />
+        </div>
+
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
         </div>

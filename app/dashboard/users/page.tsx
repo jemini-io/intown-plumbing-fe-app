@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import DashboardLayout from "../components/DashboardLayout";
 import { getUsers, deleteUser } from "./actions";
-import { UserForm } from "./user-form";
 import { User } from "./types";
 import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
+import { UserForm } from "./user-form";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -16,6 +16,7 @@ export default function UsersPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Refresh users list
   async function refresh() {
@@ -24,6 +25,41 @@ export default function UsersPage() {
     setSelectedUser(undefined);
     setModalOpen(false);
   }
+
+  async function handleToggleEnabled(u: User) {
+     const id = String(u.id);
+     const nextEnabled = !u.enabled;
+     setUpdatingId(id);
+
+     // Optimistic update
+     setUsers(prev => 
+      prev.map(p => p.id === u.id 
+        ? { ...p, enabled: nextEnabled } 
+        : p
+      )
+    );
+
+     try {
+       const formData = new FormData();
+       formData.append("id", id);
+       // Append optional fields only when present to avoid sending nulls
+      if (typeof u.name === "string" && u.name.length > 0) formData.append("name", u.name);
+      if (typeof u.email === "string" && u.email.length > 0) formData.append("email", u.email);
+      if (typeof u.role === "string" && u.role.length > 0) formData.append("role", u.role);
+       // Append enabled flag
+       formData.append("enabled", nextEnabled ? "true" : "false");
+
+       const res = await fetch("/api/users/update", { method: "POST", body: formData });
+       if (!res.ok) throw new Error("Failed to update");
+       // refresh from server to keep canonical state (and update settings)
+       await refresh();
+     } catch {
+       // revert optimistic change
+       setUsers(prev => prev.map(p => p.id === u.id ? { ...p, enabled: u.enabled } : p));
+     } finally {
+       setUpdatingId(null);
+     }
+   }
 
   useEffect(() => {
     refresh();
@@ -78,11 +114,12 @@ export default function UsersPage() {
                 <th className="px-4 py-2 text-left">Name</th>
                 <th className="px-4 py-2 text-left">Email</th>
                 <th className="px-4 py-2 text-left">Role</th>
+                <th className="px-4 py-2 text-left">Enabled</th>
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {users.map((user: User) => (
                 <tr key={user.id} className="border-b hover:bg-blue-50">
                   <td className="pl-2 pr-1 py-2 w-12">
                     {user.image?.url ? (
@@ -103,6 +140,34 @@ export default function UsersPage() {
                   <td className="py-2 pl-0">{user.name}</td>
                   <td className="px-4 py-2">{user.email}</td>
                   <td className="px-4 py-2">{user.role}</td>
+                  <td className="px-4 py-2 text-center">
+                    {(() => {
+                      const isAdmin = user.email === "admin@example.com";
+                      const isBusy = updatingId === String(user.id);
+                      const colorClass = user.enabled ? "bg-green-500" : "bg-gray-300";
+                      // For admin keep the green but attenuated (opacity), remove grayscale so color remains visible
+                      const stateClass = isAdmin
+                        ? "opacity-60 cursor-not-allowed"
+                        : isBusy
+                        ? "opacity-60 cursor-wait"
+                        : "cursor-pointer";
+
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => handleToggleEnabled(user)}
+                          disabled={isAdmin || isBusy}
+                          className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${colorClass} ${stateClass}`}
+                          title={user.enabled ? "Disable user" : "Enable user"}
+                          aria-disabled={isAdmin || isBusy}
+                        >
+                          <span
+                            className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${user.enabled ? "translate-x-5" : "translate-x-1"}`}
+                          />
+                        </button>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-2 h-[50px]">
                     <div className="flex items-center gap-2 h-full">
                       <button
