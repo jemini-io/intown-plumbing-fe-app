@@ -1,6 +1,6 @@
 import React from "react";
 
-type DeleteConfirmModalProps = {
+type DisableConfirmModalProps = {
   open: boolean;
   title?: string;
   message: string;
@@ -9,14 +9,14 @@ type DeleteConfirmModalProps = {
   loading?: boolean;
 };
 
-export function DeleteConfirmModal({
+export function DisableConfirmModal({
   open,
-  title = "Confirm Deletion",
+  title = "Confirm Disable",
   message,
   onCancel,
   onConfirm,
   loading = false,
-}: DeleteConfirmModalProps) {
+}: DisableConfirmModalProps) {
   if (!open) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
@@ -64,7 +64,7 @@ export function DeleteConfirmModal({
                 />
               </svg>
             )}
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? "Disabling..." : "Disable"}
           </button>
         </div>
       </div>

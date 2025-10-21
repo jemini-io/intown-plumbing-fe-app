@@ -6,9 +6,10 @@ import { getUsers, deleteUser } from "./actions";
 import { User } from "./types";
 import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
+import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 import { UserForm } from "./user-form";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 
 export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
@@ -18,7 +19,12 @@ export default function UsersPage() {
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [confirmDisableOpen, setConfirmDisableOpen] = useState(false);
+  const [userToDisableConfirm, setUserToDisableConfirm] = useState<User | null>(null);
   const { data: session, update } = useSession();
+
+  const sessionUserId = session?.user?.id ?? null;
+  const isCurrentUser = (u: User) => String(u.id) === String(sessionUserId);
 
   // Refresh users list
   async function refresh() {
@@ -29,9 +35,13 @@ export default function UsersPage() {
   }
 
   async function handleToggleEnabled(u: User) {
-     const id = String(u.id);
      const nextEnabled = !u.enabled;
-     setUpdatingId(id);
+
+     if (nextEnabled === false && isCurrentUser(u)) {
+       setUserToDisableConfirm(u);
+       setConfirmDisableOpen(true);
+       return;
+     }
 
      // Optimistic update
      setUsers(prev => 
@@ -42,25 +52,7 @@ export default function UsersPage() {
     );
 
      try {
-       const formData = new FormData();
-       formData.append("id", id);
-       // Append optional fields only when present to avoid sending nulls
-      if (typeof u.name === "string" && u.name.length > 0) formData.append("name", u.name);
-      if (typeof u.email === "string" && u.email.length > 0) formData.append("email", u.email);
-      if (typeof u.role === "string" && u.role.length > 0) formData.append("role", u.role);
-       // Append enabled flag
-       formData.append("enabled", nextEnabled ? "true" : "false");
-
-       const res = await fetch("/api/users/update", { method: "POST", body: formData });
-       if (!res.ok) throw new Error("Failed to update");
-
-       // If the toggle was for the current user, refresh session to get latest enabled state
-       if (session?.user?.email === u.email) {
-         await update();
-       }
-
-       // refresh from server to keep canonical state (and update settings)
-       await refresh();
+       await performToggleEnabled(u, nextEnabled);
      } catch {
        // revert optimistic change
        setUsers(prev => prev.map(p => p.id === u.id ? { ...p, enabled: u.enabled } : p));
@@ -68,6 +60,50 @@ export default function UsersPage() {
        setUpdatingId(null);
      }
    }
+
+  // Extracted network/update logic so it can be called from the modal confirm too
+  async function performToggleEnabled(u: User, nextEnabled: boolean) {
+    const id = String(u.id);
+    setUpdatingId(id);
+    // form data (only append optional fields if present)
+    const formData = new FormData();
+    formData.append("id", id);
+    // Append optional fields only when present to avoid sending nulls
+    if (typeof u.name === "string" && u.name.length > 0) formData.append("name", u.name);
+    if (typeof u.email === "string" && u.email.length > 0) formData.append("email", u.email);
+    if (typeof u.role === "string" && u.role.length > 0) formData.append("role", u.role);
+    formData.append("enabled", nextEnabled ? "true" : "false");
+
+    try {
+      const res = await fetch("/api/users/update", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Failed to update");
+
+      if (isCurrentUser(u)) {
+        await update();
+      }
+
+      await refresh();
+    } catch (e) {
+      // revert optimistic change
+      setUsers(prev => prev.map(p => p.id === u.id ? { ...p, enabled: u.enabled } : p));
+      throw e;
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  // Confirm disable modal handlers
+  async function handleConfirmDisable() {
+    await performToggleEnabled(userToDisableConfirm!, false);
+    await signOut({ callbackUrl: "/login" });
+    return;
+  }
+
+  function handleCancelDisable() {
+    setConfirmDisableOpen(false);
+    setUserToDisableConfirm(null);
+  }
+
 
   useEffect(() => {
     refresh();
@@ -253,6 +289,17 @@ export default function UsersPage() {
             }}
             onConfirm={confirmDeleteUser}
             loading={deleting}
+          />
+        )}
+        {/* Modal shown when the signed-in user attempts to disable their own account */}
+        {confirmDisableOpen && userToDisableConfirm && (
+          <DisableConfirmModal
+            open={confirmDisableOpen}
+            title="Disable your own account?"
+            message={`Disabling your own account will sign you out immediately. Are you sure you want to continue?`}
+            onCancel={handleCancelDisable}
+            onConfirm={handleConfirmDisable}
+            loading={Boolean(updatingId)}
           />
         )}
       </div>

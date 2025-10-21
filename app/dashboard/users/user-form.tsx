@@ -5,7 +5,9 @@ import { User } from "./types";
 import Image from "next/image";
 import { UserCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
 import PasswordInput from "@/components/PasswordInput";
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
+import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";
+
 
 type UserFormProps = {
   existing?: User;
@@ -23,8 +25,10 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
   const [password, setPassword] = useState<string>("");
   const [removeImage, setRemoveImage] = useState(false);
   const [enabled, setEnabled] = useState<boolean>(existing ? (existing.enabled ?? true) : true);
+  const [confirmDisableOpen, setConfirmDisableOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { data: session, update } = useSession();
+ const isCurrentUser = !!existing && !!session?.user?.id && String(existing.id) === String(session.user.id);
 
   // Only show the enabled pill to admins editing other users (not for self-edit)
   const isCurrentUserAnAdmin = session?.user?.role === "ADMIN";
@@ -87,9 +91,19 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
             setImagePreview(null);
             setImageFile(null);
           }
-          if (session?.user?.email === formData.get("email")) {
-            await update();
+
+          const isCurrentUser = existing?.id && session?.user?.id && String(existing.id) === String(session.user.id);
+          const nextEnabled = formData.get("enabled") === "true";
+
+          if (isCurrentUser && nextEnabled === false) {
+            await signOut({ callbackUrl: "/login" });
+            return;
           }
+
+          if (isCurrentUser) {
+            try { await update(); } catch {} finally {};
+          }
+
           setTimeout(() => {
             setMessage(null);
             onSaved();
@@ -181,7 +195,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
           />
         </div>
 
-        {isCurrentUserAnAdmin && (
+        {isCurrentUserAnAdmin && !isCurrentUser&& (
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium text-gray-700">Enabled</span>
             <button
@@ -191,6 +205,35 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
               aria-checked={enabled}
               aria-disabled={isProtectedAdmin}
               onClick={() => setEnabled(v => !v)}
+              disabled={isProtectedAdmin}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${enabled ? "bg-green-500" : "bg-gray-300"} ${adminStateClass}`}
+              title={isProtectedAdmin ? "Protected admin — not editable" : enabled ? "Disable user" : "Enable user"}
+            >
+              <span
+                className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${enabled ? "translate-x-5" : "translate-x-1"}`}
+              />
+            </button>
+          </div>
+        )}
+
+        {/* For self-editing user show pill but intercept disable to ask confirmation */}
+        {isCurrentUserAnAdmin && isCurrentUser && (
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">Enabled</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={enabled}
+              aria-disabled={isProtectedAdmin}
+              onClick={() => {
+                const next = !enabled;
+                if (next === false && !isProtectedAdmin) {
+                  // show warning modal and do not toggle immediately
+                  setConfirmDisableOpen(true);
+                  return;
+                }
+                if (!isProtectedAdmin) setEnabled(next);
+              }}
               disabled={isProtectedAdmin}
               className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${enabled ? "bg-green-500" : "bg-gray-300"} ${adminStateClass}`}
               title={isProtectedAdmin ? "Protected admin — not editable" : enabled ? "Disable user" : "Enable user"}
@@ -263,6 +306,24 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
           </button>
         </div>
       </form>
+      {/* Modal shown when the signed-in user attempts to disable their own account */}
+      {confirmDisableOpen && (
+        <DisableConfirmModal
+          open={confirmDisableOpen}
+          title="Disable your own account?"
+          message="Disabling your own account here will sign you out when you save changes. Are you sure you want to continue?"
+          onCancel={() => {
+            setConfirmDisableOpen(false);
+            // ensure pill stays enabled when cancelling
+            setEnabled(true);
+          }}
+          onConfirm={() => {
+            setConfirmDisableOpen(false);
+            setEnabled(false);
+          }}
+          loading={false}
+        />
+      )}
     </div>
   );
 }
