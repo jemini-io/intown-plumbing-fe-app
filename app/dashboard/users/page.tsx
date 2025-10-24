@@ -5,6 +5,7 @@ import DashboardLayout from "../components/DashboardLayout";
 import { getUsers, deleteUser } from "./actions";
 import { User } from "./types";
 import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { UserPlusIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
@@ -169,7 +170,7 @@ export default function UsersPage() {
              title="Add new user"
              disabled={Boolean(updatingId)}
            >
-             <PlusIcon className="h-6 w-6" />
+             <UserPlusIcon className="h-6 w-6" />
            </button>
          </div>
 

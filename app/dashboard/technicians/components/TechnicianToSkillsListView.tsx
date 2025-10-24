@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { UserPlusIcon } from "@heroicons/react/24/solid";
 import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
 import { Setting } from "@/lib/types/setting";
 import { getTechnicianToSkillsSetting, updateTechnician, deleteTechnician } from "../actions";
@@ -114,7 +115,7 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
           title="Add new technician"
           onClick={handleAdd}
         >
-          <PlusIcon className="h-6 w-6" />
+          <UserPlusIcon className="h-6 w-6" />
         </button>
       </div>
 
