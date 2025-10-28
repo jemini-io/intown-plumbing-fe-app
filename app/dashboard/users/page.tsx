@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../components/DashboardLayout";
 import { getUsers, deleteUser } from "./actions";
 import { User } from "./types";
-import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";

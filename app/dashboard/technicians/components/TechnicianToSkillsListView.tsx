@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
-import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
-import { Setting } from "@/lib/types/setting";
-import { getTechnicianToSkillsSetting, updateTechnician, deleteTechnician } from "../actions";
+import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
+import { getAllTechnicians, updateTechnician, deleteTechnician } from "../actions";
 import { TechnicianToSkillsForm } from "./TechnicianToSkillsForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
@@ -12,50 +11,34 @@ export interface TechnicianToSkillsListViewProps {
 }
 
 export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProps) {
-  const [technicianSetting, setTechnicianSetting] = useState<Setting | null>(null);
-  const [techs, setTechs] = useState<TechnicianToSkillsType[]>([]);
+  const [allTechnicians, setAllTechnicians] = useState<TechnicianToSkills[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkillsType | undefined>(undefined);
+  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkills | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [technicianToDelete, setTechnicianToDelete] = useState<TechnicianToSkillsType | null>(null);
+  const [technicianToDelete, setTechnicianToDelete] = useState<TechnicianToSkills | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | number | null>(null);
 
   async function refresh() {
-    const s = await getTechnicianToSkillsSetting();
-    setTechnicianSetting(s);
+    const technicians: TechnicianToSkills[] = await getAllTechnicians();
+    setAllTechnicians(technicians);
   }
 
   useEffect(() => {
     refresh();
   }, []);
 
-  useEffect(() => {
-    if (!technicianSetting?.value) return;
-    try {
-      const parsed: TechnicianToSkillsType[] = JSON.parse(technicianSetting.value);
-      setTechs(parsed.map(t => ({
-        technicianId: String(t.technicianId),
-        technicianName: t.technicianName,
-        skills: t.skills,
-        enabled: t.enabled
-      })));
-    } catch {
-      /* ignore */
-    }
-  }, [technicianSetting?.value]);
-
   function handleAdd() {
     setSelectedTechnician(undefined);
     setModalOpen(true);
   }
 
-  function handleEdit(technician: TechnicianToSkillsType) {
+  function handleEdit(technician: TechnicianToSkills) {
     setSelectedTechnician(technician);
     setModalOpen(true);
   }
 
-  function handleDeleteTechnician(technician: TechnicianToSkillsType) {
+  function handleDeleteTechnician(technician: TechnicianToSkills) {
     setTechnicianToDelete(technician);
     setConfirmOpen(true);
   }
@@ -72,15 +55,15 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
     }
   };
 
-  const techniciansToRender = props.limit ? techs.slice(0, props.limit) : techs;
+  const techniciansToRender = props.limit ? allTechnicians.slice(0, props.limit) : allTechnicians;
 
-  async function handleToggleEnabled(t: TechnicianToSkillsType) {
+  async function handleToggleEnabled(t: TechnicianToSkills) {
     const id = String(t.technicianId);
     const nextEnabled = !t.enabled;
     setUpdatingId(id);
 
     // Optimistic update
-    setTechs(prev =>
+    setAllTechnicians(prev =>
       prev.map(item =>
         String(item.technicianId) === id
           ? { ...item, enabled: nextEnabled }
@@ -89,16 +72,8 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
     );
 
     try {
-      const serverList = await updateTechnician(id, { enabled: nextEnabled });
-      setTechs(serverList.map(u => ({
-        technicianId: String(u.technicianId),
-        technicianName: u.technicianName,
-        skills: u.skills,
-        enabled: u.enabled
-      })));
-      setTechnicianSetting(prev =>
-        prev ? { ...prev, value: JSON.stringify(serverList) } : prev
-      );
+      await updateTechnician(id, { enabled: nextEnabled });
+      await refresh();
     } catch {
       await refresh(); // revert
     } finally {
@@ -138,8 +113,12 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
             </div>
             <div className="col-span-6 pr-2">
               <p className="text-sm text-gray-600 whitespace-pre-line">
-                {technician.skills.length > 0
-                  ? technician.skills.join("\n")
+                {Array.isArray(technician.skills) && technician.skills.length > 0
+                  ? technician.skills.map(skill =>
+                      typeof skill === "string"
+                        ? skill
+                        : skill.name || skill.name || "Unnamed skill"
+                    ).join("\n")
                   : "No skills assigned"}
               </p>
             </div>

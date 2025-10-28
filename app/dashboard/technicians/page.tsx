@@ -23,9 +23,9 @@ const TechniciansCard = memo(function TechniciansCard() {
   );
 });
 
-export default function BookingsPage() {
-  const { data: session } = useSession();
-  const isAdmin = session?.user?.role === "ADMIN";
+export default function TechniciansPage() {
+  // const { data: session } = useSession();
+  // const isAdmin = session?.user?.role === "ADMIN";
 
   return (
     <DashboardLayout>

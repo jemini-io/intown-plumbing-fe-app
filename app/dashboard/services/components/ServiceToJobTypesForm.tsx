@@ -1,9 +1,11 @@
 "use client";
 
-import { useTransition, useState, useRef } from "react";
+import { useEffect, useState, useRef, useTransition } from "react";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
+import { Skill } from "@/lib/types/skill";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard"; // Ajusta el import según tu estructura
 import { addService, updateService } from "@/app/dashboard/services/actions";
+import { getAllSkills } from "@/app/dashboard/skills/actions";
 
 type ServiceFormProps = FormComponentProps & {
   existing?: ServiceToJobType;
@@ -15,24 +17,57 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
   const formRef = useRef<HTMLFormElement>(null);
   const [enabled, setEnabled] = useState<boolean>(existing ? existing.enabled : true);
 
+  // Skills UI state
+  const [allSkills, setAllSkills] = useState<Skill[]>([]);
+  const [selectedSkillIds, setSelectedSkillIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    setEnabled(existing ? existing.enabled : true);
+  }, [existing]);
+
+  // Load skills and initialize selected ones when editing
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const skills = await getAllSkills();
+        if (!mounted) return;
+        setAllSkills(skills);
+        // If editing, initialize selected ids from existing.skills (existing.skills is Skill[] per types)
+        if (existing?.skills) {
+          setSelectedSkillIds(existing.skills.map(s => s.id));
+        } else {
+          setSelectedSkillIds([]);
+        }
+      } catch (err) {
+        // Silently fail or show feedback if you prefer
+        console.error("Failed to load skills", err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [existing]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
 
-      const service: ServiceToJobType = {
-        serviceTitanId: formData.get("serviceTitanId") as string,
+      const service = {
+        serviceTitanId: Number(formData.get("serviceTitanId") as string),
         displayName: formData.get("displayName") as string,
         serviceTitanName: formData.get("serviceTitanName") as string,
         emoji: formData.get("emoji") as string,
         icon: formData.get("icon") as string,
         description: formData.get("description") as string,
         enabled,
+        skillIds: selectedSkillIds,
       };
 
       try {
         if (existing) {
-          await updateService(existing.serviceTitanId, service);
+          await updateService(existing.id, service);
           setMessage({ type: "success", text: "Service updated successfully!" });
         } else {
           await addService(service);
@@ -40,15 +75,23 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
           formRef.current?.reset();
           setEnabled(true);
         }
+
         setTimeout(() => {
           setMessage(null);
           onSaved();
-        }, 1500);
-      } catch {
+        }, 800);
+      } catch (err) {
+        console.error(err);
         setMessage({ type: "error", text: "Something went wrong. Please try again." });
       }
     });
   }
+
+  const toggleSkillSelection = (skillId: string) => {
+    setSelectedSkillIds(prev =>
+      prev.includes(skillId) ? prev.filter(id => id !== skillId) : [...prev, skillId]
+    );
+  };
 
   return (
     <div>
@@ -148,7 +191,6 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
               }`}
             />
           </button>
-          <input type="hidden" name="enabled" value={enabled ? "true" : "false"} />
         </div>
         {/* Description */}
         <div className="col-span-2">
@@ -162,11 +204,38 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
             placeholder="e.g. Get your plumbing issues fixed with our expert services."
           />
         </div>
+
+        {/* Associated Skills */}
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Associated Skills</label>
+
+          {allSkills.length === 0 ? (
+            <div className="text-sm text-gray-500">Loading skills...</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border rounded p-2">
+              {allSkills.map(skill => (
+                <label key={skill.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    value={skill.id}
+                    checked={selectedSkillIds.includes(skill.id)}
+                    onChange={() => toggleSkillSelection(skill.id)}
+                    className="h-4 w-4 rounded"
+                  />
+                  <span className="text-sm">{skill.name}</span>
+                </label>
+              ))}
+            </div>
+          )}
+          {/* hidden field so formData contains selection too (comma separated) */}
+          <input type="hidden" name="skillIds" value={selectedSkillIds.join(",")} />
+        </div>
+
         <div className="col-span-2 flex justify-center mt-2">
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gradient-to-r from-gray-800 to-gray-700 text-white py-2 rounded-md font-medium shadow-md hover:from-gray-900 hover:to-gray-800 transition disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update service" : "Add service"}
           </button>

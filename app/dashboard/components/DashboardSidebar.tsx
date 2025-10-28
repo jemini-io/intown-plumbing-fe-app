@@ -162,6 +162,24 @@ export default function DashboardSidebar({
                 </span>
               )}
             </Link>
+            <Link
+              href="/dashboard/skills"
+              title="Skills"
+              className={`group flex items-center ${
+                collapsed ? "justify-center" : "gap-4 px-5"
+              } py-3 rounded hover:bg-[#3d5a73] transition`}
+            >
+              <ChartBarIcon className="h-6 w-6 text-white" />
+              {!collapsed && (
+                <span
+                  className={`text-white font-medium transition-all duration-200
+                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
+                overflow-hidden`}
+                >
+                  Skills
+                </span>
+              )}
+            </Link>
             <a
               href="https://dashboard.stripe.com/"
               target="_blank"

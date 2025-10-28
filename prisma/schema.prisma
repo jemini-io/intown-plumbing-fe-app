@@ -40,6 +40,64 @@ model UserImage {
   user      User?     @relation
 }
 
+model Skill {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  serviceToJobTypes ServiceToJobTypeSkill[]
+  technicians       TechnicianSkill[]
+}
+
+model ServiceToJobType {
+  id               String @id @default(cuid())
+  displayName      String
+  serviceTitanId   Int
+  serviceTitanName String
+  emoji            String
+  icon             String
+  description      String
+  enabled          Boolean
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  skills ServiceToJobTypeSkill[]
+}
+
+model Technician {
+  id          String   @id @default(cuid())
+  technicianId Int     @unique
+  technicianName String
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  skills TechnicianSkill[]
+}
+
+model ServiceToJobTypeSkill {
+  serviceToJobTypeId String
+  skillId            String
+
+  serviceToJobType   ServiceToJobType @relation(fields: [serviceToJobTypeId], references: [id])
+  skill              Skill            @relation(fields: [skillId], references: [id])
+
+  @@id([serviceToJobTypeId, skillId])
+}
+
+model TechnicianSkill {
+  technicianId String
+  skillId      String
+
+  technician   Technician @relation(fields: [technicianId], references: [id])
+  skill        Skill      @relation(fields: [skillId], references: [id])
+
+  @@id([technicianId, skillId])
+}
+
 model AppSetting {
   id     Int    @id @default(autoincrement())
   key    String

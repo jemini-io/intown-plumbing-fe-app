@@ -1,23 +1,22 @@
 "use client";
 
 import { memo, useState, useCallback } from "react";
-// import { useSession } from "next-auth/react";
 import { DashboardCard } from "../components/DashboardCard";
 import DashboardLayout from "../components/DashboardLayout";
-import { ServiceToJobTypesCardsPanel } from "./components/ServiceToJobTypesCardsPanel";
-import { ServiceToJobTypesForm } from "./components/ServiceToJobTypesForm";
+import { SkillCardsPanel } from "./components/SkillCardsPanel";
+import { SkillForm } from "./components/SkillForm";
 
-const ServicesCard = memo(function ServicesCard() {
+const SkillsCard = memo(function SkillsCard() {
   const [expanded, setExpanded] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [selectedService, setSelectedService] = useState(undefined);
+  const [selectedSkill, setSelectedSkill] = useState(undefined);
 
   const toggle = useCallback(() => setExpanded(e => !e), []);
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
 
-  const ServiceCardsPanel = useCallback(
-    () => <ServiceToJobTypesCardsPanel limit={expanded ? undefined : 5} />,
+  const SkillCardsPanelMemo = useCallback(
+    () => <SkillCardsPanel limit={expanded ? undefined : 5} />,
     [expanded]
   );
 
@@ -25,14 +24,14 @@ const ServicesCard = memo(function ServicesCard() {
     <DashboardCard
       backgroundEnabled={false}
       ViewAllEnable={false}
-      viewAllLabel={expanded ? "Collapse" : "View All Services"}
+      viewAllLabel={expanded ? "Collapse" : "View All Skills"}
       onViewAll={toggle}
-      iconsData={{ plusIconTitle: "Add Service" }}
-      listView={ServiceCardsPanel}
+      iconsData={{ plusIconTitle: "Add Skill" }}
+      listView={SkillCardsPanelMemo}
       showHeader={true}
-      title="Services"
+      title="Skills"
       showViewAllLink={true}
-      actionLabel="Add Service"
+      actionLabel="Add Skill"
       onAction={openModal}
       modalContent={
         showModal && (
@@ -44,11 +43,11 @@ const ServicesCard = memo(function ServicesCard() {
               >
                 ×
               </button>
-              <ServiceToJobTypesForm
-                existing={selectedService}
+              <SkillForm
+                existing={selectedSkill}
                 onSaved={() => {
                   closeModal();
-                  // if needed, refresh the list or provide feedback
+                  // Si necesitas, refresca la lista o muestra feedback
                 }}
               />
             </div>
@@ -59,14 +58,11 @@ const ServicesCard = memo(function ServicesCard() {
   );
 });
 
-export default function ServicesPage() {
-  // const { data: session } = useSession();
-  // const isAdmin = session?.user?.role === "ADMIN";
-
+export default function SkillsPage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen p-8">
-        <ServicesCard />
+        <SkillsCard />
       </div>
     </DashboardLayout>
   );

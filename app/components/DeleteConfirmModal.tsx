@@ -7,6 +7,8 @@ type DeleteConfirmModalProps = {
   onCancel: () => void;
   onConfirm: () => void;
   loading?: boolean;
+  confirmLabel?: string;
+  loadingLabel?: string;
 };
 
 export function DeleteConfirmModal({
@@ -16,6 +18,8 @@ export function DeleteConfirmModal({
   onCancel,
   onConfirm,
   loading = false,
+  confirmLabel = "Delete",
+  loadingLabel = "Deleting...",
 }: DeleteConfirmModalProps) {
   if (!open) return null;
   return (
@@ -64,7 +68,7 @@ export function DeleteConfirmModal({
                 />
               </svg>
             )}
-            {loading ? "Deleting..." : "Delete"}
+            {loading ? loadingLabel : confirmLabel}
           </button>
         </div>
       </div>

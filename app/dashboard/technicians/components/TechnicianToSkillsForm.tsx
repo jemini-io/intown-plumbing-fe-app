@@ -1,12 +1,12 @@
 "use client";
 
 import { useTransition, useState, useRef } from "react";
-import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
+import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard"; // Ajusta el import según tu estructura
 import { addTechnician, updateTechnician } from "@/app/dashboard/technicians/actions";
 
 type TechnicianFormProps = FormComponentProps & {
-  existing?: TechnicianToSkillsType;
+  existing?: TechnicianToSkills;
 };
 
 export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProps) {
@@ -46,7 +46,7 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
 
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
-      const technician: TechnicianToSkillsType = {
+      const technician: TechnicianToSkills = {
         technicianId: formData.get("technicianId") as string,
         technicianName: formData.get("technicianName") as string,
         skills,

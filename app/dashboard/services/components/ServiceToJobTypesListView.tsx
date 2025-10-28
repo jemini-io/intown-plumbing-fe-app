@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { Setting } from "@/lib/types/setting";
-import { getServiceToJobsTypeSetting, updateService, deleteService } from "../actions";
+import { getAllServiceToJobTypes, updateService, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 
@@ -21,7 +21,7 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   async function refresh() {
-    const s = await getServiceToJobsTypeSetting();
+    const s = await getAllServiceToJobTypes();
     setServiceToJobsTypeSetting(s);
   }
 
