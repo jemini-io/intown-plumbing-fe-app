@@ -1,7 +1,9 @@
 'use server';
 
 import { DateEntry, getAvailableTimeSlots } from '@/app/api/appointments/getAppointments';
-import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
+// import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
+import { ServiceToJobType } from '@/lib/types/serviceToJobType';
+import { Skill } from '@/lib/types/skill';
 import pino from 'pino';
 
 const logger = pino({ name: "getAvailableAppointmentsAction" });
@@ -12,7 +14,7 @@ export interface GetAvailableAppointmentsResponse {
   error?: string;
 }
 
-export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJobTypeMapping | null, selectedSkill?: QuoteSkill | null): Promise<GetAvailableAppointmentsResponse> {
+export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJobType | null, selectedSkill?: Skill | null): Promise<GetAvailableAppointmentsResponse> {
   try {
     if (!selectedJobType) {
       logger.warn('No job type selected');
@@ -27,7 +29,7 @@ export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJ
         serviceTitanId: selectedJobType.serviceTitanId,
         skill: selectedSkill
       },
-      'Fetching available time slots'
+      'Invoking getAvailableTimeSlots function with parameters:'
     );
 
     const timeSlots = await getAvailableTimeSlots({

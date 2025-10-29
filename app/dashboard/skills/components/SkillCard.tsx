@@ -109,7 +109,7 @@ export default function SkillCard({
           className="px-2 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
           title="Remove"
         >
-          <span className="text-xs font-semibold text-blue-600">REMOVE</span>
+          <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
         </button>
       </div>
     </div>

@@ -20,24 +20,25 @@ enum Role {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
+  id             String     @id @default(cuid())
+  email          String     @unique
   name           String?
   passwordDigest String
-  role           Role     @default(USER)
-  imageId       String? @unique
+  role           Role       @default(USER)
+  imageId        String?    @unique
   image          UserImage? @relation(fields: [imageId], references: [id])
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  enabled        Boolean  @default(true)
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  enabled        Boolean    @default(true)
 }
 
 model UserImage {
-  id        String   @id @default(uuid())
-  url       String
-  publicId  String
-  uploadedAt DateTime @default(now())
-  user      User?     @relation
+  id         String      @id @default(uuid())
+  url        String
+  publicId   String
+  uploadedAt DateTime    @default(now())
+  user       User?       @relation
+  technician Technician? @relation
 }
 
 model Skill {
@@ -53,7 +54,7 @@ model Skill {
 }
 
 model ServiceToJobType {
-  id               String @id @default(cuid())
+  id               String   @id @default(cuid())
   displayName      String
   serviceTitanId   Int
   serviceTitanName String
@@ -67,13 +68,25 @@ model ServiceToJobType {
   skills ServiceToJobTypeSkill[]
 }
 
+enum TechnicianStatus {
+  ON_JOB
+  ON_ROUTE
+  FINISHED_JOB
+  AWAITING_JOB
+}
+
 model Technician {
-  id          String   @id @default(cuid())
-  technicianId Int     @unique
+  id             String   @id @default(cuid())
+  technicianId   Int      @unique
   technicianName String
-  enabled     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  enabled        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  imageId String?    @unique
+  image   UserImage? @relation(fields: [imageId], references: [id])
+
+  status  TechnicianStatus @default(AWAITING_JOB)
 
   skills TechnicianSkill[]
 }
@@ -82,8 +95,8 @@ model ServiceToJobTypeSkill {
   serviceToJobTypeId String
   skillId            String
 
-  serviceToJobType   ServiceToJobType @relation(fields: [serviceToJobTypeId], references: [id])
-  skill              Skill            @relation(fields: [skillId], references: [id])
+  serviceToJobType ServiceToJobType @relation(fields: [serviceToJobTypeId], references: [id])
+  skill            Skill            @relation(fields: [skillId], references: [id])
 
   @@id([serviceToJobTypeId, skillId])
 }
@@ -92,32 +105,32 @@ model TechnicianSkill {
   technicianId String
   skillId      String
 
-  technician   Technician @relation(fields: [technicianId], references: [id])
-  skill        Skill      @relation(fields: [skillId], references: [id])
+  technician Technician @relation(fields: [technicianId], references: [id])
+  skill      Skill      @relation(fields: [skillId], references: [id])
 
   @@id([technicianId, skillId])
 }
 
 model AppSetting {
-  id     Int    @id @default(autoincrement())
-  key    String
-  value  String
+  id        Int      @id @default(autoincrement())
+  key       String
+  value     String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt 
+  updatedAt DateTime @updatedAt
 
   @@unique([key])
 }
 
 model Booking {
-  id           String      @id @default(uuid())
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
+  id           String   @id @default(uuid())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   customerId   String
-  jobId        String     @unique
+  jobId        String   @unique
   serviceId    String
   technicianId String
   scheduledFor DateTime
-  revenue      Float     @default(0.0)
+  revenue      Float    @default(0.0)
   status       String
   notes        String
 

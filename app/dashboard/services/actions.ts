@@ -46,8 +46,11 @@ export async function findServiceById(id: string) {
 export async function addService(
   data: Omit<ServiceToJobType, "id" | "skills"> & { skillIds?: string[] }
 ) {
-  logger.info(`Adding new service...`);
+  const prompt = "addService function says:";
+  logger.info(`${prompt} Starting...`);
+
   const { skillIds, ...serviceData } = data;
+  logger.info({ serviceData }, `${prompt} Invoking prisma.serviceToJobType.create with data:`);
   const createdService = await prisma.serviceToJobType.create({ data: serviceData });
 
   if (skillIds && skillIds.length > 0) {

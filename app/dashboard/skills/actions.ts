@@ -48,10 +48,10 @@ export async function findSkillById(id: string) {
 }
 
 export async function addSkill(
-  data: Omit<Skill, "id" | "serviceToJobTypes" | "technicians"> & { serviceIds?: string[] }
+  data: Omit<Skill, "id" | "serviceToJobTypes" | "technicians"> & { serviceIds?: string[], technicianIds?: string[] }
 ) {
   logger.info(`Adding new skill...`);
-  const { serviceIds, ...skillData } = data;
+  const { serviceIds, technicianIds, ...skillData } = data;
   const createdSkill = await prisma.skill.create({ data: skillData });
 
   if (serviceIds && serviceIds.length > 0) {
@@ -64,21 +64,32 @@ export async function addSkill(
     });
   }
 
+  if (technicianIds && technicianIds.length > 0) {
+    await prisma.technicianSkill.createMany({
+      data: technicianIds.map(technicianId => ({
+        technicianId,
+        skillId: createdSkill.id,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
   return createdSkill;
 }
 
 export async function updateSkill(
   id: string,
-  data: Partial<Omit<Skill, "serviceToJobTypes" | "technicians">> & { serviceIds?: string[] }
+  data: Partial<Omit<Skill, "serviceToJobTypes" | "technicians">> & { serviceIds?: string[], technicianIds?: string[] }
 ) {
   logger.info(`Updating skill with ID: ${id}`);
-  const { serviceIds, ...skillData } = data;
+  const { serviceIds, technicianIds, ...skillData } = data;
 
   const updatedSkill = await prisma.skill.update({
     where: { id },
     data: skillData,
   });
 
+  // Update service relations
   if (serviceIds) {
     await prisma.serviceToJobTypeSkill.deleteMany({
       where: { skillId: id },
@@ -86,6 +97,20 @@ export async function updateSkill(
     await prisma.serviceToJobTypeSkill.createMany({
       data: serviceIds.map(serviceId => ({
         serviceToJobTypeId: serviceId,
+        skillId: id,
+      })),
+      skipDuplicates: true,
+    });
+  }
+
+  // Update technician relations
+  if (technicianIds) {
+    await prisma.technicianSkill.deleteMany({
+      where: { skillId: id },
+    });
+    await prisma.technicianSkill.createMany({
+      data: technicianIds.map(technicianId => ({
+        technicianId,
         skillId: id,
       })),
       skipDuplicates: true,

@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
-import { getAllTechnicians, updateTechnician, deleteTechnician } from "../actions";
+import { getAllTechnicians, deleteTechnician } from "../actions";
 import { TechnicianToSkillsForm } from "./TechnicianToSkillsForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
+import Image from "next/image";
+import { formatStatus } from "../utils/formatStatus";
 
 export interface TechnicianToSkillsListViewProps {
   limit?: number;
@@ -46,7 +48,7 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
   const confirmDelete = () => {
     if (technicianToDelete) {
       setDeleting(true);
-      deleteTechnician(String(technicianToDelete.technicianId)).then(() => {
+      deleteTechnician(String(technicianToDelete.id)).then(() => {
         setDeleting(false);
         refresh();
         setConfirmOpen(false);
@@ -57,27 +59,56 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
 
   const techniciansToRender = props.limit ? allTechnicians.slice(0, props.limit) : allTechnicians;
 
+  // Nuevo performToggleEnabled para technicians
+  async function performToggleEnabled(t: TechnicianToSkills, nextEnabled: boolean) {
+    setUpdatingId(t.id);
+    const formData = new FormData();
+    formData.append("id", String(t.id));
+    formData.append("technicianId", String(t.technicianId));
+    formData.append("technicianName", t.technicianName);
+    formData.append("enabled", nextEnabled ? "true" : "false");
+    formData.append("status", t.status);
+    // skills no se tocan en el toggle, pero si necesitas mantenerlos:
+    if (Array.isArray(t.skills) && t.skills.length > 0) {
+      formData.append("skillIds", t.skills.map(s => s.id).join(","));
+    }
+
+    try {
+      const res = await fetch("/api/technicians/update", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Failed to update");
+      await refresh();
+    } catch (e) {
+      // revert optimistic change
+      setAllTechnicians(prev =>
+        prev.map(item =>
+          String(item.id) === String(t.id)
+            ? { ...item, enabled: t.enabled }
+            : item
+        )
+      );
+      throw e;
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  // Toggle handler
   async function handleToggleEnabled(t: TechnicianToSkills) {
-    const id = String(t.technicianId);
     const nextEnabled = !t.enabled;
-    setUpdatingId(id);
 
     // Optimistic update
     setAllTechnicians(prev =>
       prev.map(item =>
-        String(item.technicianId) === id
+        String(item.id) === String(t.id)
           ? { ...item, enabled: nextEnabled }
           : item
       )
     );
 
     try {
-      await updateTechnician(id, { enabled: nextEnabled });
-      await refresh();
+      await performToggleEnabled(t, nextEnabled);
     } catch {
-      await refresh(); // revert
-    } finally {
-      setUpdatingId(null);
+      await refresh();
     }
   }
 
@@ -96,8 +127,10 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
 
       {/* Header row */}
       <div className="grid grid-cols-12 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
-        <div className="col-span-3">Name</div>
-        <div className="col-span-6">Skills</div>
+        <div className="col-span-2">Image</div>
+        <div className="col-span-2">Name</div>
+        <div className="col-span-2">Status</div>
+        <div className="col-span-3">Skills</div>
         <div className="col-span-2 text-center">Enabled</div>
         <div className="col-span-1 text-right">Actions</div>
       </div>
@@ -106,30 +139,56 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
         {techniciansToRender.map(technician => (
           <li
             key={technician.technicianId}
-            className="grid grid-cols-12 items-start px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
+            className="grid grid-cols-12 items-center px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
           >
-            <div className="col-span-3 pr-2">
+            {/* Image */}
+            <div className="col-span-2 flex items-center justify-start pl-0">
+              {technician.image?.url ? (
+                <Image
+                  src={technician.image.url}
+                  alt={technician.technicianName}
+                  width={45}
+                  height={45}
+                  className="rounded-full object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="h-12 w-12 rounded-full flex items-center justify-center bg-gray-100">
+                  <UserCircleIcon className="text-gray-700 h-8 w-8" />
+                </div>
+              )}
+            </div>
+            {/* Name */}
+            <div className="col-span-2 pr-2">
               <span className="font-medium">{technician.technicianName}</span>
             </div>
-            <div className="col-span-6 pr-2">
+            {/* Status */}
+            <div className="col-span-2 pr-2">
+              <span className="text-sm text-gray-700">
+                {formatStatus(technician.status)}
+              </span>
+            </div>
+            {/* Skills */}
+            <div className="col-span-3 pr-2">
               <p className="text-sm text-gray-600 whitespace-pre-line">
                 {Array.isArray(technician.skills) && technician.skills.length > 0
                   ? technician.skills.map(skill =>
                       typeof skill === "string"
                         ? skill
-                        : skill.name || skill.name || "Unnamed skill"
+                        : skill.name || "Unnamed skill"
                     ).join("\n")
                   : "No skills assigned"}
               </p>
             </div>
+            {/* Enabled */}
             <div className="col-span-2 flex items-center justify-center">
               <button
                 type="button"
                 onClick={() => handleToggleEnabled(technician)}
-                disabled={updatingId === technician.technicianId}
+                disabled={updatingId === technician.id}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
                   technician.enabled ? "bg-green-500" : "bg-gray-300"
-                } ${updatingId === technician.technicianId ? "opacity-60 cursor-wait" : "cursor-pointer"}`}
+                } ${updatingId === technician.id ? "opacity-60 cursor-wait" : "cursor-pointer"}`}
                 title={technician.enabled ? "Disable technician" : "Enable technician"}
               >
                 <span
@@ -139,20 +198,21 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
                 />
               </button>
             </div>
+            {/* Actions */}
             <div className="col-span-1 flex items-center justify-end gap-1">
               <button
-                className="text-blue-500 hover:text-blue-700 p-1"
+                className="px-2 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
                 title="Edit"
                 onClick={() => handleEdit(technician)}
               >
-                <PencilIcon className="h-4 w-4" />
+                <span className="text-xs font-semibold text-blue-600">EDIT</span>
               </button>
               <button
-                className="text-red-500 hover:text-red-700 p-1"
-                title="Delete"
+                className="px-2 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
+                title="Remove"
                 onClick={() => handleDeleteTechnician(technician)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
               </button>
             </div>
           </li>

@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
-import { Setting } from "@/lib/types/setting";
 import { getAllServiceToJobTypes, updateService, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
@@ -11,41 +10,22 @@ export interface ServiceToJobTypesListViewProps {
 }
 
 export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps) {
-  const [serviceToJobsTypeSetting, setServiceToJobsTypeSetting] = useState<Setting | null>(null);
+  const [allServiceToJobTypes, setAllServiceToJobTypes] = useState<ServiceToJobType[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceToJobType | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<ServiceToJobType | null>(null);
   const [deleting, setDeleting] = useState(false);
-  const [services, setServices] = useState<ServiceToJobType[]>([]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   async function refresh() {
-    const s = await getAllServiceToJobTypes();
-    setServiceToJobsTypeSetting(s);
+    const services: ServiceToJobType[] = await getAllServiceToJobTypes();
+    setAllServiceToJobTypes(services);
   }
 
   useEffect(() => {
     refresh();
   }, []);
-
-  useEffect(() => {
-    if (!serviceToJobsTypeSetting?.value) {
-      setServices([]);
-      return;
-    }
-    try {
-      const parsed: ServiceToJobType[] = JSON.parse(serviceToJobsTypeSetting.value);
-      setServices(
-        parsed.map(s => ({
-          ...s,
-          enabled: s.enabled !== false // default true if missing (backward compatibility)
-        }))
-      );
-    } catch {
-      setServices([]);
-    }
-  }, [serviceToJobsTypeSetting?.value]);
 
   function handleAdd() {
     setSelectedService(undefined);
@@ -65,7 +45,7 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   const confirmDelete = () => {
     if (serviceToDelete) {
       setDeleting(true);
-      deleteService(String(serviceToDelete.serviceTitanId)).then(() => {
+      deleteService(String(serviceToDelete.id)).then(() => {
         setDeleting(false);
         refresh();
         setConfirmOpen(false);
@@ -74,29 +54,23 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
     }
   };
 
-  const servicesToRender = props.limit ? services.slice(0, props.limit) : services;
+  const servicesToRender = props.limit
+    ? allServiceToJobTypes.slice(0, props.limit)
+    : allServiceToJobTypes;
 
   async function handleToggleEnabled(svc: ServiceToJobType) {
-    const id = String(svc.serviceTitanId);
+    const id = String(svc.id);
     const next = !svc.enabled;
     setUpdatingId(id);
     // Optimistic update
-    setServices(prev =>
+    setAllServiceToJobTypes(prev =>
       prev.map(item =>
-        String(item.serviceTitanId) === id ? { ...item, enabled: next } : item
+        String(item.id) === id ? { ...item, enabled: next } : item
       )
     );
     try {
-      const updatedList = await updateService(id, { enabled: next });
-      // Sync with persisted result (normalize)
-      const normalized = updatedList.map(s => ({
-        ...s,
-        enabled: s.enabled !== false
-      }));
-      setServices(normalized);
-      setServiceToJobsTypeSetting(prev =>
-        prev ? { ...prev, value: JSON.stringify(updatedList) } : prev
-      );
+      await updateService(id, { enabled: next, skillIds: svc.skills?.map(s => s.id) ?? [] });
+      await refresh();
     } catch {
       await refresh(); // revert
     } finally {
@@ -107,7 +81,7 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   return (
     <>
       <div className="flex items-center justify-between mb-8">
-        <h2 className="text-xl font-semibold">Services Offered</h2>
+        <h2 className="text-xl font-semibold">Services</h2>
         <button
           className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
           title="Add new service"
@@ -126,7 +100,7 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
       <ul>
         {servicesToRender?.map(service => (
           <li
-            key={service.serviceTitanId}
+            key={service.id}
             className="grid grid-cols-12 items-start px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
           >
             <div className="col-span-3 pr-2">
@@ -143,11 +117,11 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
                 role="switch"
                 aria-checked={service.enabled}
                 onClick={() => handleToggleEnabled(service)}
-                disabled={updatingId === String(service.serviceTitanId)}
+                disabled={updatingId === String(service.id)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
                   service.enabled ? "bg-green-500" : "bg-gray-300"
                 } ${
-                  updatingId === String(service.serviceTitanId)
+                  updatingId === String(service.id)
                     ? "opacity-60 cursor-wait"
                     : "cursor-pointer"
                 }`}

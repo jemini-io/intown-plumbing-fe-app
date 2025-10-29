@@ -3,9 +3,11 @@
 import { useEffect, useState, useRef, useTransition } from "react";
 import { Skill } from "@/lib/types/skill";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
+import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { addSkill, updateSkill } from "../actions";
 import { getAllServiceToJobTypes } from "@/app/dashboard/services/actions";
+import { getAllTechnicians } from "@/app/dashboard/technicians/actions";
 
 type SkillFormProps = FormComponentProps & {
   existing?: Skill;
@@ -20,6 +22,10 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
   // UI state for services
   const [allServices, setAllServices] = useState<ServiceToJobType[]>([]);
   const [selectedServiceIds, setSelectedServiceIds] = useState<string[]>([]);
+
+  // UI state for technicians
+  const [allTechnicians, setAllTechnicians] = useState<TechnicianToSkills[]>([]);
+  const [selectedTechnicianIds, setSelectedTechnicianIds] = useState<string[]>([]);
 
   useEffect(() => {
     setEnabled(existing ? existing.enabled : true);
@@ -44,9 +50,34 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
     };
   }, [existing]);
 
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const technicians = await getAllTechnicians();
+        if (!mounted) return;
+        setAllTechnicians(technicians);
+        if (existing?.technicians) {
+          setSelectedTechnicianIds(existing.technicians.map(t => t.id));
+        }
+      } catch (err) {
+        console.error("Failed to load technicians", err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, [existing]);
+
   const toggleServiceSelection = (serviceId: string) => {
     setSelectedServiceIds(prev =>
       prev.includes(serviceId) ? prev.filter(id => id !== serviceId) : [...prev, serviceId]
+    );
+  };
+
+  const toggleTechnicianSelection = (technicianId: string) => {
+    setSelectedTechnicianIds(prev =>
+      prev.includes(technicianId) ? prev.filter(id => id !== technicianId) : [...prev, technicianId]
     );
   };
 
@@ -62,14 +93,23 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
       };
 
       try {
-        let skillId: string;
+        // let skillId: string;
         if (existing) {
-          await updateSkill(existing.id, { ...skill, serviceIds: selectedServiceIds });
-          skillId = existing.id;
+          await updateSkill(existing.id, {
+            ...skill,
+            serviceIds: selectedServiceIds,
+            technicianIds: selectedTechnicianIds,
+          });
+          // skillId = existing.id;
           setMessage({ type: "success", text: "Skill updated successfully!" });
         } else {
-          const created = await addSkill({ ...skill, serviceIds: selectedServiceIds });
-          skillId = created.id;
+          // const created = await addSkill({
+          await addSkill({
+            ...skill,
+            serviceIds: selectedServiceIds,
+            technicianIds: selectedTechnicianIds,
+          });
+          // skillId = created.id;
           setMessage({ type: "success", text: "Skill created successfully!" });
           formRef.current?.reset();
           setEnabled(true);
@@ -165,6 +205,28 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
                     className="h-4 w-4 rounded"
                   />
                   <span className="text-sm">{service.displayName}</span>
+                </label>
+              ))}
+            </div>
+          )}
+        </div>
+        {/* Associated Technicians */}
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Associated Technicians</label>
+          {allTechnicians.length === 0 ? (
+            <div className="text-sm text-gray-500">Loading technicians...</div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border rounded p-2">
+              {allTechnicians.map(tech => (
+                <label key={tech.id} className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    value={tech.id}
+                    checked={selectedTechnicianIds.includes(tech.id)}
+                    onChange={() => toggleTechnicianSelection(tech.id)}
+                    className="h-4 w-4 rounded"
+                  />
+                  <span className="text-sm">{tech.technicianName}</span>
                 </label>
               ))}
             </div>

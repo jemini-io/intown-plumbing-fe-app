@@ -9,7 +9,7 @@ import { SkillForm } from "./components/SkillForm";
 const SkillsCard = memo(function SkillsCard() {
   const [expanded, setExpanded] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [selectedSkill, setSelectedSkill] = useState(undefined);
+  const [selectedSkill] = useState(undefined);
 
   const toggle = useCallback(() => setExpanded(e => !e), []);
   const openModal = useCallback(() => setShowModal(true), []);

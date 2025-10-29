@@ -10,7 +10,7 @@ import { ServiceToJobTypesForm } from "./components/ServiceToJobTypesForm";
 const ServicesCard = memo(function ServicesCard() {
   const [expanded, setExpanded] = useState(false);
   const [showModal, setShowModal] = useState(false);
-  const [selectedService, setSelectedService] = useState(undefined);
+  const [selectedService] = useState(undefined);
 
   const toggle = useCallback(() => setExpanded(e => !e), []);
   const openModal = useCallback(() => setShowModal(true), []);
