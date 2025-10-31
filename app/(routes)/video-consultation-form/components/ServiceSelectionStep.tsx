@@ -3,7 +3,6 @@
 import FormLayout from '@/components/FormLayout';
 import Icon from '@/components/Icon';
 import { getServiceToJobTypes } from '@/lib/appSettings/getConfig';
-// import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
 import { ServiceToJobType } from '@/lib/types/serviceToJobType';
 import { Skill } from '@/lib/types/skill';
 import { useEffect, useMemo, useState } from 'react';
@@ -12,7 +11,6 @@ import { useFormStore } from '../useFormStore';
 export default function ServiceStep() {
   const [isLoadingJobTypes, setIsLoadingJobTypes] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // const [tooltipVisible, setTooltipVisible] = useState<number | null>(null);
   const [tooltipVisible, setTooltipVisible] = useState<string | null>(null);
 
   const {
