@@ -48,7 +48,6 @@ export const authOptions = {
 
         if (user.enabled == false) {
           logger.info({email: credentials.email, enabled: user.enabled}, "User sign-in doesn't proceed: The user is marked as NOT enabled");
-          // return null;
           throw new Error("Your account has been temporarily disabled. Please contact the administrator.");
         }
 
@@ -96,8 +95,6 @@ export const authOptions = {
         token.image = u.image ?? undefined;
         token.email = u.email ?? undefined;
         token.enabled = u.enabled ?? true;
-        // // If user.image is an object, get the URL
-        // token.image = typeof u.image === "object" && u.image !== null ? u.image.url : u.image;
       }
       return token;
     },

@@ -9,5 +9,3 @@ export default function PostHogClient() {
   })
   return posthogClient
 }
-
-// posthog.capture('my event', { property: 'value' })

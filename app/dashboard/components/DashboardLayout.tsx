@@ -3,23 +3,23 @@ import { ReactNode, useState, useEffect } from "react";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const stored = localStorage.getItem("sidebar-collapsed");
     if (stored) setCollapsed(stored === "true");
-    setHydrated(true);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
-    if (hydrated) {
+    if (!loading) {
       localStorage.setItem("sidebar-collapsed", String(collapsed));
     }
-  }, [collapsed, hydrated]);
+  }, [collapsed, loading]);
 
   const sidebarWidth = collapsed ? 80 : 288;
 
-  if (!hydrated) return null;
+  if (loading) return null;
 
   return (
     <>

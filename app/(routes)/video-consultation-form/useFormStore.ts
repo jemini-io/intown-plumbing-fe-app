@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { FormData } from './types';
-// import { ServiceToJobTypeMapping, QuoteSkill } from '@/lib/config/types';
 import { ServiceToJobType } from '@/lib/types/serviceToJobType';
 import { Skill } from '@/lib/types/skill';
 

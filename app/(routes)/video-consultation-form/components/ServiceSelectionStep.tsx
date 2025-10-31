@@ -49,7 +49,6 @@ export default function ServiceStep() {
     fetchJobTypes();
   }, [setAvailableJobTypes]);
 
-  // const handleJobTypeClick = (jobType: ServiceToJobTypeMapping) => {
     const handleJobTypeClick = (jobType: ServiceToJobType) => {
     setSelectedJobType(jobType);
   };

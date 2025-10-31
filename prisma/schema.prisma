@@ -133,8 +133,4 @@ model Booking {
   revenue      Float    @default(0.0)
   status       String
   notes        String
-
-  // customer     Customer    @relation(fields: [customerId], references: [id])
-  // service      Service     @relation(fields: [serviceId], references: [id])
-  // technician   Technician? @relation(fields: [technicianId], references: [id])
 }

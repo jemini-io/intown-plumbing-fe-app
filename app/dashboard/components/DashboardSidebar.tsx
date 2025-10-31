@@ -18,15 +18,6 @@ import { logoutAction } from "@/app/actions/logout";
 import { useRouter } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 
-// interface SessionWithRole {
-//   user: {
-//     name?: string | null;
-//     email?: string | null;
-//     image?: string | null;
-//     role?: "USER" | "ADMIN";
-//   };
-// }
-
 interface DashboardSidebarProps {
   collapsed: boolean;
   setCollapsed: Dispatch<SetStateAction<boolean>>;
@@ -36,12 +27,11 @@ export default function DashboardSidebar({
   collapsed,
   setCollapsed,
 }: DashboardSidebarProps) {
-  const { data: session, update } = useSession(); // as { data: SessionWithRole | null };
+  const { data: session, update } = useSession();
   const role = session?.user?.role as ("USER" | "ADMIN") | undefined;
   const userImageUrl = session?.user?.image;
   const userName = session?.user?.name || "User";
   const router = useRouter();
-  // const [collapsed, setCollapsed] = useState(false);
 
   const handleLogout = async () => {
     await logoutAction();
