@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/outline";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { getAllServiceToJobTypes, updateService, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
@@ -140,14 +140,14 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
                 title="Edit"
                 onClick={() => handleEdit(service)}
               >
-                <PencilIcon className="h-4 w-4" />
+                <span className="text-xs font-semibold text-blue-600">EDIT</span>
               </button>
               <button
                 className="text-red-500 hover:text-red-700 p-1"
                 title="Delete"
                 onClick={() => handleDeleteService(service)}
               >
-                <TrashIcon className="h-4 w-4" />
+                <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
               </button>
             </div>
           </li>

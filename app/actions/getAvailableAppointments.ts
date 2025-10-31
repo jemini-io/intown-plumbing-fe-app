@@ -27,14 +27,13 @@ export async function getAvailableAppointmentsAction(selectedJobType: ServiceToJ
     logger.info(
       {
         serviceTitanId: selectedJobType.serviceTitanId,
-        skill: selectedSkill
+        skillId: selectedSkill?.id || undefined
       },
       'Invoking getAvailableTimeSlots function with parameters:'
     );
-
     const timeSlots = await getAvailableTimeSlots({
       serviceTitanId: selectedJobType.serviceTitanId,
-      skill: selectedSkill || undefined
+      skillId: selectedSkill?.id || undefined
     });
 
     if (!timeSlots || timeSlots.length === 0) {

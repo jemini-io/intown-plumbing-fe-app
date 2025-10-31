@@ -1,6 +1,6 @@
-import { Status } from "@/lib/types/technicianToSkills";
+import { TechnicianStatus } from "@/lib/types/technicianToSkills";
 
-export function formatStatus(status: Status) {
+export function formatStatus(status: TechnicianStatus) {
   if (!status) return "No status";
   switch (status) {
     case "ON JOB": return "On Job";

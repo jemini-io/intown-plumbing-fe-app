@@ -9,5 +9,5 @@ export interface ServiceToJobType {
   icon: string;
   description: string;
   enabled: boolean;
-  skills: Skill[];
+  skills?: Skill[] | []; // Added to include related skills
 }

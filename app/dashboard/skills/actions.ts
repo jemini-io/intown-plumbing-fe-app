@@ -7,7 +7,8 @@ import pino from "pino";
 const logger = pino({ name: "skills-actions" });
 
 export async function getAllSkills() {
-  logger.info("Fetching all skills");
+  const prompt = 'getAllSkills function says:';
+  logger.info(`${prompt} Fetching all skills`);
   const skills = await prisma.skill.findMany({
     orderBy: {
       createdAt: "asc",
@@ -21,6 +22,8 @@ export async function getAllSkills() {
       },
     },
   });
+
+  logger.info(`${prompt} Fetched ${skills.length} skills`);
 
   return skills.map(skill => ({
     ...skill,
@@ -44,7 +47,11 @@ export async function findSkillById(id: string) {
   });
 
   if (!skill) return null;
-  return skill;
+  return {
+    ...skill,
+    serviceToJobTypes: skill.serviceToJobTypes.map(rel => rel.serviceToJobType),
+    technicians: skill.technicians.map(rel => rel.technician),
+  };
 }
 
 export async function addSkill(

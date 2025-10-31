@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
-import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
+import { enumToStatus, TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { getAllTechnicians, deleteTechnician } from "../actions";
 import { TechnicianToSkillsForm } from "./TechnicianToSkillsForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
@@ -10,9 +10,22 @@ import { formatStatus } from "../utils/formatStatus";
 
 export interface TechnicianToSkillsListViewProps {
   limit?: number;
+  showImage?: boolean;
+  showStatus?: boolean;
+  showSkills?: boolean;
+  showEnabled?: boolean;
+  showActions?: boolean;
 }
 
-export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProps) {
+export function TechnicianToSkillsListView({
+  limit,
+  showImage = true,
+  showStatus = true,
+  showSkills = true,
+  showEnabled = true,
+  showActions = true,
+}: TechnicianToSkillsListViewProps) {
+
   const [allTechnicians, setAllTechnicians] = useState<TechnicianToSkills[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkills | undefined>(undefined);
@@ -57,9 +70,8 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
     }
   };
 
-  const techniciansToRender = props.limit ? allTechnicians.slice(0, props.limit) : allTechnicians;
+  const techniciansToRender = limit ? allTechnicians.slice(0, limit) : allTechnicians;
 
-  // Nuevo performToggleEnabled para technicians
   async function performToggleEnabled(t: TechnicianToSkills, nextEnabled: boolean) {
     setUpdatingId(t.id);
     const formData = new FormData();
@@ -68,7 +80,6 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
     formData.append("technicianName", t.technicianName);
     formData.append("enabled", nextEnabled ? "true" : "false");
     formData.append("status", t.status);
-    // skills no se tocan en el toggle, pero si necesitas mantenerlos:
     if (Array.isArray(t.skills) && t.skills.length > 0) {
       formData.append("skillIds", t.skills.map(s => s.id).join(","));
     }
@@ -112,6 +123,23 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
     }
   }
 
+  // Configuración de columnas
+  const columnsConfig = [
+    showImage ? "48px" : null,                // IMAGE ancho fijo
+    "1fr",                                   // NAME flexible
+    showStatus ? "minmax(80px, max-content)" : null, // STATUS mínimo
+    showSkills ? "0.35fr" : null,                // SKILLS flexible
+    showEnabled ? "minmax(50px, max-content)" : null, // ENABLED mínimo
+    showActions ? "100px" : null,             // ACTIONS ancho fijo
+  ].filter(Boolean);
+
+  const gridStyle = {
+    display: "grid",
+    gridTemplateColumns: columnsConfig.join(" "),
+    gap: "2.5rem", // más espacio entre columnas
+    alignItems: "center",
+  };
+
   return (
     <>
       <div className="flex items-center justify-between mb-6">
@@ -126,95 +154,107 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
       </div>
 
       {/* Header row */}
-      <div className="grid grid-cols-12 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
-        <div className="col-span-2">Image</div>
-        <div className="col-span-2">Name</div>
-        <div className="col-span-2">Status</div>
-        <div className="col-span-3">Skills</div>
-        <div className="col-span-2 text-center">Enabled</div>
-        <div className="col-span-1 text-right">Actions</div>
+      <div style={gridStyle} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+        {showImage && <div className="text-left">Image</div>}
+        <div className="text-left">Name</div>
+        {showStatus && <div className="text-center">Status</div>}
+        {showSkills && <div className="text-center">Skills</div>}
+        {showEnabled && <div className="text-center">Enabled</div>}
+        {showActions && <div className="text-center">Actions</div>}
       </div>
 
       <ul>
         {techniciansToRender.map(technician => (
           <li
             key={technician.technicianId}
-            className="grid grid-cols-12 items-center px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
+            style={gridStyle}
+            className="px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
           >
-            {/* Image */}
-            <div className="col-span-2 flex items-center justify-start pl-0">
-              {technician.image?.url ? (
-                <Image
-                  src={technician.image.url}
-                  alt={technician.technicianName}
-                  width={45}
-                  height={45}
-                  className="rounded-full object-cover"
-                  unoptimized
-                />
-              ) : (
-                <div className="h-12 w-12 rounded-full flex items-center justify-center bg-gray-100">
-                  <UserCircleIcon className="text-gray-700 h-8 w-8" />
-                </div>
-              )}
-            </div>
-            {/* Name */}
-            <div className="col-span-2 pr-2">
+            {showImage && (
+              <div className="flex items-center justify-start">
+                {technician.image?.url ? (
+                  <Image
+                    src={technician.image.url}
+                    alt={technician.technicianName}
+                    width={40}
+                    height={40}
+                    className="rounded-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-gray-100">
+                    <UserCircleIcon className="text-gray-700 h-7 w-7" />
+                  </div>
+                )}
+              </div>
+            )}
+            <div
+              className="flex text-left"
+              style={{
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                overflowWrap: "anywhere",
+              }}
+            >
               <span className="font-medium">{technician.technicianName}</span>
             </div>
-            {/* Status */}
-            <div className="col-span-2 pr-2">
-              <span className="text-sm text-gray-700">
-                {formatStatus(technician.status)}
-              </span>
-            </div>
-            {/* Skills */}
-            <div className="col-span-3 pr-2">
-              <p className="text-sm text-gray-600 whitespace-pre-line">
-                {Array.isArray(technician.skills) && technician.skills.length > 0
-                  ? technician.skills.map(skill =>
-                      typeof skill === "string"
-                        ? skill
-                        : skill.name || "Unnamed skill"
-                    ).join("\n")
-                  : "No skills assigned"}
-              </p>
-            </div>
-            {/* Enabled */}
-            <div className="col-span-2 flex items-center justify-center">
-              <button
-                type="button"
-                onClick={() => handleToggleEnabled(technician)}
-                disabled={updatingId === technician.id}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                  technician.enabled ? "bg-green-500" : "bg-gray-300"
-                } ${updatingId === technician.id ? "opacity-60 cursor-wait" : "cursor-pointer"}`}
-                title={technician.enabled ? "Disable technician" : "Enable technician"}
-              >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-                    technician.enabled ? "translate-x-5" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-            {/* Actions */}
-            <div className="col-span-1 flex items-center justify-end gap-1">
-              <button
-                className="px-2 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
-                title="Edit"
-                onClick={() => handleEdit(technician)}
-              >
-                <span className="text-xs font-semibold text-blue-600">EDIT</span>
-              </button>
-              <button
-                className="px-2 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
-                title="Remove"
-                onClick={() => handleDeleteTechnician(technician)}
-              >
-                <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
-              </button>
-            </div>
+            {showStatus && (
+              <div className="flex">
+                <span className="text-sm text-gray-700">
+                  {formatStatus(enumToStatus(technician.status))}
+                </span>
+              </div>
+            )}
+            {showSkills && (
+              <div className="flex">
+                <p className="text-sm text-gray-600 whitespace-pre-line">
+                  {Array.isArray(technician.skills) && technician.skills.length > 0
+                    ? technician.skills.map(skill =>
+                        typeof skill === "string"
+                          ? skill
+                          : skill.name || "Unnamed skill"
+                      ).join("\n")
+                    : "No skills assigned"}
+                </p>
+              </div>
+            )}
+            {showEnabled && (
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleToggleEnabled(technician)}
+                  disabled={updatingId === technician.id}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    technician.enabled ? "bg-green-500" : "bg-gray-300"
+                  } ${updatingId === technician.id ? "opacity-60 cursor-wait" : "cursor-pointer"}`}
+                  title={technician.enabled ? "Disable technician" : "Enable technician"}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                      technician.enabled ? "translate-x-5" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+            {showActions && (
+              <div className="flex items-center justify-end gap-1 text-right pl-2">
+                <button
+                  className="px-1 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
+                  title="Edit"
+                  onClick={() => handleEdit(technician)}
+                >
+                  <span className="text-xs font-semibold text-blue-600">EDIT</span>
+                </button>
+                <button
+                  className="px-1 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
+                  title="Remove"
+                  onClick={() => handleDeleteTechnician(technician)}
+                >
+                  <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>

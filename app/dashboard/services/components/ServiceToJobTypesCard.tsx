@@ -28,7 +28,7 @@ export default function ServiceToJobTypesCard({
 
   return (
     <div
-      className="grid items-start gap-4 px-6 py-5 bg-white rounded-lg shadow mb-3"
+      className="grid items-start gap-4 px-6 py-5 bg-white rounded-lg shadow mb-3 hover:bg-blue-50 transition-colors"
       style={{
         gridTemplateColumns: "48px 1fr 64px 48px 48px",
       }}
@@ -41,12 +41,12 @@ export default function ServiceToJobTypesCard({
         <span className="text-sm text-gray-500 truncate mt-3">{service.description}</span>
         <div className="mt-2 flex flex-wrap gap-2">
           <span className="text-xs font-medium text-gray-800">Skills:</span>
-          {service.skills.length === 0 ? (
+          {service.skills?.length === 0 ? (
             <span className="text-xs text-gray-500 ml-2">
               No associated skills for this service
             </span>
           ) : (
-            service.skills.map(skill => (
+            service.skills?.map(skill => (
               <span
                 key={skill.id}
                 className="flex items-center px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded-full mr-2"

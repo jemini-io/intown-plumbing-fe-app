@@ -31,7 +31,7 @@ const TechniciansCard = memo(function TechniciansCard() {
   const [expanded, setExpanded] = useState(false);
   const toggle = useCallback(() => setExpanded(e => !e), []);
   const ListView = useCallback(
-    () => <TechnicianToSkillsListView limit={expanded ? undefined : 3} />,
+    () => <TechnicianToSkillsListView limit={expanded ? undefined : 6} showImage={false} showSkills={false} />,
     [expanded]
   );
   return (

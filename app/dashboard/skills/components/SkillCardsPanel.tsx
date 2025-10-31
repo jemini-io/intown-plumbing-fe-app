@@ -4,7 +4,6 @@ import { getAllSkills, updateSkill, deleteSkill, unlinkServiceFromSkill, unlinkT
 import { SkillForm } from "./SkillForm";
 import SkillCard from "./SkillCard";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
-
 export interface SkillCardsPanelProps {
   limit?: number;
 }

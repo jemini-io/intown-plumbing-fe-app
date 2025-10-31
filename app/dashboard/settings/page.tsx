@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { getSettings } from "./actions";
 import DashboardLayout from "../components/DashboardLayout";
-import { PencilIcon, ClipboardDocumentIcon, CheckIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { ClipboardDocumentIcon, CheckIcon, PlusIcon } from "@heroicons/react/24/outline";
 import { isJson } from "@/lib/utils/isJson";
 import dynamic from "next/dynamic";
 import type { Setting } from "@/lib/types/setting";
@@ -205,7 +205,7 @@ export default function SettingsPage() {
                   </td>
                   <td className="px-4 py-2 w-16">
                     <button onClick={() => handleEdit(s)} className="p-1 rounded hover:bg-gray-200" title="Edit">
-                      <PencilIcon className="h-5 w-5 text-blue-600" />
+                      <span className="text-xs font-semibold text-blue-600">EDIT</span>
                     </button>
                   </td>
                 </tr>

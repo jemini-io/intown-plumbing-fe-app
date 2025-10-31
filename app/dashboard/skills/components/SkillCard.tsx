@@ -19,7 +19,7 @@ export default function SkillCard({
 }: SkillCardProps) {
   return (
     <div
-      className="grid items-start gap-4 px-6 py-5 bg-white rounded-lg shadow mb-3"
+      className="grid items-start gap-4 px-6 py-5 bg-white rounded-lg shadow mb-3 hover:bg-blue-50 transition-colors"
       style={{
         gridTemplateColumns: "1fr 64px 48px 48px",
       }}

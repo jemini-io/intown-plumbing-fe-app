@@ -1,9 +1,11 @@
 import { Skill } from "./skill";
 import { UserImage } from "@/app/dashboard/users/types";
 
-export type Status = "ON JOB" | "ON ROUTE" | "FINISHED JOB" | "AWAITING JOB";
+export type TechnicianStatus = "ON JOB" | "ON ROUTE" | "FINISHED JOB" | "AWAITING JOB";
 
-export function statusToEnum(status: Status | string): string {
+export type TechnicianStatusEnum = "ON_JOB" | "ON_ROUTE" | "FINISHED_JOB" | "AWAITING_JOB";
+
+export function statusToEnum(status: TechnicianStatus | string): TechnicianStatusEnum {
   switch (status) {
     case "ON JOB": return "ON_JOB";
     case "ON ROUTE": return "ON_ROUTE";
@@ -13,7 +15,7 @@ export function statusToEnum(status: Status | string): string {
   }
 }
 
-export function enumToStatus(enumValue: string): Status {
+export function enumToStatus(enumValue: TechnicianStatusEnum): TechnicianStatus {
   switch (enumValue) {
     case "ON_JOB": return "ON JOB";
     case "ON_ROUTE": return "ON ROUTE";
@@ -28,7 +30,7 @@ export interface TechnicianToSkills {
   technicianId: number;
   technicianName: string;
   enabled: boolean;
-  skills: Skill[];
-  status: Status;
-  image: UserImage | null;
+  skills?: Skill[] | [];
+  status: TechnicianStatusEnum;
+  image?: UserImage | null;
 }

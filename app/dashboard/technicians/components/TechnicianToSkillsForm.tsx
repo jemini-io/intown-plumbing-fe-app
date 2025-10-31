@@ -1,12 +1,12 @@
 "use client";
 
 import { useTransition, useState, useRef, useEffect } from "react";
-import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
+import { enumToStatus, TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { Skill } from "@/lib/types/skill";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import Image from "next/image";
 import { UserCircleIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Status } from "@/lib/types/technicianToSkills";
+import { TechnicianStatus } from "@/lib/types/technicianToSkills";
 import { getAllSkills } from "@/app/dashboard/skills/actions";
 
 type TechnicianFormProps = FormComponentProps & {
@@ -28,13 +28,15 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [removeImage, setRemoveImage] = useState(false);
 
-  const statusOptions: Status[] = [
+  const statusOptions: TechnicianStatus[] = [
     "ON JOB",
     "ON ROUTE",
     "FINISHED JOB",
     "AWAITING JOB",
   ];
-  const [status, setStatus] = useState<Status>(existing?.status ?? "AWAITING JOB");
+  const [status, setStatus] = useState<TechnicianStatus>(
+    enumToStatus(existing?.status ?? "AWAITING_JOB")
+  );
 
   useEffect(() => {
     setEnabled(existing ? existing.enabled : true);
@@ -207,7 +209,7 @@ export function TechnicianToSkillsForm({ existing, onSaved }: TechnicianFormProp
           <select
             name="status"
             value={status}
-            onChange={e => setStatus(e.target.value as Status)}
+            onChange={e => setStatus(e.target.value as TechnicianStatus)}
             className="w-full border rounded p-2"
             required
           >

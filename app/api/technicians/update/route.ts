@@ -8,11 +8,12 @@ import { cleanupCloudinaryImage } from "@/lib/services/cloudinaryCleanupService"
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
 import { statusToEnum } from "@/lib/types/technicianToSkills";
+import { TechnicianStatusEnum } from "@/lib/types/technicianToSkills";
 
 const logger = pino({ name: "technician-update-route" });
 
 export async function POST(req: NextRequest) {
-  // Check authentication
+  // 1. Check authentication. Technician updates require authentication.
   const session = await getServerSession(authOptions);
   if (!session) {
     logger.warn("Unauthorized attempt to update technician");
@@ -21,15 +22,9 @@ export async function POST(req: NextRequest) {
 
   const formData = await req.formData();
   const id = formData.get("id") as string;
-  const technicianId = Number(formData.get("technicianId"));
-  const technicianName = formData.get("technicianName") as string;
-  const enabled = formData.get("enabled") === "true";
-  const statusRaw = formData.get("status") as string;
-  const status = statusToEnum(statusRaw);
-  const skillIdsRaw = formData.get("skillIds") as string | null;
-  const skillIds = skillIdsRaw ? skillIdsRaw.split(",").filter(Boolean) : [];
   const imageFile = formData.get("image") as File | null;
 
+  // 2. Fetch existing technician
   let technician;
   try {
     technician = await prisma.technician.findUnique({
@@ -42,6 +37,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Error fetching technician." }, { status: 500 });
   }
 
+  // 3. Handle image upload/removal
   let technicianImageId = technician?.imageId;
   let newTechnicianImage;
   let uploadedImage;
@@ -81,13 +77,20 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Update technician fields
-  const updateData: any = {
-    technicianId,
-    technicianName,
-    enabled,
-    status,
+  // 4. Update technician fields
+  const updateData: {
+    technicianId: number;
+    technicianName: string;
+    enabled: boolean;
+    status: TechnicianStatusEnum;
+    image?: { connect: { id: string } } | { disconnect: true };
+  } = {
+    technicianId: Number(formData.get("technicianId")),
+    technicianName: formData.get("technicianName") as string,
+    enabled: formData.get("enabled") === "true",
+    status: statusToEnum(formData.get("status") as string) as TechnicianStatusEnum,
   };
+
 
   if (technicianImageId) {
     updateData.image = { connect: { id: technicianImageId } };
@@ -95,10 +98,13 @@ export async function POST(req: NextRequest) {
     updateData.image = { disconnect: true };
   }
 
+  const skillIdsRaw = formData.get("skillIds") as string | null;
+  const skillIds = skillIdsRaw ? skillIdsRaw.split(",").filter(Boolean) : [];
+
   try {
     logger.info({ id, updateData }, "Updating technician in DB");
     await prisma.technician.update({
-      where: { id },
+      where: { id: id },
       data: updateData,
     });
     logger.info({ technicianName: technician?.technicianName }, "Technician updated successfully");
