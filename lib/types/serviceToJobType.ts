@@ -1,9 +1,13 @@
+import { Skill } from "./skill";
+
 export interface ServiceToJobType {
-    displayName: string;
-    serviceTitanId: string;
-    serviceTitanName: string;
-    emoji: string
-    icon: string;
-    description: string;
-    enabled: boolean;
+  id: string;
+  displayName: string;
+  serviceTitanId: number;
+  serviceTitanName: string;
+  emoji: string;
+  icon: string;
+  description: string;
+  enabled: boolean;
+  skills?: Skill[] | []; // Added to include related skills
 }

@@ -1,0 +1,71 @@
+# Technician to Skills Mapping
+technicianToSkills:
+  - id: 1
+    technicianId: 78450829
+    technicianName: "Brittany TestTech"
+    skills:
+      - "skill-virtual-quote-repair-install"
+      - "skill-virtual-quote-water-filtration"
+      - "skill-virtual-quote-remodel-project"
+      - "skill-virtual-service"
+    enabled: true
+  - id: 2
+    technicianId: 76734742
+    technicianName: "David G."
+    skills:
+      - "skill-virtual-service"
+    enabled: true
+  - id: 3
+    technicianId: 49786183
+    technicianName: "Doug W."
+    skills:
+      - "skill-virtual-quote-repair-install"
+      - "skill-virtual-quote-water-filtration"
+      - "skill-virtual-quote-remodel-project"
+      - "skill-virtual-service"
+    enabled: true
+  - id: 4
+    technicianId: 16109753
+    technicianName: "Francisco J."
+    skills:
+      - "skill-virtual-service"
+    enabled: true
+  - id: 5
+    technicianId: 60829405
+    technicianName: "Greg S."
+    skills:
+      - "skill-virtual-quote-repair-install"
+      - "skill-virtual-quote-water-filtration"
+    enabled: true
+  - id: 6
+    technicianId: 78123939
+    technicianName: "Ian F."
+    skills:
+      - "skill-virtual-quote-remodel-project"
+    enabled: true
+  - id: 7
+    technicianId: 45406649
+    technicianName: "Kyler B."
+    skills:
+      - "skill-virtual-service"
+    enabled: true
+  - id: 8
+    technicianId: 2513668
+    technicianName: "Michael G."
+    skills:
+      - "skill-virtual-quote-remodel-project"
+      - "skill-virtual-quote-water-filtration"
+    enabled: true
+  - id: 9
+    technicianId: 34365881
+    technicianName: "Pedro H."
+    skills:
+      - "skill-virtual-quote-water-filtration"
+      - "skill-virtual-quote-repair-install"
+    enabled: true
+  - id: 10
+    technicianId: 60804414
+    technicianName: "Trevar S."
+    skills:
+      - "skill-virtual-service"
+    enabled: true

@@ -1,5 +1,4 @@
 import React, { useEffect, useState, Fragment } from "react";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { Booking } from "@/lib/types/booking";
 import { getAllBookings, deleteBooking } from "../actions";
 import { BookingsForm } from "./BookingsForm";
@@ -362,7 +361,7 @@ export function BookingsListView({
                           className="text-blue-500 hover:underline font-medium px-1"
                           onClick={() => handleEdit(booking)}
                         >
-                          <PencilIcon title={`Edit booking`} className="h-4 w-4 inline-block" />
+                          <span className="text-xs font-semibold text-blue-600">EDIT</span>
                         </button>
                       )}
                       {canDelete && (
@@ -370,7 +369,7 @@ export function BookingsListView({
                           className="text-red-500 hover:underline font-medium px-1"
                           onClick={() => handleDeleteBooking(booking)}
                         >
-                          <TrashIcon title={`Remove booking`} className="h-4 w-4 inline-block" />
+                          <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
                         </button>
                       )}
                     </div>

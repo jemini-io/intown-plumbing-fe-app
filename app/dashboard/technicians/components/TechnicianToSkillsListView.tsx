@@ -1,60 +1,59 @@
 import React, { useEffect, useState } from "react";
-import { PlusIcon, PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
-import { Setting } from "@/lib/types/setting";
-import { getTechnicianToSkillsSetting, updateTechnician, deleteTechnician } from "../actions";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
+import { UserPlusIcon } from "@heroicons/react/24/solid";
+import { enumToStatus, TechnicianToSkills } from "@/lib/types/technicianToSkills";
+import { getAllTechnicians, deleteTechnician } from "../actions";
 import { TechnicianToSkillsForm } from "./TechnicianToSkillsForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
+import Image from "next/image";
+import { formatStatus } from "../utils/formatStatus";
 
 export interface TechnicianToSkillsListViewProps {
   limit?: number;
+  showImage?: boolean;
+  showStatus?: boolean;
+  showSkills?: boolean;
+  showEnabled?: boolean;
+  showActions?: boolean;
 }
 
-export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProps) {
-  const [technicianSetting, setTechnicianSetting] = useState<Setting | null>(null);
-  const [techs, setTechs] = useState<TechnicianToSkillsType[]>([]);
+export function TechnicianToSkillsListView({
+  limit,
+  showImage = true,
+  showStatus = true,
+  showSkills = true,
+  showEnabled = true,
+  showActions = true,
+}: TechnicianToSkillsListViewProps) {
+
+  const [allTechnicians, setAllTechnicians] = useState<TechnicianToSkills[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
-  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkillsType | undefined>(undefined);
+  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianToSkills | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [technicianToDelete, setTechnicianToDelete] = useState<TechnicianToSkillsType | null>(null);
+  const [technicianToDelete, setTechnicianToDelete] = useState<TechnicianToSkills | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | number | null>(null);
 
   async function refresh() {
-    const s = await getTechnicianToSkillsSetting();
-    setTechnicianSetting(s);
+    const technicians: TechnicianToSkills[] = await getAllTechnicians();
+    setAllTechnicians(technicians);
   }
 
   useEffect(() => {
     refresh();
   }, []);
 
-  useEffect(() => {
-    if (!technicianSetting?.value) return;
-    try {
-      const parsed: TechnicianToSkillsType[] = JSON.parse(technicianSetting.value);
-      setTechs(parsed.map(t => ({
-        technicianId: String(t.technicianId),
-        technicianName: t.technicianName,
-        skills: t.skills,
-        enabled: t.enabled
-      })));
-    } catch {
-      /* ignore */
-    }
-  }, [technicianSetting?.value]);
-
   function handleAdd() {
     setSelectedTechnician(undefined);
     setModalOpen(true);
   }
 
-  function handleEdit(technician: TechnicianToSkillsType) {
+  function handleEdit(technician: TechnicianToSkills) {
     setSelectedTechnician(technician);
     setModalOpen(true);
   }
 
-  function handleDeleteTechnician(technician: TechnicianToSkillsType) {
+  function handleDeleteTechnician(technician: TechnicianToSkills) {
     setTechnicianToDelete(technician);
     setConfirmOpen(true);
   }
@@ -62,7 +61,7 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
   const confirmDelete = () => {
     if (technicianToDelete) {
       setDeleting(true);
-      deleteTechnician(String(technicianToDelete.technicianId)).then(() => {
+      deleteTechnician(String(technicianToDelete.id)).then(() => {
         setDeleting(false);
         refresh();
         setConfirmOpen(false);
@@ -71,39 +70,75 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
     }
   };
 
-  const techniciansToRender = props.limit ? techs.slice(0, props.limit) : techs;
+  const techniciansToRender = limit ? allTechnicians.slice(0, limit) : allTechnicians;
 
-  async function handleToggleEnabled(t: TechnicianToSkillsType) {
-    const id = String(t.technicianId);
+  async function performToggleEnabled(t: TechnicianToSkills, nextEnabled: boolean) {
+    setUpdatingId(t.id);
+    const formData = new FormData();
+    formData.append("id", String(t.id));
+    formData.append("technicianId", String(t.technicianId));
+    formData.append("technicianName", t.technicianName);
+    formData.append("enabled", nextEnabled ? "true" : "false");
+    formData.append("status", t.status);
+    if (Array.isArray(t.skills) && t.skills.length > 0) {
+      formData.append("skillIds", t.skills.map(s => s.id).join(","));
+    }
+
+    try {
+      const res = await fetch("/api/technicians/update", { method: "POST", body: formData });
+      if (!res.ok) throw new Error("Failed to update");
+      await refresh();
+    } catch (e) {
+      // revert optimistic change
+      setAllTechnicians(prev =>
+        prev.map(item =>
+          String(item.id) === String(t.id)
+            ? { ...item, enabled: t.enabled }
+            : item
+        )
+      );
+      throw e;
+    } finally {
+      setUpdatingId(null);
+    }
+  }
+
+  // Toggle handler
+  async function handleToggleEnabled(t: TechnicianToSkills) {
     const nextEnabled = !t.enabled;
-    setUpdatingId(id);
 
     // Optimistic update
-    setTechs(prev =>
+    setAllTechnicians(prev =>
       prev.map(item =>
-        String(item.technicianId) === id
+        String(item.id) === String(t.id)
           ? { ...item, enabled: nextEnabled }
           : item
       )
     );
 
     try {
-      const serverList = await updateTechnician(id, { enabled: nextEnabled });
-      setTechs(serverList.map(u => ({
-        technicianId: String(u.technicianId),
-        technicianName: u.technicianName,
-        skills: u.skills,
-        enabled: u.enabled
-      })));
-      setTechnicianSetting(prev =>
-        prev ? { ...prev, value: JSON.stringify(serverList) } : prev
-      );
+      await performToggleEnabled(t, nextEnabled);
     } catch {
-      await refresh(); // revert
-    } finally {
-      setUpdatingId(null);
+      await refresh();
     }
   }
+
+  // Configuración de columnas
+  const columnsConfig = [
+    showImage ? "48px" : null,                // IMAGE ancho fijo
+    "1fr",                                   // NAME flexible
+    showStatus ? "minmax(80px, max-content)" : null, // STATUS mínimo
+    showSkills ? "0.35fr" : null,                // SKILLS flexible
+    showEnabled ? "minmax(50px, max-content)" : null, // ENABLED mínimo
+    showActions ? "100px" : null,             // ACTIONS ancho fijo
+  ].filter(Boolean);
+
+  const gridStyle = {
+    display: "grid",
+    gridTemplateColumns: columnsConfig.join(" "),
+    gap: "2.5rem", // más espacio entre columnas
+    alignItems: "center",
+  };
 
   return (
     <>
@@ -114,67 +149,112 @@ export function TechnicianToSkillsListView(props: TechnicianToSkillsListViewProp
           title="Add new technician"
           onClick={handleAdd}
         >
-          <PlusIcon className="h-6 w-6" />
+          <UserPlusIcon className="h-6 w-6" />
         </button>
       </div>
 
       {/* Header row */}
-      <div className="grid grid-cols-12 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
-        <div className="col-span-3">Name</div>
-        <div className="col-span-6">Skills</div>
-        <div className="col-span-2 text-center">Enabled</div>
-        <div className="col-span-1 text-right">Actions</div>
+      <div style={gridStyle} className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+        {showImage && <div className="text-left">Image</div>}
+        <div className="text-left">Name</div>
+        {showStatus && <div className="text-center">Status</div>}
+        {showSkills && <div className="text-center">Skills</div>}
+        {showEnabled && <div className="text-center">Enabled</div>}
+        {showActions && <div className="text-center">Actions</div>}
       </div>
 
       <ul>
         {techniciansToRender.map(technician => (
           <li
             key={technician.technicianId}
-            className="grid grid-cols-12 items-start px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
+            style={gridStyle}
+            className="px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
           >
-            <div className="col-span-3 pr-2">
+            {showImage && (
+              <div className="flex items-center justify-start">
+                {technician.image?.url ? (
+                  <Image
+                    src={technician.image.url}
+                    alt={technician.technicianName}
+                    width={40}
+                    height={40}
+                    className="rounded-full object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-gray-100">
+                    <UserCircleIcon className="text-gray-700 h-7 w-7" />
+                  </div>
+                )}
+              </div>
+            )}
+            <div
+              className="flex text-left"
+              style={{
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+                overflowWrap: "anywhere",
+              }}
+            >
               <span className="font-medium">{technician.technicianName}</span>
             </div>
-            <div className="col-span-6 pr-2">
-              <p className="text-sm text-gray-600 whitespace-pre-line">
-                {technician.skills.length > 0
-                  ? technician.skills.join("\n")
-                  : "No skills assigned"}
-              </p>
-            </div>
-            <div className="col-span-2 flex items-center justify-center">
-              <button
-                type="button"
-                onClick={() => handleToggleEnabled(technician)}
-                disabled={updatingId === technician.technicianId}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-                  technician.enabled ? "bg-green-500" : "bg-gray-300"
-                } ${updatingId === technician.technicianId ? "opacity-60 cursor-wait" : "cursor-pointer"}`}
-                title={technician.enabled ? "Disable technician" : "Enable technician"}
-              >
-                <span
-                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
-                    technician.enabled ? "translate-x-5" : "translate-x-1"
-                  }`}
-                />
-              </button>
-            </div>
-            <div className="col-span-1 flex items-center justify-end gap-1">
-              <button
-                className="text-blue-500 hover:text-blue-700 p-1"
-                title="Edit"
-                onClick={() => handleEdit(technician)}
-              >
-                <PencilIcon className="h-4 w-4" />
-              </button>
-              <button
-                className="text-red-500 hover:text-red-700 p-1"
-                title="Delete"
-                onClick={() => handleDeleteTechnician(technician)}
-              >
-                <TrashIcon className="h-4 w-4" />
-              </button>
-            </div>
+            {showStatus && (
+              <div className="flex">
+                <span className="text-sm text-gray-700">
+                  {formatStatus(enumToStatus(technician.status))}
+                </span>
+              </div>
+            )}
+            {showSkills && (
+              <div className="flex">
+                <p className="text-sm text-gray-600 whitespace-pre-line">
+                  {Array.isArray(technician.skills) && technician.skills.length > 0
+                    ? technician.skills.map(skill =>
+                        typeof skill === "string"
+                          ? skill
+                          : skill.name || "Unnamed skill"
+                      ).join("\n")
+                    : "No skills assigned"}
+                </p>
+              </div>
+            )}
+            {showEnabled && (
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleToggleEnabled(technician)}
+                  disabled={updatingId === technician.id}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
+                    technician.enabled ? "bg-green-500" : "bg-gray-300"
+                  } ${updatingId === technician.id ? "opacity-60 cursor-wait" : "cursor-pointer"}`}
+                  title={technician.enabled ? "Disable technician" : "Enable technician"}
+                >
+                  <span
+                    className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+                      technician.enabled ? "translate-x-5" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+              </div>
+            )}
+            {showActions && (
+              <div className="flex items-center justify-end gap-1 text-right pl-2">
+                <button
+                  className="px-1 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
+                  title="Edit"
+                  onClick={() => handleEdit(technician)}
+                >
+                  <span className="text-xs font-semibold text-blue-600">EDIT</span>
+                </button>
+                <button
+                  className="px-1 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
+                  title="Remove"
+                  onClick={() => handleDeleteTechnician(technician)}
+                >
+                  <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
+                </button>
+              </div>
+            )}
           </li>
         ))}
       </ul>

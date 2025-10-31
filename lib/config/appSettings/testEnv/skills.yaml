@@ -1,0 +1,20 @@
+
+# Quote Skills
+# These must match EXACTLY with what is in Service Titan as Skills
+skills:
+  - id: "skill-virtual-quote-remodel-project"
+    name: "Virtual Quote - Remodel Project"
+    description: "Skill for creating virtual quotes for remodel projects"
+    enabled: true
+  - id: "skill-virtual-quote-repair-install"
+    name: "Virtual Quote - Repair/Install"
+    description: "Skill for creating virtual quotes for repair/install projects"
+    enabled: true
+  - id: "skill-virtual-quote-water-filtration"
+    name: "Virtual Quote - Water Filtration"
+    description: "Skill for creating virtual quotes for water filtration projects"
+    enabled: true
+  - id: "skill-virtual-service"
+    name: "Virtual Service"
+    description: "Skill for providing virtual services"
+    enabled: true

@@ -1,100 +1,147 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
-import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
+import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
+import { deleteFromCloudinary } from "@/lib/cloudinary";
 import pino from "pino";
 
-const logger = pino({ name: "technicianToSkills-actions" });
+const logger = pino({ name: "technician-actions" });
 
-const TECHNICIAN_SETTING_KEY = "technicianToSkills";
-
-export async function getTechnicianToSkillsSetting() {
-  return prisma.appSetting.findUnique({ where: { key: TECHNICIAN_SETTING_KEY } });
-}
-
-export async function findTechnicianById(technicianId: string): Promise<TechnicianToSkillsType | undefined> {
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
-  return list.find(t => t.technicianId === technicianId);
-}
-
-export async function addTechnician(newTechnician: TechnicianToSkillsType): Promise<TechnicianToSkillsType[]> {
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
-
-  if (list.some(t => String(t.technicianId) === String(newTechnician.technicianId))) {
-    throw new Error(`Technician ID "${newTechnician.technicianId}" already exists`);
+export async function getAllTechnicians() {
+  try {
+    const prompt = "getAllTechnicians function says:";  
+    logger.info(`${prompt} Starting...`);
+    const technicians = await prisma.technician.findMany({
+      orderBy: { createdAt: "asc" },
+      include: {
+        skills: {
+          include: { skill: true },
+        },
+        image: true,
+      },
+    });
+    logger.info(`${prompt} Successfully completed. Returning array of ${technicians.length} technicians.`);
+    return technicians.map(tech => ({
+      ...tech,
+      skills: tech.skills.map(rel => rel.skill),
+      status: tech.status as TechnicianToSkills["status"],
+    }));
+  } catch (error) {
+    logger.error({ error }, `${prompt} Error running getAllTechnicians function:`);
+    throw error;
   }
+}
 
-  list.push({
-    technicianId: String(newTechnician.technicianId),
-    technicianName: newTechnician.technicianName,
-    skills: newTechnician.skills,
-    enabled: newTechnician.enabled
+export async function findTechnicianById(id: string) {
+  const prompt = "findTechnicianById function says:";
+  logger.info(`${prompt} Fetching technician with ID: ${id}`);
+  const technician = await prisma.technician.findUnique({
+    where: { id },
+    include: {
+      skills: {
+        include: { skill: true },
+      },
+      image: true,
+    },
   });
 
-  await prisma.appSetting.upsert({
-    where: { key: TECHNICIAN_SETTING_KEY },
-    create: { key: TECHNICIAN_SETTING_KEY, value: JSON.stringify(list) },
-    update: { value: JSON.stringify(list) }
-  });
-
-  return list;
-}
-
-export async function updateTechnician(
-  originalTechnicianId: string,
-  updated: Partial<TechnicianToSkillsType>
-): Promise<TechnicianToSkillsType[]> {
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
-
-  const idx = list.findIndex(t => String(t.technicianId) === String(originalTechnicianId));
-  if (idx === -1) return list;
-
-  const current = list[idx];
-
-  // Handle ID change
-  let nextId = current.technicianId;
-  if (updated.technicianId && String(updated.technicianId) !== String(originalTechnicianId)) {
-    const collision = list.some(
-      t => String(t.technicianId) === String(updated.technicianId)
-    );
-    if (collision) {
-      throw new Error(`Technician ID "${updated.technicianId}" already exists`);
-    }
-    nextId = String(updated.technicianId);
-  }
-
-  const merged: TechnicianToSkillsType = {
-    technicianId: nextId,
-    technicianName: updated.technicianName ?? current.technicianName,
-    skills: updated.skills ?? current.skills,
-    enabled: updated.enabled ?? current.enabled
+  if (!technician) return null;
+  return {
+    ...technician,
+    skills: technician.skills.map(rel => rel.skill),
+    status: technician.status as TechnicianToSkills["status"],
   };
-
-  list[idx] = merged;
-
-  await prisma.appSetting.upsert({
-    where: { key: TECHNICIAN_SETTING_KEY },
-    create: { key: TECHNICIAN_SETTING_KEY, value: JSON.stringify(list) },
-    update: { value: JSON.stringify(list) }
-  });
-
-  return list;
 }
 
-export async function deleteTechnician(technicianId: string): Promise<TechnicianToSkillsType[]> {
-  logger.info(`Deleting technician with ID: ${technicianId}`);
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
-  const filtered = list.filter(t => String(t.technicianId) !== String(technicianId));
+// export async function addTechnician(
+//   data: Omit<TechnicianToSkills, "id" | "skills"> & { skillIds?: string[] }
+// ) {
+//   const prompt = "addTechnician function says:";
+//   logger.info(`${prompt} Starting...`);
 
-  await prisma.appSetting.upsert({
-    where: { key: TECHNICIAN_SETTING_KEY },
-    create: { key: TECHNICIAN_SETTING_KEY, value: JSON.stringify(filtered) },
-    update: { value: JSON.stringify(filtered) }
+//   const { skillIds, ...technicianData } = data;
+//   logger.info({ technicianData }, `${prompt} Invoking prisma.technician.create with data:`);
+//   const createdTechnician = await prisma.technician.create({ data: technicianData });
+
+//   if (skillIds && skillIds.length > 0) {
+//     await prisma.technicianSkill.createMany({
+//       data: skillIds.map(skillId => ({
+//         technicianId: createdTechnician.id,
+//         skillId,
+//       })),
+//       skipDuplicates: true,
+//     });
+//   }
+
+//   return createdTechnician;
+// }
+
+// export async function updateTechnician(
+//   id: string,
+//   data: Partial<Omit<TechnicianToSkills, "skills">> & { skillIds?: string[] }
+// ) {
+//   logger.info(`Updating technician with ID: ${id}`);
+//   const { skillIds, ...technicianData } = data;
+
+//   const updatedTechnician = await prisma.technician.update({
+//     where: { id },
+//     data: technicianData,
+//   });
+
+//   if (skillIds) {
+//     await prisma.technicianSkill.deleteMany({
+//       where: { technicianId: id },
+//     });
+//     await prisma.technicianSkill.createMany({
+//       data: skillIds.map(skillId => ({
+//         technicianId: id,
+//         skillId,
+//       })),
+//       skipDuplicates: true,
+//     });
+//   }
+
+//   return updatedTechnician;
+// }
+
+export async function deleteTechnician(id: string) {
+  const prompt = "deleteTechnician function says:";
+  logger.info(`${prompt} Starting...`);
+
+  logger.info(`${prompt} Fetching technician with ID: ${id} to retrieve associated image...`);
+  const technician = await prisma.technician.findUnique({
+    where: { id },
+    include: { image: true },
   });
 
-  return filtered;
+  if (!technician) {
+    logger.warn(`${prompt} Technician with ID: ${id} not found. Skipping delete.`);
+    return;
+  }
+
+  // Delete image from Cloudinary if it exists
+  logger.info(`${prompt} Deleting image from Cloudinary if it exists...`);
+  if (technician.image?.publicId) {
+    await deleteFromCloudinary(technician.image.publicId);
+  }
+
+  // Delete associated UserImage entry if it exists
+  logger.info(`${prompt} Deleting associated image from UserImage table entry if it exists...`);
+  if (technician.image?.id) {
+    await prisma.userImage.delete({ where: { id: technician.image.id } });
+  }
+
+  // Delete TechnicianSkill relations
+  logger.info(`${prompt} Deleting TechnicianSkill relations...`);
+  await prisma.technicianSkill.deleteMany({ where: { technicianId: id } });
+
+  // Delete the technician itself
+  logger.info(`${prompt} Deleting technician with ID: ${id} from database...`);
+  await prisma.technician.delete({ where: { id } });
+}
+
+export async function unlinkSkillFromTechnician(technicianId: string, skillId: string) {
+  await prisma.technicianSkill.delete({
+    where: { technicianId_skillId: { technicianId, skillId } },
+  });
 }

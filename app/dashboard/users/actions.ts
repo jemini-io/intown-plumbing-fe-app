@@ -3,13 +3,13 @@
 import { prisma } from "@/lib/prisma";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 
-export type UserData = {
-  email: string;
-  name: string;
-  password?: string;
-  role: "USER" | "ADMIN";
-  enabled: boolean;
-};
+// export type UserData = {
+//   email: string;
+//   name: string;
+//   password?: string;
+//   role: "USER" | "ADMIN";
+//   enabled: boolean;
+// };
 
 export async function getUsers() {
   return prisma.user.findMany({

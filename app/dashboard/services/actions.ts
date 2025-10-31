@@ -6,103 +6,115 @@ import pino from "pino";
 
 const logger = pino({ name: "serviceToJobTypes-actions" });
 
-const SERVICE_SETTING_KEY = "serviceToJobTypes";
-
-export async function getServiceToJobsTypeSetting() {
-  return prisma.appSetting.findUnique({
-    where: { key: SERVICE_SETTING_KEY },
+export async function getAllServiceToJobTypes() {
+  logger.info("Fetching all service to job types");
+  const services = await prisma.serviceToJobType.findMany({
+    orderBy: {
+      createdAt: "asc",
+    },
+    include: {
+      skills: {
+        include: { skill: true },
+      },
+    },
   });
+
+  return services.map(service => ({
+    ...service,
+    skills: service.skills.map(rel => rel.skill),
+  }));
 }
 
-export async function findServiceById(serviceTitanId: string): Promise<ServiceToJobType | undefined> {
-  const setting = await getServiceToJobsTypeSetting();
-  const list: ServiceToJobType[] = setting?.value ? JSON.parse(setting.value) : [];
-  return list.find((s) => String(s.serviceTitanId) === String(serviceTitanId));
+export async function findServiceById(id: string) {
+  logger.info(`Fetching service with ID: ${id}`);
+  const service = await prisma.serviceToJobType.findUnique({
+    where: { id },
+    include: {
+      skills: {
+        include: { skill: true },
+      },
+    },
+  });
+
+  if (!service) return null;
+  return {
+    ...service,
+    skills: service.skills.map(rel => rel.skill),
+  };
 }
 
-export async function addService(newService: ServiceToJobType): Promise<ServiceToJobType[]> {
-  const setting = await getServiceToJobsTypeSetting();
-  const list: ServiceToJobType[] = setting?.value ? JSON.parse(setting.value) : [];
+export async function addService(
+  data: Omit<ServiceToJobType, "id" | "skills"> & { skillIds?: string[] }
+) {
+  const prompt = "addService function says:";
+  logger.info(`${prompt} Starting...`);
 
-  if (list.some(s => String(s.serviceTitanId) === String(newService.serviceTitanId))) {
-    throw new Error(`Service ID "${newService.serviceTitanId}" already exists`);
+  const { skillIds, ...serviceData } = data;
+  logger.info({ serviceData }, `${prompt} Invoking prisma.serviceToJobType.create with data:`);
+  const createdService = await prisma.serviceToJobType.create({ data: serviceData });
+
+  if (skillIds && skillIds.length > 0) {
+    await prisma.serviceToJobTypeSkill.createMany({
+      data: skillIds.map(skillId => ({
+        serviceToJobTypeId: createdService.id,
+        skillId,
+      })),
+      skipDuplicates: true,
+    });
   }
 
-  list.push({
-    serviceTitanId: String(newService.serviceTitanId),
-    displayName: newService.displayName,
-    serviceTitanName: newService.serviceTitanName,
-    emoji: newService.emoji,
-    icon: newService.icon,
-    description: newService.description,
-    enabled: newService.enabled,
-  });
-
-  await prisma.appSetting.upsert({
-    where: { key: SERVICE_SETTING_KEY },
-    create: { key: SERVICE_SETTING_KEY, value: JSON.stringify(list) },
-    update: { value: JSON.stringify(list) },
-  });
-
-  return list;
+  return createdService;
 }
 
 export async function updateService(
-  originalServiceTitanId: string,
-  updated: Partial<ServiceToJobType>
-): Promise<ServiceToJobType[]> {
-  const setting = await getServiceToJobsTypeSetting();
-  const list: ServiceToJobType[] = setting?.value ? JSON.parse(setting.value) : [];
+  id: string,
+  data: Partial<Omit<ServiceToJobType, "skills">> & { skillIds?: string[] }
+) {
+  logger.info(`Updating service with ID: ${id}`);
+  const { skillIds, ...serviceData } = data;
 
-  const idx = list.findIndex(s => String(s.serviceTitanId) === String(originalServiceTitanId));
-  if (idx === -1) return list;
+  const updatedService = await prisma.serviceToJobType.update({
+    where: { id },
+    data: serviceData,
+  });
 
-  const current = list[idx];
-
-  // Allow ID change if no collision exists
-  let nextId = current.serviceTitanId;
-  if (updated.serviceTitanId && String(updated.serviceTitanId) !== String(originalServiceTitanId)) {
-    const collision = list.some(
-      s => String(s.serviceTitanId) === String(updated.serviceTitanId)
-    );
-    if (collision) {
-      throw new Error(`Service ID "${updated.serviceTitanId}" already exists`);
-    }
-    nextId = String(updated.serviceTitanId);
+  if (skillIds) {
+    await prisma.serviceToJobTypeSkill.deleteMany({
+      where: { serviceToJobTypeId: id },
+    });
+    await prisma.serviceToJobTypeSkill.createMany({
+      data: skillIds.map(skillId => ({
+        serviceToJobTypeId: id,
+        skillId,
+      })),
+      skipDuplicates: true,
+    });
   }
 
-  const merged: ServiceToJobType = {
-    serviceTitanId: String(nextId),
-    displayName: updated.displayName ?? current.displayName,
-    serviceTitanName: updated.serviceTitanName ?? current.serviceTitanName,
-    emoji: updated.emoji ?? current.emoji,
-    icon: updated.icon ?? current.icon,
-    description: updated.description ?? current.description,
-    enabled: updated.enabled ?? current.enabled,
-  };
-
-  list[idx] = merged;
-
-  await prisma.appSetting.upsert({
-    where: { key: SERVICE_SETTING_KEY },
-    create: { key: SERVICE_SETTING_KEY, value: JSON.stringify(list) },
-    update: { value: JSON.stringify(list) },
-  });
-
-  return list;
+  return updatedService;
 }
 
-export async function deleteService(serviceTitanId: string): Promise<ServiceToJobType[]> {
-  logger.info(`Deleting service with ID: ${serviceTitanId}`);
-  const setting = await getServiceToJobsTypeSetting();
-  const list: ServiceToJobType[] = setting?.value ? JSON.parse(setting.value) : [];
-  const filtered = list.filter(s => String(s.serviceTitanId) !== String(serviceTitanId));
-
-  await prisma.appSetting.upsert({
-    where: { key: SERVICE_SETTING_KEY },
-    create: { key: SERVICE_SETTING_KEY, value: JSON.stringify(filtered) },
-    update: { value: JSON.stringify(filtered) },
+export async function deleteService(id: string) {
+  logger.info(`Deleting service with ID: ${id}`);
+  // Elimina primero las asociaciones en la tabla intermedia
+  await prisma.serviceToJobTypeSkill.deleteMany({
+    where: { serviceToJobTypeId: id },
   });
-
-  return filtered;
+  // Ahora elimina el service
+  return prisma.serviceToJobType.delete({
+    where: { id },
+  });
 }
+
+export async function unlinkSkillFromService(serviceId: string, skillId: string) {
+  // Elimina solo la relación, no el skill ni el service
+  await prisma.serviceToJobTypeSkill.delete({
+    where: {
+      serviceToJobTypeId_skillId: {
+        serviceToJobTypeId: serviceId,
+        skillId: skillId,
+      },
+    },
+  });
+}
+

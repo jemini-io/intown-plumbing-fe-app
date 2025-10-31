@@ -1,0 +1,32 @@
+# Service to Job Types Mapping
+serviceToJobTypes:
+  - id: 1
+    displayName: "DIY Plumbing Consult"
+    serviceTitanId: 78455317
+    serviceTitanName: "Virtual Consultation - Service Request"
+    emoji: "🔧"
+    icon: "wrench"
+    description: "Have a licensed plumber help you assess or diagnose your DIY plumbing questions."
+    skills: []
+    enabled: true
+  - id: 2
+    displayName: "Help! Emergency!"
+    serviceTitanId: 78447656
+    serviceTitanName: "Virtual Consult - Emergency"
+    emoji: "🚨"
+    icon: "siren"
+    description: "Urgent plumbing problem? Get immediate virtual help to assess and guide you through the next steps."
+    skills: []
+    enabled: true
+  - id: 3
+    displayName: "Get A Quote"
+    serviceTitanId: 78445220
+    serviceTitanName: "Virtual Consultation - Quote Request"
+    emoji: "🧾"
+    icon: "contract"
+    description: "Schedule a virtual walkthrough to receive a quote for your plumbing project or repair."
+    skills:
+      - "skill-virtual-quote-remodel-project"
+      - "skill-virtual-quote-repair-install"
+      - "skill-virtual-quote-water-filtration"
+    enabled: true

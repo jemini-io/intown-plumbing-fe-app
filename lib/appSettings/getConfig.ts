@@ -1,8 +1,11 @@
 'use server';
 import { ServiceTitanConfig } from '@/lib/types/serviceTitan';
-import { ServiceToJobTypeMapping, TechnicianToSkillsMapping } from '../config/types';
+// import { ServiceToJobTypeMapping, TechnicianToSkillsMapping } from '../config/types';
 import { StripeConfig } from '@/lib/types/stripe';
 import { CustomFields } from '@/lib/types/customFields';
+import { ServiceToJobType } from '@/lib/types/serviceToJobType';
+import { TechnicianToSkills } from '@/lib/types/technicianToSkills';
+import { getAllServiceToJobTypes } from '@/app/dashboard/services/actions';
 import { getSetting } from "@/lib/appSettings/getSetting";
 import pino from "pino";
 
@@ -10,20 +13,27 @@ import pino from "pino";
 // const logger = pino({ name: 'getAvailableTimeSlots' });
 const logger = pino({ name: 'getConfig' });
 
-export async function getServiceToJobTypes(): Promise<ServiceToJobTypeMapping[]> {
-  const serviceToJobTypes = await getSetting('serviceToJobTypes');
+// export async function getServiceToJobTypes(): Promise<ServiceToJobTypeMapping[]> {
+export async function getServiceToJobTypes(): Promise<ServiceToJobType[]> {
+
+  // const serviceToJobTypes = await getSetting('serviceToJobTypes');
+  logger.info('Fetching services to job types from database...');
+  const serviceToJobTypes = await getAllServiceToJobTypes();
 
   if (serviceToJobTypes === null) {
     logger.error('serviceToJobTypes setting is null');
     return [];
   }
 
-  try {
-    return JSON.parse(serviceToJobTypes);
-  } catch (error) {
-    logger.error({ error }, 'Failed to parse serviceToJobTypes');
-    return [];
-  }
+  logger.info(`${serviceToJobTypes.length} services to job types fetched from database.`);
+  return serviceToJobTypes;
+
+  // try {
+  //   return JSON.parse(serviceToJobTypes);
+  // } catch (error) {
+  //   logger.error({ error }, 'Failed to parse serviceToJobTypes');
+  //   return [];
+  // }
 }
 
 export async function getAppointmentDuration(): Promise<number> {
@@ -114,7 +124,7 @@ export async function getDefaultManagedTechId(): Promise<number> {
   return Number(defaultManagedTechId);
 }
 
-export async function getTechnicianToSkills(): Promise<TechnicianToSkillsMapping[]> {
+export async function getTechnicianToSkills(): Promise<TechnicianToSkills[]> {
   const technicianToSkills = await getSetting('technicianToSkills');
 
   if (technicianToSkills === null) {

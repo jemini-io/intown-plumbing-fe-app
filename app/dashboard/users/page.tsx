@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../components/DashboardLayout";
 import { getUsers, deleteUser } from "./actions";
 import { User } from "./types";
-import { PencilIcon, TrashIcon, PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import {  UserCircleIcon } from "@heroicons/react/24/outline";
+import { UserPlusIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
@@ -169,7 +170,7 @@ export default function UsersPage() {
              title="Add new user"
              disabled={Boolean(updatingId)}
            >
-             <PlusIcon className="h-6 w-6" />
+             <UserPlusIcon className="h-6 w-6" />
            </button>
          </div>
 
@@ -242,7 +243,7 @@ export default function UsersPage() {
                         className="text-blue-600 hover:text-blue-800 p-1 rounded transition"
                         title="Edit user"
                       >
-                        <PencilIcon className="h-5 w-5" />
+                        <span className="text-xs font-semibold text-blue-600">EDIT</span>
                       </button>
                       {user.email !== "admin@example.com" && (
                         <button
@@ -250,7 +251,7 @@ export default function UsersPage() {
                           className="text-red-600 hover:text-red-800 p-1 rounded transition"
                           title="Delete user"
                         >
-                          <TrashIcon className="h-5 w-5" />
+                          <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
                         </button>
                       )}
                     </div>
