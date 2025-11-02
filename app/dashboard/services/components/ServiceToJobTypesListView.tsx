@@ -4,6 +4,7 @@ import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { getAllServiceToJobTypes, updateService, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
+import { useDashboardRefresh } from "../../contexts/DashboardContext";
 
 export interface ServiceToJobTypesListViewProps {
   limit?: number;
@@ -17,6 +18,7 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   const [serviceToDelete, setServiceToDelete] = useState<ServiceToJobType | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const dashboardRefresh = useDashboardRefresh();
 
   async function refresh() {
     const services: ServiceToJobType[] = await getAllServiceToJobTypes();
@@ -58,6 +60,16 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
     ? allServiceToJobTypes.slice(0, props.limit)
     : allServiceToJobTypes;
 
+  // Get the service being updated to determine message
+  // Note: After optimistic update, enabled state is already toggled
+  const updatingService = updatingId 
+    ? allServiceToJobTypes.find(s => String(s.id) === String(updatingId))
+    : null;
+  // If enabled is true after toggle, we were enabling (going from false to true)
+  // If enabled is false after toggle, we were disabling (going from true to false)
+  const isEnabling = updatingService?.enabled === true;
+  const updatingMessage = isEnabling ? "Enabling service…" : "Disabling service…";
+
   async function handleToggleEnabled(svc: ServiceToJobType) {
     const id = String(svc.id);
     const next = !svc.enabled;
@@ -71,6 +83,10 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
     try {
       await updateService(id, { enabled: next, skillIds: svc.skills?.map(s => s.id) ?? [] });
       await refresh();
+      // Actualizar el dashboard header
+      if (dashboardRefresh) {
+        await dashboardRefresh();
+      }
     } catch {
       await refresh(); // revert
     } finally {
@@ -80,7 +96,29 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
 
   return (
     <>
-      <div className="flex items-center justify-between mb-8">
+      {/* Blocking overlay shown while a toggle/update is in progress */}
+      {updatingId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex flex-col items-center gap-3">
+            <svg
+              className="animate-spin h-10 w-10 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <span className="text-white text-sm">{updatingMessage}</span>
+          </div>
+        </div>
+      )}
+      <div className="flex items-center justify-between mb-8" aria-busy={Boolean(updatingId)}>
         <h2 className="text-xl font-semibold">Services</h2>
         <button
           className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"

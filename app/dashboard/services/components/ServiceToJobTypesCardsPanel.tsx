@@ -16,6 +16,7 @@ export function ServiceToJobTypesCardsPanel(props: ServiceToJobTypesCardPanelPro
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [serviceToDelete, setServiceToDelete] = useState<ServiceToJobType | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   // Unlink modal state
   const [unlinkModalOpen, setUnlinkModalOpen] = useState(false);
@@ -79,6 +80,7 @@ export function ServiceToJobTypesCardsPanel(props: ServiceToJobTypesCardPanelPro
   async function handleToggleEnabled(service: ServiceToJobType) {
     const id = String(service.id);
     const nextEnabled = !service.enabled;
+    setUpdatingId(id);
 
     // Optimistic update
     setAllServiceToJobTypes(prev =>
@@ -95,12 +97,46 @@ export function ServiceToJobTypesCardsPanel(props: ServiceToJobTypesCardPanelPro
       await refresh();
     } catch {
       await refresh();
+    } finally {
+      setUpdatingId(null);
     }
   }
 
+  // Get the service being updated to determine message
+  // Note: After optimistic update, enabled state is already toggled
+  const updatingService = updatingId && allServiceToJobTypes
+    ? allServiceToJobTypes.find(s => String(s.id) === String(updatingId))
+    : null;
+  // If enabled is true after toggle, we were enabling (going from false to true)
+  // If enabled is false after toggle, we were disabling (going from true to false)
+  const isEnabling = updatingService?.enabled === true;
+  const updatingMessage = isEnabling ? "Enabling service…" : "Disabling service…";
+
   return (
     <>
-      <div className="space-y-2 mt-2">
+      {/* Blocking overlay shown while a toggle/update is in progress */}
+      {updatingId && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+          role="status"
+          aria-live="polite"
+        >
+          <div className="flex flex-col items-center gap-3">
+            <svg
+              className="animate-spin h-10 w-10 text-white"
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+            </svg>
+            <span className="text-white text-sm">{updatingMessage}</span>
+          </div>
+        </div>
+      )}
+      <div className="space-y-2 mt-2" aria-busy={Boolean(updatingId)}>
         {servicesToRender?.map(service => (
           <ServiceToJobTypesCard
             key={service.id}
