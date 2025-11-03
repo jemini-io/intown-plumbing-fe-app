@@ -66,6 +66,7 @@ model ServiceToJobType {
   updatedAt        DateTime @updatedAt
 
   skills ServiceToJobTypeSkill[]
+  bookings Booking[]
 }
 
 enum TechnicianStatus {
@@ -89,6 +90,7 @@ model Technician {
   status  TechnicianStatus @default(AWAITING_JOB)
 
   skills TechnicianSkill[]
+  bookings Booking[]
 }
 
 model ServiceToJobTypeSkill {
@@ -133,4 +135,11 @@ model Booking {
   revenue      Float    @default(0.0)
   status       String
   notes        String
+
+  // Step 1 (non-breaking): new relation fields to local tables
+  serviceLocalId    String?
+  technicianLocalId String?
+
+  service    ServiceToJobType? @relation(fields: [serviceId], references: [id])
+  technician Technician?        @relation(fields: [technicianId], references: [id])
 }

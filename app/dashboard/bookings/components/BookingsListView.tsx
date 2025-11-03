@@ -27,12 +27,17 @@ const columns = [
   { key: "scheduledFor", label: "Date & Time" },
   { key: "customerId", label: "Customer ID" },
   { key: "jobId", label: "Job ID" },
-  { key: "technicianId", label: "Technician ID" },
+  { key: "service", label: "Service" },
+  { key: "technician", label: "Technician" },
   { key: "status", label: "Status" },
 ];
 
 export interface BookingsListViewProps {
   showHeader?: boolean;
+  showJobId?: boolean;
+  showStatus?: boolean;
+  showNotes?: boolean;
+  showRevenue?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
   limit?: number;
@@ -40,10 +45,16 @@ export interface BookingsListViewProps {
 
 export function BookingsListView({ 
   showHeader = true, 
+  showJobId = false,
+  showStatus = true,
+  showNotes = false,
+  showRevenue = true,
   canEdit, 
   canDelete, 
   limit 
 }: BookingsListViewProps) {
+
+  const showActions = canEdit || canDelete;
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -57,14 +68,23 @@ export function BookingsListView({
 
   // Filter state
   const [statusFilter, setStatusFilter] = useState<string>("");
+  const [serviceFilter, setServiceFilter] = useState<string | null>("");
   const [technicianFilter, setTechnicianFilter] = useState<string | null>("");
   const [customerFilter, setCustomerFilter] = useState<string | null>("");
   const [dateFilter, setDateFilter] = useState<string>("");
 
-  // Obtén los valores únicos de technicianId y customerId
-  const uniqueTechnicians = Array.from(new Set((bookings || []).map(b => b.technicianId).filter(Boolean)));
+  const uniqueServices = Array.from(new Set((bookings || []).map(b => b.service?.displayName || "").filter(Boolean)));
+  const uniqueTechnicians = Array.from(new Set((bookings || []).map(b => b.technician?.technicianName || "").filter(Boolean)));
   const uniqueCustomers = Array.from(new Set((bookings || []).map(b => b.customerId).filter(Boolean)));
 
+  // Service filter state
+  const [serviceQuery, setServiceQuery] = useState("");
+  const filteredServices = serviceQuery === ""
+    ? uniqueServices
+    : uniqueServices.filter((service) =>
+        service.toLowerCase().includes(serviceQuery.toLowerCase())
+      );
+  
   // Technician filter state
   const [technicianQuery, setTechnicianQuery] = useState("");
   const filteredTechnicians = technicianQuery === ""
@@ -92,7 +112,7 @@ export function BookingsListView({
         job.toLowerCase().includes(jobQuery.toLowerCase())
       );
 
-  // Technician combobox open state
+  const [openService, setOpenService] = useState(false);
   const [openTechnician, setOpenTechnician] = useState(false);
 
   async function refresh() {
@@ -157,7 +177,8 @@ export function BookingsListView({
 
   const filteredBookings = (bookings || []).filter(b =>
     (!statusFilter || b.status === statusFilter) &&
-    (!technicianFilter || b.technicianId === technicianFilter) && 
+    (!serviceFilter || (b.service?.displayName || "") === serviceFilter) &&
+    (!technicianFilter || (b.technician?.technicianName || "") === technicianFilter) && 
     (!customerFilter || b.customerId === customerFilter) &&
     (!dateFilter || new Date(b.scheduledFor).toISOString().slice(0, 10) === dateFilter) &&
     (!jobFilter || b.jobId === jobFilter)
@@ -197,31 +218,6 @@ export function BookingsListView({
         <table className="min-w-full table-auto rounded-lg bg-white">
           <thead>
             <tr>
-              {/* Date */}
-              <th className="px-4 py-2 text-left">
-                <span className="flex items-center gap-2">
-                  <span
-                    className="flex items-center gap-1 cursor-pointer select-none"
-                    onClick={() => handleSort("scheduledFor")}
-                    tabIndex={0}
-                    role="button"
-                    title="Sort by date"
-                  >
-                    Date&Time
-                    <span className="inline-block align-middle">
-                      <span className={"text-lg " + (sortBy === "scheduledFor" && sortDir === "asc" ? "text-blue-600" : "text-gray-300")}>▲</span>
-                      <span className={"text-lg ml-0.5 " + (sortBy === "scheduledFor" && sortDir === "desc" ? "text-blue-600" : "text-gray-300")}>▼</span>
-                    </span>
-                  </span>
-                  <input
-                    type="date"
-                    className="border rounded text-xs"
-                    value={dateFilter}
-                    onChange={e => setDateFilter(e.target.value)}
-                    style={{ minWidth: 0, width: "110px" }}
-                  />
-                </span>
-              </th>
               {/* Customer */}
               <th className="px-4 py-2 text-left">
                 <span className="flex items-center gap-2">
@@ -259,7 +255,7 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Job ID */}
-              <th className="px-4 py-2 text-left">
+              {showJobId && ( <th className="px-4 py-2 text-left">
                 <span className="flex items-center gap-2">
                   JobID
                   <Combobox value={jobFilter} onChange={setJobFilter} as="div">
@@ -294,11 +290,48 @@ export function BookingsListView({
                     </div>
                   </Combobox>
                 </span>
+              </th> )}
+              {/* Service */}
+              <th className="px-4 py-2 text-left">
+                <span className="flex items-center gap-2">
+                  Service
+                  <Combobox value={serviceFilter} onChange={setServiceFilter} as="div">
+                    <div className="relative">
+                      <Combobox.Input
+                        className="border rounded text-xs ml-2"
+                        placeholder="Job"
+                        onChange={e => setServiceQuery(e.target.value)}
+                        displayValue={(val: string) => (!val ? "All" : val)}
+                        style={{ minWidth: 0, width: "110px" }}
+                        onFocus={() => setOpenService(true)}
+                        onBlur={() => setTimeout(() => setOpenService(false), 100)}
+                      />
+                      {openService && (
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                          <Combobox.Option value="">
+                            All
+                          </Combobox.Option>
+                          {filteredServices.map((service) => (
+                            <Combobox.Option key={service} value={service} as={Fragment}>
+                              {({ active, selected }) => (
+                                <li
+                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                >
+                                  {service}
+                                </li>
+                              )}
+                            </Combobox.Option>
+                          ))}
+                        </Combobox.Options>
+                      )}
+                    </div>
+                  </Combobox>
+                </span>
               </th>
               {/* Technician */}
               <th className="px-4 py-2 text-left">
                 <span className="flex items-center gap-2">
-                  TechnicianID
+                  Technician
                   <Combobox value={technicianFilter} onChange={setTechnicianFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
@@ -332,8 +365,33 @@ export function BookingsListView({
                   </Combobox>
                 </span>
               </th>
-              {/* Status */}
+              {/* Date & Time */}
               <th className="px-4 py-2 text-left">
+                <span className="flex items-center gap-2">
+                  <span
+                    className="flex items-center gap-1 cursor-pointer select-none"
+                    onClick={() => handleSort("scheduledFor")}
+                    tabIndex={0}
+                    role="button"
+                    title="Sort by date"
+                  >
+                    Date & Time
+                    <span className="inline-block align-middle">
+                      <span className={"text-lg " + (sortBy === "scheduledFor" && sortDir === "asc" ? "text-blue-600" : "text-gray-300")}>▲</span>
+                      <span className={"text-lg ml-0.5 " + (sortBy === "scheduledFor" && sortDir === "desc" ? "text-blue-600" : "text-gray-300")}>▼</span>
+                    </span>
+                  </span>
+                  <input
+                    type="date"
+                    className="border rounded text-xs"
+                    value={dateFilter}
+                    onChange={e => setDateFilter(e.target.value)}
+                    style={{ minWidth: 0, width: "110px" }}
+                  />
+                </span>
+              </th>
+              {/* Status */}
+              {showStatus && ( <th className="px-4 py-2 text-left">
                 <span className="flex items-center gap-2">
                   Status
                   <select
@@ -349,12 +407,12 @@ export function BookingsListView({
                     <option value="completed">Completed</option>
                   </select>
                 </span>
-              </th>
+              </th> )}
               {/* Notes */}
-              <th className="px-4 py-2 text-left">Notes</th>
+              {showNotes && ( <th className="px-4 py-2 text-left">Notes</th> )}
               {/* Revenue */}
-              <th className="px-4 py-2 text-left">Revenue</th>
-              {(canEdit || canDelete) && (
+              {showRevenue && ( <th className="px-4 py-2 text-left">Revenue</th> )}
+              {showActions && (
                 <th className="px-4 py-2 text-left">Actions</th>
               )}
             </tr>
@@ -362,18 +420,37 @@ export function BookingsListView({
           <tbody>
             {bookingsToRender.map((booking) => (
               <tr key={booking.id} className="hover:bg-blue-50">
-                <td className="px-4 py-2 text-right">{new Date(booking.scheduledFor).toLocaleString()}</td>
                 <td className="px-4 py-2 text-right">{booking.customerId || "-"}</td>
-                <td className="px-4 py-2 text-right">{booking.jobId || "-"}</td>
-                <td className="px-4 py-2 text-right">{booking.technicianId || "-"}</td>
+                {showJobId && ( <td className="px-4 py-2 text-right">{booking.jobId || "-"}</td> )}
+                <td className="px-4 py-2 text-right">{booking.service?.displayName || "-"}</td>
+                <td className="px-4 py-2 text-right">{booking.technician?.technicianName || "-"}</td>
                 <td className="px-4 py-2 text-right">
+                  {(() => {
+                    const start = new Date(booking.scheduledFor as unknown as string);
+                    const end = new Date(start.getTime() + 30 * 60 * 1000);
+                    const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(start);
+                    let monthShort = new Intl.DateTimeFormat("en-US", { month: "short" }).format(start);
+                    monthShort = monthShort.charAt(0).toUpperCase() + monthShort.slice(1);
+                    const monthAbbr = monthShort.endsWith(".") ? monthShort : monthShort + ".";
+                    const dateLine = `${weekday}, ${monthAbbr} ${start.getDate()}, ${start.getFullYear()}`;
+                    const timeFmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+                    const timeLine = `${timeFmt.format(start)} - ${timeFmt.format(end)}`;
+                    return (
+                      <div className="text-right">
+                        <div>{dateLine}</div>
+                        <div className="text-sm text-gray-500">{timeLine}</div>
+                      </div>
+                    );
+                  })()}
+                </td>
+                {showStatus && ( <td className="px-4 py-2 text-right">
                   <span className={"text-xs font-bold px-2 py-1 rounded uppercase " + statusColor(booking.status)}>
                     {booking.status.toUpperCase()}
                   </span>
-                </td>
-                <td className="px-4 py-2">{booking.notes || "-"}</td>
-                <td className="px-4 py-2 text-right">$ {Number(booking.revenue).toFixed(2)}</td>
-                {(canEdit || canDelete) && (
+                </td> )}
+                {showNotes && ( <td className="px-4 py-2">{booking.notes || "-"}</td> )}
+                {showRevenue && ( <td className="px-4 py-2 text-right">$ {Number(booking.revenue).toFixed(2)}</td> )}
+                {showActions && (canEdit || canDelete) && (
                   <td className="px-4 py-2 h-full">
                     <div className="flex gap-2 items-center h-full">
                       {canEdit && (

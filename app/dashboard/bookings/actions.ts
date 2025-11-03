@@ -16,6 +16,10 @@ export type BookingData = {
 export async function getAllBookings() {
   return prisma.booking.findMany({
     orderBy: { scheduledFor: "desc" },
+    include: {
+      service: true,
+      technician: true,
+    },
   });
 }
 
