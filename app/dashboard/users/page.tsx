@@ -204,14 +204,14 @@ export default function UsersPage() {
                       <Image
                         src={user.image.url}
                         alt={user.name || "User"}
-                        width={45}
-                        height={45}
+                        width={40}
+                        height={40}
                         className="rounded-full object-cover"
                         unoptimized
                       />
                     ) : (
-                      <div className="h-12 w-12 rounded-full flex items-center justify-center">
-                        <UserCircleIcon className="text-gray-700" />
+                      <div className="h-10 w-10 rounded-full flex items-center justify-center">
+                        <UserCircleIcon className="text-gray-700 h-7 w-7" />
                       </div>
                     )}
                   </td>

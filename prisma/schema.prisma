@@ -39,6 +39,7 @@ model UserImage {
   uploadedAt DateTime    @default(now())
   user       User?       @relation
   technician Technician? @relation
+  customer   Customer?   @relation
 }
 
 model Skill {
@@ -123,23 +124,78 @@ model AppSetting {
   @@unique([key])
 }
 
+enum CustomerType {
+  RESIDENTIAL
+  COMMERCIAL
+}
+
+model PhoneNumber {
+  id          String @id @default(uuid())
+  countryCode String
+  number      String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  customers Customer[]
+  @@unique([countryCode, number])
+}
+
+model EmailAddress {
+  id        String @id @default(uuid())
+  address   String @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  customers Customer[]
+}
+
+model Customer {
+  id             String @id @default(cuid())
+  customerId     Int @unique
+  name           String
+  type           CustomerType @default(RESIDENTIAL)
+
+  emailAddressId String?
+  emailAddress EmailAddress? @relation(fields: [emailAddressId], references: [id])
+
+  phoneNumberId  String?
+  phoneNumber PhoneNumber? @relation(fields: [phoneNumberId], references: [id])
+
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  imageId        String?    @unique
+  image          UserImage? @relation(fields: [imageId], references: [id])
+
+  bookings Booking[]
+}
+
+enum BookingStatus {
+  PENDING
+  SCHEDULED
+  CANCELED
+  COMPLETED
+}
+
 model Booking {
   id           String   @id @default(uuid())
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+
   customerId   String
+  customer     Customer @relation(fields: [customerId], references: [id])
+
   jobId        String   @unique
+
   serviceId    String
+  service ServiceToJobType? @relation(fields: [serviceId], references: [id])
+
   technicianId String
+  technician Technician? @relation(fields: [technicianId], references: [id])
   scheduledFor DateTime
   revenue      Float    @default(0.0)
-  status       String
+  status       BookingStatus @default(SCHEDULED)
   notes        String
 
-  // Step 1 (non-breaking): new relation fields to local tables
-  serviceLocalId    String?
-  technicianLocalId String?
-
-  service    ServiceToJobType? @relation(fields: [serviceId], references: [id])
-  technician Technician?        @relation(fields: [technicianId], references: [id])
+  // Helpful index for querying upcoming bookings
+  @@index([scheduledFor])
 }

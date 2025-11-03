@@ -3,11 +3,12 @@
 import { useEffect, useState, useRef, useTransition } from "react";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { addBooking, updateBooking } from "../actions";
-import { Booking } from "@/lib/types/booking";
+import { Booking, BookingStatus } from "@/lib/types/booking";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { getAllServiceToJobTypes } from "@/app/dashboard/services/actions";
 import { getAllTechnicians } from "@/app/dashboard/technicians/actions";
+import { getAllCustomers } from "@/app/dashboard/customers/actions";
 
 type BookingFormProps = FormComponentProps & {
   existing?: Booking;
@@ -18,24 +19,28 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
-  // UI state for services and technicians
+  // UI state for customers, services and technicians
+  const [allCustomers, setAllCustomers] = useState<{ id: string; name: string }[]>([]);
   const [allServices, setAllServices] = useState<ServiceToJobType[]>([]);
   const [allTechnicians, setAllTechnicians] = useState<TechnicianToSkills[]>([]);
 
-  // Load services and technicians
+  // Load customers, services and technicians
   useEffect(() => {
     let mounted = true;
     (async () => {
       try {
-        const [services, technicians] = await Promise.all([
+        const [customers, services, technicians] = await Promise.all([
+          getAllCustomers(),
           getAllServiceToJobTypes(),
           getAllTechnicians(),
         ]);
         if (!mounted) return;
+        // Map customers to minimal shape for dropdown (only id and name)
+        setAllCustomers(customers.map(c => ({ id: c.id, name: c.name })));
         setAllServices(services.filter(s => s.enabled));
         setAllTechnicians(technicians.filter(t => t.enabled));
       } catch (err) {
-        console.error("Failed to load services or technicians", err);
+        console.error("Failed to load customers, services or technicians", err);
       }
     })();
     return () => {
@@ -70,7 +75,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         serviceId: formData.get("serviceId") as string,
         technicianId: formData.get("technicianId") as string,
         scheduledFor: new Date(formData.get("scheduledFor") as string),
-        status: formData.get("status") as string,
+        status: formData.get("status") as BookingStatus,
         revenue: Number(formData.get("revenue") || 0),
         notes: formData.get("notes") as string,
       };
@@ -96,7 +101,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
     });
   }
 
-  const statusOptions = ["pending", "scheduled", "confirmed", "canceled", "completed"];
+  const statusOptions: BookingStatus[] = ["PENDING", "SCHEDULED", "CANCELED", "COMPLETED"];
 
   return (
     <div>
@@ -132,17 +137,26 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             required
           />
         </div>
-        {/* Customer ID */}
+        {/* Customer */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Customer ID</label>
-          <input
-            type="text"
-            name="customerId"
-            defaultValue={existing?.customerId ?? ""}
-            className="w-full border rounded p-2"
-            required
-            placeholder="e.g. customer123"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+          {allCustomers.length === 0 ? (
+            <div className="text-sm text-gray-500 py-2">Loading customers...</div>
+          ) : (
+            <select
+              name="customerId"
+              defaultValue={existing?.customerId ?? ""}
+              className="w-full border rounded p-2"
+              required
+            >
+              <option value="">Select a customer</option>
+              {allCustomers.map(customer => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         {/* Job ID */}
         <div>
@@ -204,14 +218,12 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select
             name="status"
-            defaultValue={existing?.status ?? "pending"}
+            defaultValue={existing?.status ?? "PENDING"}
             className="w-full border rounded p-2"
             required
           >
             {statusOptions.map(status => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </option>
+              <option key={status} value={status}>{status}</option>
             ))}
           </select>
         </div>

@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { BookingStatus } from "@/lib/types/booking";
 
 export type BookingData = {
   customerId: string;
@@ -8,7 +9,7 @@ export type BookingData = {
   serviceId: string;
   technicianId: string;
   scheduledFor: Date;
-  status: string;
+  status: BookingStatus;
   revenue?: number;
   notes: string;
 };
@@ -19,6 +20,7 @@ export async function getAllBookings() {
     include: {
       service: true,
       technician: true,
+      customer: true,
     },
   });
 }
@@ -66,4 +68,10 @@ export async function totalRevenue(): Promise<number> {
     const revenue = Number(booking.revenue);
     return sum + (isNaN(revenue) ? 0 : revenue);
   }, 0);
+}
+
+export async function getAllCustomers() {
+  return prisma.customer.findMany({
+    orderBy: { name: "asc" },
+  });
 }

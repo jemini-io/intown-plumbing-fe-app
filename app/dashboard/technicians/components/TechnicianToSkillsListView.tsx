@@ -214,7 +214,7 @@ export function TechnicianToSkillsListView({
                     unoptimized
                   />
                 ) : (
-                  <div className="h-10 w-10 rounded-full flex items-center justify-center bg-gray-100">
+                  <div className="h-10 w-10 rounded-full flex items-center justify-center">
                     <UserCircleIcon className="text-gray-700 h-7 w-7" />
                   </div>
                 )}
