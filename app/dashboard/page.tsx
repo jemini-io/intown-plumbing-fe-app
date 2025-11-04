@@ -1,18 +1,30 @@
 "use client";
 
-import { memo, useState, useCallback } from "react";
+import { memo, useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createPortal } from "react-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import { DashboardCard } from "./components/DashboardCard";
+import { DashboardHeaderPanel, DashboardHeaderTop } from "./components/DashboardHeader";
+import { DashboardProvider } from "./contexts/DashboardContext";
+import { ComingSoonModal } from "@/app/components/ComingSoonModal";
 import { ServiceToJobTypesListView } from "./services/components";
 import { TechnicianToSkillsListView } from "./technicians/components";
 import { BookingsListView } from "./bookings/components/BookingsListView";
+import {
+  CalendarDaysIcon,
+  CurrencyDollarIcon,
+  WrenchIcon,
+} from "@heroicons/react/24/outline";
+import { getAllServiceToJobTypes } from "./services/actions";
+import { getAllBookings, totalRevenue } from "./bookings/actions";
 
 // Optional: if DashboardCard not already memoized and you want to reduce renders,
 // you can wrap it in React.memo at its definition file instead.
 
 const ServicesCard = memo(function ServicesCard() {
   const [expanded, setExpanded] = useState(false);
-  const toggle = useCallback(() => setExpanded(e => !e), []);
+  const toggle = useCallback(() => setExpanded(prev => !prev), []);
   const ListView = useCallback(
     () => <ServiceToJobTypesListView limit={expanded ? undefined : 3} />,
     [expanded]
@@ -29,7 +41,7 @@ const ServicesCard = memo(function ServicesCard() {
 
 const TechniciansCard = memo(function TechniciansCard() {
   const [expanded, setExpanded] = useState(false);
-  const toggle = useCallback(() => setExpanded(e => !e), []);
+  const toggle = useCallback(() => setExpanded(prev => !prev), []);
   const ListView = useCallback(
     () => <TechnicianToSkillsListView limit={expanded ? undefined : 6} showImage={false} showSkills={false} />,
     [expanded]
@@ -46,12 +58,11 @@ const TechniciansCard = memo(function TechniciansCard() {
 
 const BookingsCard = memo(function BookingsCard() {
   const [expanded, setExpanded] = useState(false);
-  const toggle = useCallback(() => setExpanded(e => !e), []);
+  const toggle = useCallback(() => setExpanded(prev => !prev), []);
   const ListView = useCallback(
     () => (
       <div className="overflow-x-hidden">
         <BookingsListView
-          showHeader
           canEdit={false}
           canDelete={false}
           limit={expanded ? undefined : 3}
@@ -71,24 +82,85 @@ const BookingsCard = memo(function BookingsCard() {
 });
 
 export default function DashboardPage() {
+  const router = useRouter();
+  const [bookingsCount, setBookingsCount] = useState<number>(0);
+  const [servicesCount, setServicesCount] = useState<number>(0);
+  const [revenueTotal, setRevenueTotal] = useState<number>(0);
+  const [comingSoonOpen, setComingSoonOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  const refresh = useCallback(async () => {
+    const [bookings, services, revenue] = await Promise.all([
+      getAllBookings(),
+      getAllServiceToJobTypes(),
+      totalRevenue(),
+    ]);
+    setBookingsCount(bookings.length);
+    setServicesCount(services.filter(service => service.enabled === true).length);
+    setRevenueTotal(revenue);
+  }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   return (
-    <DashboardLayout>
-      <div className="bg-gray-100 min-h-screen p-8 space-y-8 rounded-lg">
-        <h1 className="text-3xl font-bold mb-8">Intown Plumbing App Dashboard</h1>
+    <DashboardProvider refresh={refresh}>
+      <DashboardLayout>
+        <div className="bg-gray-100 min-h-screen p-8 space-y-8 rounded-lg">
+          {/* Dashboard Header Row */}
+          <DashboardHeaderTop />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="flex flex-col gap-6">
-            <ServicesCard />
+          {/* Header with three panels */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <DashboardHeaderPanel 
+              title="Number of Bookings" 
+              content={<span>{bookingsCount}</span>}
+              icon={CalendarDaysIcon}
+              linkText="SHOW ALL"
+              onLinkClick={() => router.push("/dashboard/bookings")}
+            />
+            <DashboardHeaderPanel 
+              title="Total of Revenue" 
+              content={<span>${revenueTotal.toFixed(2)}</span>}
+              icon={CurrencyDollarIcon}
+              linkText="VIEW"
+              onLinkClick={() => window.open("https://dashboard.stripe.com/", "_blank", "noopener,noreferrer")}
+            />
+            <DashboardHeaderPanel 
+              title="Services Used" 
+              content={<span>{servicesCount}</span>}
+              icon={WrenchIcon}
+              linkText="SHOW ALL"
+              onLinkClick={() => router.push("/dashboard/services")}
+            />
           </div>
-          <div className="flex flex-col gap-6">
-            <TechniciansCard />
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="flex flex-col gap-6">
+              <ServicesCard />
+            </div>
+            <div className="flex flex-col gap-6">
+              <TechniciansCard />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-6">
+            <BookingsCard />
           </div>
         </div>
-
-        <div className="grid grid-cols-1 gap-6">
-          <BookingsCard />
-        </div>
-      </div>
-    </DashboardLayout>
+      </DashboardLayout>
+      {mounted && createPortal(
+        <ComingSoonModal
+          open={comingSoonOpen}
+          onClose={() => setComingSoonOpen(false)}
+        />,
+        document.body
+      )}
+    </DashboardProvider>
   );
 }

@@ -1,9 +1,14 @@
 "use client";
 
-import { useTransition, useState, useRef } from "react";
+import { useEffect, useState, useRef, useTransition } from "react";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
-import { updateBooking } from "@/app/dashboard/bookings/actions";
+import { addBooking, updateBooking } from "../actions";
 import { Booking } from "@/lib/types/booking";
+import { ServiceToJobType } from "@/lib/types/serviceToJobType";
+import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
+import { getAllServiceToJobTypes } from "@/app/dashboard/services/actions";
+import { getAllTechnicians } from "@/app/dashboard/technicians/actions";
+import { toDatetimeLocalValue } from "@/lib/utils/datetime";
 
 type BookingFormProps = FormComponentProps & {
   existing?: Booking;
@@ -14,15 +19,41 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
+  // UI state for services and technicians
+  const [allServices, setAllServices] = useState<ServiceToJobType[]>([]);
+  const [allTechnicians, setAllTechnicians] = useState<TechnicianToSkills[]>([]);
+
+  // Load services and technicians
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const [services, technicians] = await Promise.all([
+          getAllServiceToJobTypes(),
+          getAllTechnicians(),
+        ]);
+        if (!mounted) return;
+        setAllServices(services.filter(s => s.enabled));
+        setAllTechnicians(technicians.filter(t => t.enabled));
+      } catch (err) {
+        console.error("Failed to load services or technicians", err);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // uses util: toDatetimeLocalValue
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
 
-      const booking: Booking = {
-        id: existing?.id ?? "",
+      const bookingData = {
         customerId: formData.get("customerId") as string,
-        jobId: formData.get("jobId") as string,
+        jobId: existing?.jobId || (formData.get("jobId") as string),
         serviceId: formData.get("serviceId") as string,
         technicianId: formData.get("technicianId") as string,
         scheduledFor: new Date(formData.get("scheduledFor") as string),
@@ -33,34 +64,24 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
 
       try {
         if (existing) {
-          await updateBooking(existing.id, booking);
+          await updateBooking(existing.id, bookingData);
           setMessage({ type: "success", text: "Booking updated successfully!" });
-          setTimeout(() => {
-            setMessage(null);
-            onSaved();
-          }, 1500);
+        } else {
+          await addBooking(bookingData);
+          setMessage({ type: "success", text: "Booking created successfully!" });
+          formRef.current?.reset();
         }
-      } catch {
-        setMessage({ type: "error", text: "Booking Form(update): Something went wrong. Please try again." });
+
+        setMessage(null);
+        onSaved();
+      } catch (err) {
+        console.error(err);
+        setMessage({ type: "error", text: "Something went wrong. Please try again." });
       }
     });
   }
 
-  function toDatetimeLocalValue(date: Date | string) {
-    const d = typeof date === "string" ? new Date(date) : date;
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return (
-      d.getFullYear() +
-      '-' +
-      pad(d.getMonth() + 1) +
-      '-' +
-      pad(d.getDate()) +
-      'T' +
-      pad(d.getHours()) +
-      ':' +
-      pad(d.getMinutes())
-    );
-  }
+  const statusOptions = ["pending", "scheduled", "confirmed", "canceled", "completed"];
 
   return (
     <div>
@@ -68,8 +89,11 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         {existing ? "Edit Booking" : "Add New Booking"}
       </h2>
       {message && (
-        <div className={`mb-4 text-center text-base font-medium transition-all
-          ${message.type === "success" ? "text-green-600" : "text-red-600"}`}>
+        <div
+          className={`mb-4 text-center text-base font-medium transition-all ${
+            message.type === "success" ? "text-green-600" : "text-red-600"
+          }`}
+        >
           {message.text}
         </div>
       )}
@@ -115,30 +139,50 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             className="w-full border rounded p-2"
             required
             placeholder="e.g. job123"
+            disabled={!!existing}
           />
         </div>
-        {/* Service ID */}
+        {/* Service */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Service ID</label>
-          <input
-            type="text"
-            name="serviceId"
-            defaultValue={existing?.serviceId ?? ""}
-            className="w-full border rounded p-2"
-            required
-            placeholder="e.g. service123"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
+          {allServices.length === 0 ? (
+            <div className="text-sm text-gray-500 py-2">Loading services...</div>
+          ) : (
+            <select
+              name="serviceId"
+              defaultValue={existing?.serviceId ?? ""}
+              className="w-full border rounded p-2"
+              required
+            >
+              <option value="">Select a service</option>
+              {allServices.map(service => (
+                <option key={service.id} value={service.id}>
+                  {service.displayName}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
-        {/* Technician ID */}
+        {/* Technician */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Technician ID</label>
-          <input
-            type="text"
-            name="technicianId"
-            defaultValue={existing?.technicianId ?? ""}
-            className="w-full border rounded p-2"
-            placeholder="e.g. technician123"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Technician</label>
+          {allTechnicians.length === 0 ? (
+            <div className="text-sm text-gray-500 py-2">Loading technicians...</div>
+          ) : (
+            <select
+              name="technicianId"
+              defaultValue={existing?.technicianId ?? ""}
+              className="w-full border rounded p-2"
+              required
+            >
+              <option value="">Select a technician</option>
+              {allTechnicians.map(technician => (
+                <option key={technician.id} value={technician.id}>
+                  {technician.technicianName}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         {/* Status */}
         <div>
@@ -149,10 +193,11 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             className="w-full border rounded p-2"
             required
           >
-            <option value="pending">Pending</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="confirmed">Confirmed</option>
-            <option value="canceled">Canceled</option>
+            {statusOptions.map(status => (
+              <option key={status} value={status}>
+                {status.charAt(0).toUpperCase() + status.slice(1)}
+              </option>
+            ))}
           </select>
         </div>
         {/* Revenue */}
@@ -165,7 +210,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             className="w-full border rounded p-2"
             step="0.01"
             min="0"
-            placeholder="e.g. 35.00"
+            placeholder="e.g. 150.00"
           />
         </div>
         {/* Notes */}
@@ -183,9 +228,9 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gradient-to-r from-gray-800 to-gray-700 text-white py-2 rounded-md font-medium shadow-md hover:from-gray-900 hover:to-gray-800 transition disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
-            {isPending ? "Saving..." : existing ? "Update Booking" : "Add Booking"}
+            {isPending ? "Saving..." : existing ? "Update booking" : "Add booking"}
           </button>
         </div>
       </form>

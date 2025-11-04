@@ -137,6 +137,16 @@ export default function UsersPage() {
     }
   }
 
+  // Get the user being updated to determine message
+  // Note: After optimistic update, enabled state is already toggled
+  const updatingUser = updatingId 
+    ? users.find(u => String(u.id) === String(updatingId))
+    : null;
+  // If enabled is true after toggle, we were enabling (going from false to true)
+  // If enabled is false after toggle, we were disabling (going from true to false)
+  const isEnabling = updatingUser?.enabled === true;
+  const updatingMessage = isEnabling ? "Enabling user…" : "Disabling user…";
+
   return (
     <DashboardLayout>
       <div className="min-h-screen p-8" aria-busy={Boolean(updatingId)}>
@@ -158,7 +168,7 @@ export default function UsersPage() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
               </svg>
-              <span className="text-white text-sm">Updating…</span>
+              <span className="text-white text-sm">{updatingMessage}</span>
             </div>
           </div>
         )}

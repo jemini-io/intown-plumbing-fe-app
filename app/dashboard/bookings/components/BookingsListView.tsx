@@ -1,9 +1,10 @@
 import React, { useEffect, useState, Fragment } from "react";
 import { Booking } from "@/lib/types/booking";
-import { getAllBookings, deleteBooking } from "../actions";
+import { getAllBookings, deleteBooking, totalRevenue } from "../actions";
 import { BookingsForm } from "./BookingsForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 import { Combobox } from "@headlessui/react";
+import { PlusIcon } from "@heroicons/react/24/outline";
 
 
 
@@ -103,6 +104,11 @@ export function BookingsListView({
     refresh();
   }, []);
 
+  function handleAdd() {
+    setSelectedBooking(null);
+    setModalOpen(true);
+  }
+
   function handleEdit(booking: Booking) {
     setSelectedBooking(booking);
     setModalOpen(true);
@@ -159,10 +165,17 @@ export function BookingsListView({
 
   const sortedBookings = filteredBookings.sort(sortBookings);
 
-  const totalRevenue = (sortedBookings || []).reduce((sum, booking) => {
-    const revenue = Number(booking.revenue);
-    return sum + (isNaN(revenue) ? 0 : revenue);
-  }, 0);
+  const [revenueTotal, setRevenueTotal] = useState<number>(0);
+
+  useEffect(() => {
+    async function loadRevenue() {
+      const total = await totalRevenue();
+      setRevenueTotal(total);
+    }
+    if (bookings) {
+      loadRevenue();
+    }
+  }, [bookings]);
 
   const bookingsToRender = limit ? sortedBookings.slice(0, limit) : sortedBookings;
 
@@ -171,6 +184,13 @@ export function BookingsListView({
       {showHeader && (
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-xl font-semibold">Bookings</h2>
+          <button
+            className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
+            title="Add new booking"
+            onClick={handleAdd}
+          >
+            <PlusIcon className="h-6 w-6" />
+          </button>
         </div>
       )}
       <div className="overflow-x-auto">
@@ -386,7 +406,7 @@ export function BookingsListView({
               ))}
               {/* Revenue total */}
               <td className="px-4 py-2 font-bold text-right" colSpan={2}>
-                ${totalRevenue.toFixed(2)}
+                ${revenueTotal.toFixed(2)}
               </td>
               {(canEdit || canDelete) && <td></td>}
             </tr>

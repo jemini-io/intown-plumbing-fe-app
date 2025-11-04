@@ -19,20 +19,20 @@ export async function getAllBookings() {
   });
 }
 
-// export async function addBooking(bookingData: BookingData) {  
-//   return prisma.booking.create({
-//     data: {
-//         customerId: bookingData.customerId,
-//         jobId: bookingData.jobId,
-//         serviceId: bookingData.serviceId,
-//         technicianId: bookingData.technicianId,
-//         scheduledFor: new Date(bookingData.scheduledFor),
-//         status: bookingData.status,
-//         revenue: Number(bookingData.revenue),
-//         notes: bookingData.notes,
-//     },
-//   });
-// }
+export async function addBooking(bookingData: BookingData) {  
+  return prisma.booking.create({
+    data: {
+        customerId: bookingData.customerId,
+        jobId: bookingData.jobId,
+        serviceId: bookingData.serviceId,
+        technicianId: bookingData.technicianId,
+        scheduledFor: new Date(bookingData.scheduledFor),
+        status: bookingData.status as string,
+        revenue: bookingData.revenue ?? 0,
+        notes: bookingData.notes,
+    },
+  });
+}
 
 export async function updateBooking(bookingId: string, bookingData: BookingData) {
   return prisma.booking.update({
@@ -43,7 +43,7 @@ export async function updateBooking(bookingId: string, bookingData: BookingData)
           serviceId: bookingData.serviceId,
           technicianId: bookingData.technicianId,
           scheduledFor: bookingData.scheduledFor,
-          status: bookingData.status,
+          status: bookingData.status as string,
           revenue: bookingData.revenue,
           notes: bookingData.notes,
       },
@@ -54,4 +54,13 @@ export async function deleteBooking(bookingId: string) {
   return prisma.booking.delete({
     where: { id: bookingId },
   });
-}   
+}
+
+export async function totalRevenue(): Promise<number> {
+  const result = await prisma.booking.aggregate({
+    _sum: {
+      revenue: true,
+    },
+  });
+  return result._sum.revenue ?? 0;
+}
