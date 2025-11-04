@@ -7,6 +7,7 @@ import { User } from "./types";
 import {  UserCircleIcon } from "@heroicons/react/24/outline";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
+import { SpinnerOverlay } from "@/app/dashboard/components/Spinner";
 import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 import { UserForm } from "./user-form";
@@ -151,27 +152,7 @@ export default function UsersPage() {
     <DashboardLayout>
       <div className="min-h-screen p-8" aria-busy={Boolean(updatingId)}>
         {/* Blocking overlay shown while a toggle/update is in progress */}
-        {updatingId && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
-            role="status"
-            aria-live="polite"
-          >
-            <div className="flex flex-col items-center gap-3">
-              <svg
-                className="animate-spin h-10 w-10 text-white"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                aria-hidden="true"
-              >
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-              </svg>
-              <span className="text-white text-sm">{updatingMessage}</span>
-            </div>
-          </div>
-        )}
+        {updatingId && <SpinnerOverlay message={updatingMessage} />}
          <div className="flex items-center justify-between mb-8">
            <h3 className="text-3xl font-bold">Users</h3>
            <button

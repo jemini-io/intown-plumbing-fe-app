@@ -4,6 +4,7 @@ import { getAllSkills, updateSkill, deleteSkill, unlinkServiceFromSkill, unlinkT
 import { SkillForm } from "./SkillForm";
 import SkillCard from "./SkillCard";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
+import { SpinnerOverlay } from "@/app/dashboard/components/Spinner";
 export interface SkillCardsPanelProps {
   limit?: number;
 }
@@ -20,6 +21,7 @@ export function SkillCardsPanel(props: SkillCardsPanelProps) {
   const [selectedSkillId, setSelectedSkillId] = useState<string | null>(null);
   const [selectedAssocId, setSelectedAssocId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
 
   async function refresh() {
     const skills: Skill[] = await getAllSkills();
@@ -82,6 +84,7 @@ export function SkillCardsPanel(props: SkillCardsPanelProps) {
   async function handleToggleEnabled(skill: Skill) {
     const id = String(skill.id);
     const nextEnabled = !skill.enabled;
+    setUpdatingId(id);
     setAllSkills(prev =>
       prev
         ? prev.map(item =>
@@ -96,11 +99,21 @@ export function SkillCardsPanel(props: SkillCardsPanelProps) {
       await refresh();
     } catch {
       await refresh();
+    } finally {
+      setUpdatingId(null);
     }
   }
 
+  // Determine spinner message (after optimistic update, enabled already reflects target state)
+  const updatingSkill = updatingId && allSkills
+    ? allSkills.find(s => String(s.id) === String(updatingId))
+    : null;
+  const isEnabling = updatingSkill?.enabled === true;
+  const updatingMessage = isEnabling ? "Enabling skill…" : "Disabling skill…";
+
   return (
     <>
+      {updatingId && <SpinnerOverlay message={updatingMessage} />}
       <div className="space-y-2 mt-2">
         {skillsToRender?.map(skill => (
           <SkillCard
