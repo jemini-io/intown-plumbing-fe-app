@@ -1,6 +1,7 @@
 "use client";
 
 import { memo, useState, useCallback, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import { DashboardCard } from "./components/DashboardCard";
@@ -81,6 +82,7 @@ const BookingsCard = memo(function BookingsCard() {
 });
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [bookingsCount, setBookingsCount] = useState<number>(0);
   const [servicesCount, setServicesCount] = useState<number>(0);
   const [revenueTotal, setRevenueTotal] = useState<number>(0);
@@ -120,21 +122,21 @@ export default function DashboardPage() {
               content={<span>{bookingsCount}</span>}
               icon={CalendarDaysIcon}
               linkText="SHOW ALL"
-              onLinkClick={() => setComingSoonOpen(true)}
+              onLinkClick={() => router.push("/dashboard/bookings")}
             />
             <DashboardHeaderPanel 
               title="Total of Revenue" 
               content={<span>${revenueTotal.toFixed(2)}</span>}
               icon={CurrencyDollarIcon}
               linkText="VIEW"
-              onLinkClick={() => setComingSoonOpen(true)}
+              onLinkClick={() => window.open("https://dashboard.stripe.com/", "_blank", "noopener,noreferrer")}
             />
             <DashboardHeaderPanel 
               title="Services Used" 
               content={<span>{servicesCount}</span>}
               icon={WrenchIcon}
               linkText="SHOW ALL"
-              onLinkClick={() => setComingSoonOpen(true)}
+              onLinkClick={() => router.push("/dashboard/services")}
             />
           </div>
 
