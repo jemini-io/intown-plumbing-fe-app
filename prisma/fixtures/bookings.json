@@ -1,41 +1,45 @@
 [
   {
+    "id": "booking_01",
     "scheduledFor": "$NOW+0d",
-    "customerId": "81486732",
+    "customerId": "customer_01",
     "jobId": "81491823",
     "serviceId": "76820748",
     "technicianId": "2513668",
-    "status": "scheduled",
+    "status": "SCHEDULED",
     "notes": "This booking entry is just a FIXTURE for the test env",
     "revenue": 35.0
   },
   {
+    "id": "booking_02",
     "scheduledFor": "$NOW+15d",
-    "customerId": "81487794",
+    "customerId": "customer_02",
     "jobId": "81491800",
     "serviceId": "76820749",
     "technicianId": "49786183",
-    "status": "canceled",
+    "status": "SCHEDULED",
     "notes": "This booking entry is just a FIXTURE for the test env",
     "revenue": 35.0
   },
   {
+    "id": "booking_03",
     "scheduledFor": "$NOW+30d",
-    "customerId": "81486732",
+    "customerId": "customer_03",
     "jobId": "81491777",
     "serviceId": "76820749",
     "technicianId": "76734742",
-    "status": "scheduled",
+    "status": "SCHEDULED",
     "notes": "This booking entry is just a FIXTURE for the test env",
     "revenue": 35.0
   },
   {
+    "id": "booking_04",
     "scheduledFor": "$NOW-45d",
-    "customerId": "81486777",
+    "customerId": "customer_04",
     "jobId": "81491664",
     "serviceId": "76821741",
     "technicianId": "2513600",
-    "status": "scheduled",
+    "status": "SCHEDULED",
     "notes": "This booking entry is just a FIXTURE for the test env",
     "revenue": 35.0
   }

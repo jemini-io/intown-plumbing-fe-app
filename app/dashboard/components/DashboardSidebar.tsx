@@ -117,6 +117,24 @@ export default function DashboardSidebar({
               )}
             </Link>
             <Link
+              href="/dashboard/coming-soon"
+              title="Customers"
+              className={`group flex items-center ${
+                collapsed ? "justify-center" : "gap-4 px-5"
+              } py-3 rounded hover:bg-[#3d5a73] transition`}
+            >
+              <CalendarDaysIcon className="h-6 w-6 text-white" />
+              {!collapsed && (
+                <span
+                  className={`text-white font-medium transition-all duration-200
+                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
+                overflow-hidden`}
+                >
+                  Customers
+                </span>
+              )}
+            </Link>
+            <Link
               href="/dashboard/technicians"
               title="Technicians"
               className={`group flex items-center ${
