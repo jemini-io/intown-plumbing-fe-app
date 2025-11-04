@@ -22,9 +22,8 @@ export function ComingSoonModal({
         </button>
         <div className="flex flex-col items-center justify-center py-8">
           <span className="text-5xl mb-4">🚧</span>
-          <p className="text-lg text-gray-600 mb-4">Hey Dan, behold the message you love to see when things are not done yet:</p>
           <h1 className="text-3xl font-bold mb-2 text-gray-800">Coming Soon!</h1>
-          <h2 className="text-2xl font-semibold mb-2 text-gray-700">😛</h2>
+          <p className="text-sm text-gray-500 mt-1 text-center">Thanks for checking out the app! It&apos;s still a work in progress, please check back later when we&apos;ve finished this feature!</p>
         </div>
       </div>
     </div>
