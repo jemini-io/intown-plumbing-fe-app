@@ -32,6 +32,21 @@ export async function getAllTechnicians() {
   }
 }
 
+// Optimized function for dropdowns - only fetches id, technicianName, and enabled
+export async function getTechniciansForDropdown() {
+  return prisma.technician.findMany({
+    where: {
+      enabled: true,
+    },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      technicianName: true,
+      enabled: true,
+    },
+  });
+}
+
 export async function findTechnicianById(id: string) {
   const prompt = "findTechnicianById function says:";
   logger.info(`${prompt} Fetching technician with ID: ${id}`);

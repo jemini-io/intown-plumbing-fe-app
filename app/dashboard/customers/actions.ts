@@ -30,3 +30,14 @@ export async function getAllCustomers() {
     phoneNumber: customer.phoneNumber,
   }));
 }
+
+// Optimized function for dropdowns - only fetches id and name
+export async function getCustomersForDropdown() {
+  return prisma.customer.findMany({
+    orderBy: { name: "asc" },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
+}
