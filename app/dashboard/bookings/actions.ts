@@ -33,7 +33,7 @@ export async function addBooking(bookingData: BookingData) {
         serviceId: bookingData.serviceId,
         technicianId: bookingData.technicianId,
         scheduledFor: new Date(bookingData.scheduledFor),
-        status: bookingData.status,
+        status: bookingData.status as string,
         revenue: bookingData.revenue ?? 0,
         notes: bookingData.notes,
     },
@@ -49,7 +49,7 @@ export async function updateBooking(bookingId: string, bookingData: BookingData)
           serviceId: bookingData.serviceId,
           technicianId: bookingData.technicianId,
           scheduledFor: bookingData.scheduledFor,
-          status: bookingData.status,
+          status: bookingData.status as string,
           revenue: bookingData.revenue,
           notes: bookingData.notes,
       },
@@ -63,11 +63,12 @@ export async function deleteBooking(bookingId: string) {
 }
 
 export async function totalRevenue(): Promise<number> {
-  const bookings = await getAllBookings();
-  return bookings.reduce((sum, booking) => {
-    const revenue = Number(booking.revenue);
-    return sum + (isNaN(revenue) ? 0 : revenue);
-  }, 0);
+  const result = await prisma.booking.aggregate({
+    _sum: {
+      revenue: true,
+    },
+  });
+  return result._sum.revenue ?? 0;
 }
 
 export async function getAllCustomers() {

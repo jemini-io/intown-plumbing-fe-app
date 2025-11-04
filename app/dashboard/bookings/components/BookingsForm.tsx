@@ -3,11 +3,13 @@
 import { useEffect, useState, useRef, useTransition } from "react";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { addBooking, updateBooking } from "../actions";
-import { Booking, BookingStatus } from "@/lib/types/booking";
+import { Booking } from "@/lib/types/booking";
+import { getCustomersForDropdown } from "@/app/dashboard/customers/actions";
 import { getServicesForDropdown } from "@/app/dashboard/services/actions";
 import { getTechniciansForDropdown } from "@/app/dashboard/technicians/actions";
-import { getCustomersForDropdown } from "@/app/dashboard/customers/actions";
+import { toDatetimeLocalValue } from "@/lib/utils/datetime";
 import { useBookingsFormData } from "../contexts/BookingsFormDataContext";
+import { BookingStatus } from "@/lib/types/booking";
 
 type BookingFormProps = FormComponentProps & {
   existing?: Booking;
@@ -48,22 +50,6 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
     };
   }, [cached?.loaded]);
 
-  function toDatetimeLocalValue(date: Date | string) {
-    const d = typeof date === "string" ? new Date(date) : date;
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return (
-      d.getFullYear() +
-      '-' +
-      pad(d.getMonth() + 1) +
-      '-' +
-      pad(d.getDate()) +
-      'T' +
-      pad(d.getHours()) +
-      ':' +
-      pad(d.getMinutes())
-    );
-  }
-
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     startTransition(async () => {
@@ -90,10 +76,8 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           formRef.current?.reset();
         }
 
-        setTimeout(() => {
-          setMessage(null);
-          onSaved();
-        }, 800);
+        setMessage(null);
+        onSaved();
       } catch (err) {
         console.error(err);
         setMessage({ type: "error", text: "Something went wrong. Please try again." });
