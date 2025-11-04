@@ -8,6 +8,7 @@ import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { getAllServiceToJobTypes } from "@/app/dashboard/services/actions";
 import { getAllTechnicians } from "@/app/dashboard/technicians/actions";
+import { toDatetimeLocalValue } from "@/lib/utils/datetime";
 
 type BookingFormProps = FormComponentProps & {
   existing?: Booking;
@@ -43,21 +44,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
     };
   }, []);
 
-  function toDatetimeLocalValue(date: Date | string) {
-    const d = typeof date === "string" ? new Date(date) : date;
-    const pad = (n: number) => n.toString().padStart(2, '0');
-    return (
-      d.getFullYear() +
-      '-' +
-      pad(d.getMonth() + 1) +
-      '-' +
-      pad(d.getDate()) +
-      'T' +
-      pad(d.getHours()) +
-      ':' +
-      pad(d.getMinutes())
-    );
-  }
+  // uses util: toDatetimeLocalValue
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
