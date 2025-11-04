@@ -72,10 +72,8 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           formRef.current?.reset();
         }
 
-        setTimeout(() => {
-          setMessage(null);
-          onSaved();
-        }, 800);
+        setMessage(null);
+        onSaved();
       } catch (err) {
         console.error(err);
         setMessage({ type: "error", text: "Something went wrong. Please try again." });
