@@ -135,6 +135,7 @@ CREATE TABLE "public"."Customer" (
     "phoneNumberId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "imageId" TEXT,
 
     CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
 );
@@ -144,7 +145,7 @@ CREATE TABLE "public"."Booking" (
     "id" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "customerId" TEXT,
+    "customerId" TEXT NOT NULL,
     "jobId" TEXT NOT NULL,
     "serviceId" TEXT NOT NULL,
     "technicianId" TEXT NOT NULL,
@@ -184,6 +185,9 @@ CREATE UNIQUE INDEX "EmailAddress_address_key" ON "public"."EmailAddress"("addre
 CREATE UNIQUE INDEX "Customer_customerId_key" ON "public"."Customer"("customerId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Customer_imageId_key" ON "public"."Customer"("imageId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Booking_jobId_key" ON "public"."Booking"("jobId");
 
 -- CreateIndex
@@ -214,7 +218,10 @@ ALTER TABLE "public"."Customer" ADD CONSTRAINT "Customer_emailAddressId_fkey" FO
 ALTER TABLE "public"."Customer" ADD CONSTRAINT "Customer_phoneNumberId_fkey" FOREIGN KEY ("phoneNumberId") REFERENCES "public"."PhoneNumber"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "public"."Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Customer" ADD CONSTRAINT "Customer_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."UserImage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "public"."Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_serviceId_fkey" FOREIGN KEY ("serviceId") REFERENCES "public"."ServiceToJobType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

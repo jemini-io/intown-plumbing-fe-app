@@ -1,14 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition } from "react";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { addBooking, updateBooking } from "../actions";
 import { Booking } from "@/lib/types/booking";
-import { getCustomersForDropdown } from "@/app/dashboard/customers/actions";
-import { getServicesForDropdown } from "@/app/dashboard/services/actions";
-import { getTechniciansForDropdown } from "@/app/dashboard/technicians/actions";
+import { useCustomersDropdown, useServicesDropdown, useTechniciansDropdown } from "../hooks/useDropdownData";
 import { toDatetimeLocalValue } from "@/lib/utils/datetime";
-import { useBookingsFormData } from "../contexts/BookingsFormDataContext";
 import { BookingStatus } from "@/lib/types/booking";
 
 type BookingFormProps = FormComponentProps & {
@@ -19,36 +16,10 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const cached = useBookingsFormData();
-
-  // UI state for customers, services and technicians
-  const [allCustomers, setAllCustomers] = useState<{ id: string; name: string }[]>(cached?.customers ?? []);
-  const [allServices, setAllServices] = useState<{ id: string; displayName: string }[]>(cached?.services ?? []);
-  const [allTechnicians, setAllTechnicians] = useState<{ id: string; technicianName: string }[]>(cached?.technicians ?? []);
-
-  // Load customers, services and technicians (use cached first, then fetch if needed)
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        if (cached?.loaded) return; // data already available
-        const [customers, services, technicians] = await Promise.all([
-          getCustomersForDropdown(),
-          getServicesForDropdown(),
-          getTechniciansForDropdown(),
-        ]);
-        if (!mounted) return;
-        setAllCustomers(prev => (prev.length ? prev : customers));
-        setAllServices(prev => (prev.length ? prev : services));
-        setAllTechnicians(prev => (prev.length ? prev : technicians));
-      } catch (err) {
-        console.error("Failed to load customers, services or technicians", err);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [cached?.loaded]);
+  // Load dropdown data via hooks
+  const { data: allCustomers, isLoading: loadingCustomers } = useCustomersDropdown();
+  const { data: allServices, isLoading: loadingServices } = useServicesDropdown();
+  const { data: allTechnicians, isLoading: loadingTechnicians } = useTechniciansDropdown();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -124,7 +95,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         {/* Customer */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
-          {allCustomers.length === 0 ? (
+          {loadingCustomers ? (
             <div className="text-sm text-gray-500 py-2">Loading customers...</div>
           ) : (
             <select
@@ -158,7 +129,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         {/* Service */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
-          {allServices.length === 0 ? (
+          {loadingServices ? (
             <div className="text-sm text-gray-500 py-2">Loading services...</div>
           ) : (
             <select
@@ -179,7 +150,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         {/* Technician */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Technician</label>
-          {allTechnicians.length === 0 ? (
+          {loadingTechnicians ? (
             <div className="text-sm text-gray-500 py-2">Loading technicians...</div>
           ) : (
             <select

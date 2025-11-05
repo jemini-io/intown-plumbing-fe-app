@@ -123,7 +123,7 @@ export default function DashboardSidebar({
                 collapsed ? "justify-center" : "gap-4 px-5"
               } py-3 rounded hover:bg-[#3d5a73] transition`}
             >
-              <CalendarDaysIcon className="h-6 w-6 text-white" />
+              <UserGroupIcon className="h-6 w-6 text-white" />
               {!collapsed && (
                 <span
                   className={`text-white font-medium transition-all duration-200

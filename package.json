@@ -32,7 +32,6 @@
     "import:skillsTechniciansAndServiceToJobTypes:test": "dotenv -e .env.test -- node scripts/importSkillsTechniciansAndServiceToJobTypes.js test",
     "import:skillsTechniciansAndServiceToJobTypes:prod": "dotenv -e .env.prod -- node scripts/importSkillsTechniciansAndServiceToJobTypes.js prod",
     "import:fixtures:test": "dotenv -e .env.test -- node scripts/importFixtures.js test",
-    "import:bookings:test": "dotenv -e .env.test -- node scripts/importBookingsFixtures.js test",
     "setup:prod": "npm run db:prod:create && npm run migrate:prod && npm run import:prod",
     "setup:dev": "npm run db:dev:create && npm run migrate:dev && npm run import:dev",
     "setup:test": "npm run db:test:create && npm run migrate:test && npm run import:test",
