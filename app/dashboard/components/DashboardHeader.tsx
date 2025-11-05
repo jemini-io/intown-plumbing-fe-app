@@ -48,7 +48,8 @@ export function DashboardHeaderTop() {
     setMounted(true);
     // Prefetch dropdown data so the modal opens instantly
     formData?.load?.();
-  }, []);
+    // Re-run if provider instance changes
+  }, [formData]);
 
   const handleOpenModal = () => {
     setModalOpen(true);

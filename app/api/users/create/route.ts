@@ -88,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     // 2.2. Create UserImage entry and associate it to user
     try {
-      userImage = await prisma.userImage.create({
+      userImage = await prisma.image.create({
         data: {
           url: uploadedImage.url,
           publicId: uploadedImage.publicId,
@@ -109,7 +109,7 @@ export async function POST(req: NextRequest) {
         await deleteFromCloudinary(uploadedImage.publicId);
       }
       if (userImage?.id) {
-        await prisma.userImage.delete({ where: { id: userImage.id } });
+        await prisma.image.delete({ where: { id: userImage.id } });
       }
 
       await prisma.user.delete({ where: { id: user.id } });

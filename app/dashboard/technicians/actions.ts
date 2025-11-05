@@ -143,7 +143,7 @@ export async function deleteTechnician(id: string) {
   // Delete associated UserImage entry if it exists
   logger.info(`${prompt} Deleting associated image from UserImage table entry if it exists...`);
   if (technician.image?.id) {
-    await prisma.userImage.delete({ where: { id: technician.image.id } });
+    await prisma.image.delete({ where: { id: technician.image.id } });
   }
 
   // Delete TechnicianSkill relations

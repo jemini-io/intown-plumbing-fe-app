@@ -300,7 +300,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gradient-to-r from-gray-800 to-gray-700 text-white py-2 rounded-md font-medium shadow-md hover:from-gray-900 hover:to-gray-800 transition disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update" : "Add"}
           </button>

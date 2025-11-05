@@ -14,7 +14,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
+enum UserRole {
   USER
   ADMIN
 }
@@ -24,15 +24,15 @@ model User {
   email          String     @unique
   name           String?
   passwordDigest String
-  role           Role       @default(USER)
+  role           UserRole   @default(USER)
   imageId        String?    @unique
-  image          UserImage? @relation(fields: [imageId], references: [id])
+  image          Image? @relation(fields: [imageId], references: [id])
   createdAt      DateTime   @default(now())
   updatedAt      DateTime   @updatedAt
   enabled        Boolean    @default(true)
 }
 
-model UserImage {
+model Image {
   id         String      @id @default(uuid())
   url        String
   publicId   String
@@ -66,8 +66,8 @@ model ServiceToJobType {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  skills ServiceToJobTypeSkill[]
-  bookings Booking[]
+  skills           ServiceToJobTypeSkill[]
+  bookings         Booking[]
 }
 
 enum TechnicianStatus {
@@ -85,21 +85,21 @@ model Technician {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  imageId String?    @unique
-  image   UserImage? @relation(fields: [imageId], references: [id])
+  imageId        String?    @unique
+  image          Image? @relation(fields: [imageId], references: [id])
 
-  status  TechnicianStatus @default(AWAITING_JOB)
+  status         TechnicianStatus @default(AWAITING_JOB)
 
-  skills TechnicianSkill[]
-  bookings Booking[]
+  skills         TechnicianSkill[]
+  bookings       Booking[]
 }
 
 model ServiceToJobTypeSkill {
   serviceToJobTypeId String
   skillId            String
 
-  serviceToJobType ServiceToJobType @relation(fields: [serviceToJobTypeId], references: [id])
-  skill            Skill            @relation(fields: [skillId], references: [id])
+  serviceToJobType   ServiceToJobType @relation(fields: [serviceToJobTypeId], references: [id])
+  skill              Skill            @relation(fields: [skillId], references: [id])
 
   @@id([serviceToJobTypeId, skillId])
 }
@@ -108,8 +108,8 @@ model TechnicianSkill {
   technicianId String
   skillId      String
 
-  technician Technician @relation(fields: [technicianId], references: [id])
-  skill      Skill      @relation(fields: [skillId], references: [id])
+  technician   Technician @relation(fields: [technicianId], references: [id])
+  skill        Skill      @relation(fields: [skillId], references: [id])
 
   @@id([technicianId, skillId])
 }
@@ -136,7 +136,8 @@ model PhoneNumber {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  customers Customer[]
+  customers   Customer[]
+
   @@unique([countryCode, number])
 }
 
@@ -155,18 +156,18 @@ model Customer {
   type           CustomerType @default(RESIDENTIAL)
 
   emailAddressId String?
-  emailAddress EmailAddress? @relation(fields: [emailAddressId], references: [id])
+  emailAddress   EmailAddress? @relation(fields: [emailAddressId], references: [id])
 
   phoneNumberId  String?
-  phoneNumber PhoneNumber? @relation(fields: [phoneNumberId], references: [id])
+  phoneNumber    PhoneNumber? @relation(fields: [phoneNumberId], references: [id])
 
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   imageId        String?    @unique
-  image          UserImage? @relation(fields: [imageId], references: [id])
+  image          Image? @relation(fields: [imageId], references: [id])
 
-  bookings Booking[]
+  bookings       Booking[]
 }
 
 enum BookingStatus {
@@ -187,10 +188,10 @@ model Booking {
   jobId        String   @unique
 
   serviceId    String
-  service ServiceToJobType? @relation(fields: [serviceId], references: [id])
+  service      ServiceToJobType? @relation(fields: [serviceId], references: [id])
 
   technicianId String
-  technician Technician? @relation(fields: [technicianId], references: [id])
+  technician   Technician? @relation(fields: [technicianId], references: [id])
   scheduledFor DateTime
   revenue      Float    @default(0.0)
   status       BookingStatus @default(SCHEDULED)

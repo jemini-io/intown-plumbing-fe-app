@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { BookingStatus } from "@/lib/types/booking";
 import pino from "pino";
 
 const logger = pino({ name: "create-local-booking-from-job-background-service" });
@@ -32,7 +33,7 @@ export async function createLocalBookingFromJob({
               serviceId: serviceId,
               technicianId: technicianId,
               scheduledFor: scheduledFor,
-              status: status,
+              status: status as BookingStatus,
               revenue: revenue,
               notes: notes,
             }

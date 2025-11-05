@@ -31,7 +31,7 @@ export async function deleteUser(id: string) {
 
   // Delete associated UserImage entry if it exists
   if (user?.image?.id) {
-    await prisma.userImage.delete({ where: { id: user.image.id } });
+    await prisma.image.delete({ where: { id: user.image.id } });
   }
 
   // Delete the user itself

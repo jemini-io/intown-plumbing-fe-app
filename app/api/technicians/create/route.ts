@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      technicianImage = await prisma.userImage.create({
+      technicianImage = await prisma.image.create({
         data: {
           url: uploadedImage.url,
           publicId: uploadedImage.publicId,
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
         await deleteFromCloudinary(uploadedImage.publicId);
       }
       if (technicianImage?.id) {
-        await prisma.userImage.delete({ where: { id: technicianImage.id } });
+        await prisma.image.delete({ where: { id: technicianImage.id } });
       }
       await prisma.technician.delete({ where: { id: technician.id } });
       logger.error(err, "Error creating technicianImage or updating technician:");

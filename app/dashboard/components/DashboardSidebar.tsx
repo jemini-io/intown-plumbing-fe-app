@@ -1,22 +1,13 @@
 "use client";
 
-import Link from "next/link";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import {
-  Squares2X2Icon,
-  ChartBarIcon,
-  Cog6ToothIcon,
-  UserGroupIcon,
-  UserCircleIcon,
-  ArrowRightOnRectangleIcon,
-  CalendarDaysIcon,
-  WrenchIcon,
-  CurrencyDollarIcon,
-} from "@heroicons/react/24/solid";
+import { UserCircleIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { logoutAction } from "@/app/actions/logout";
-import { useRouter } from "next/navigation";
+import { CustomNavLink } from "./CustomNavLink";
 import { Dispatch, SetStateAction } from "react";
+import { navItemsData } from "./navItemsData";
+import { UserRole } from "@/app/dashboard/users/types";
 
 interface DashboardSidebarProps {
   collapsed: boolean;
@@ -28,10 +19,9 @@ export default function DashboardSidebar({
   setCollapsed,
 }: DashboardSidebarProps) {
   const { data: session, update } = useSession();
-  const role = session?.user?.role as ("USER" | "ADMIN") | undefined;
+  const role = session?.user?.role as UserRole | undefined;
   const userImageUrl = session?.user?.image;
   const userName = session?.user?.name || "User";
-  const router = useRouter();
 
   const handleLogout = async () => {
     await logoutAction();
@@ -74,231 +64,59 @@ export default function DashboardSidebar({
         </button>
       </div>
 
-      {/* Header */}
 
       <div className="flex flex-col space-y-2 mt-4 flex-shrink-0 w-full">
-        <Link
-          href="/dashboard"
-          title="Dashboard"
-          className={`group flex items-center ${
-            collapsed ? "justify-center" : "gap-4 px-5"
-          } py-3 rounded hover:bg-[#3d5a73] transition`}
-        >
-          <Squares2X2Icon className="h-6 w-6 text-white" />
-          {!collapsed && (
-            <span
-              className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-            >
-              Dashboard
-            </span>
-          )}
-        </Link>
-
-        {role === "ADMIN" && (
-          <>
-            <Link
-              href="/dashboard/bookings"
-              title="Bookings"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <CalendarDaysIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Bookings
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/dashboard/coming-soon"
-              title="Customers"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <UserGroupIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Customers
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/dashboard/technicians"
-              title="Technicians"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <UserGroupIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Technicians
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/dashboard/services"
-              title="Services"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <WrenchIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Services
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/dashboard/skills"
-              title="Skills"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <ChartBarIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Skills
-                </span>
-              )}
-            </Link>
-            <a
-              href="https://dashboard.stripe.com/"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Revenue (Stripe Dashboard)"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <CurrencyDollarIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Revenue
-                </span>
-              )}
-            </a>
-            <Link
-              href="/dashboard/users"
-              title="Users"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <UserGroupIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Users
-                </span>
-              )}
-            </Link>
-            <Link
-              href="/dashboard/settings"
-              title="App Settings"
-              className={`group flex items-center ${
-                collapsed ? "justify-center" : "gap-4 px-5"
-              } py-3 rounded hover:bg-[#3d5a73] transition`}
-            >
-              <Cog6ToothIcon className="h-6 w-6 text-white" />
-              {!collapsed && (
-                <span
-                  className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-                >
-                  Settings
-                </span>
-              )}
-            </Link>
-          </>
-        )}
+        {navItemsData
+          .filter(item => (role === "ADMIN" ? true : !item.requireAdmin))
+          .map(item => (
+            <CustomNavLink
+              key={item.href}
+              href={item.href}
+              label={item.label}
+              icon={item.icon}
+              collapsed={collapsed}
+              external={item.external}
+            />
+          ))}
       </div>
 
       <div className="mt-auto flex flex-col items-center space-y-2 pb-4 flex-shrink-0 w-full">
-        <button
-          type="button"
-          onClick={() => router.push("/dashboard/profile")}
-          title={userName}
-          aria-label={`Profile of ${userName}`}
-          className={`group flex items-center ${
-            collapsed ? "justify-center" : "gap-3 px-3"
-          } py-2 rounded hover:bg-[#3d5a73] transition w-full`}
-        >
-          {userImageUrl ? (
-            <Image
-              src={userImageUrl}
-              alt={userName}
-              width={40}
-              height={40}
-              className="rounded-full object-cover"
-              unoptimized
+        {(() => {
+          const ProfileIcon: React.ComponentType<{ className?: string }> = () => (
+            userImageUrl ? (
+              <Image
+                src={userImageUrl}
+                alt={userName}
+                width={40}
+                height={40}
+                className="rounded-full object-cover"
+                unoptimized
+              />
+            ) : (
+              <UserCircleIcon className="h-6 w-6 text-white" />
+            )
+          );
+          return (
+            <CustomNavLink
+              href="/dashboard/profile"
+              label={userName}
+              title={userName}
+              icon={ProfileIcon}
+              collapsed={collapsed}
+              fullWidth
             />
-          ) : (
-            <UserCircleIcon className="h-6 w-6 text-white" />
-          )}
-          {!collapsed && (
-            <span
-              className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-            >
-              {userName}
-            </span>
-          )}
-        </button>
+          );
+        })()}
 
-        <button
-          onClick={handleLogout}
+        <CustomNavLink
+          href="#logout"
+          label="Logout"
           title="Logout"
-          className={`group flex items-center ${
-            collapsed ? "justify-center" : "gap-3 px-3"
-          } py-2 rounded hover:bg-[#3d5a73] transition w-full`}
-        >
-          <ArrowRightOnRectangleIcon className="h-6 w-6 text-white" />
-          {!collapsed && (
-            <span
-              className={`text-white font-medium transition-all duration-200
-                ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"}
-                overflow-hidden`}
-            >
-              Logout
-            </span>
-          )}
-        </button>
+          icon={ArrowRightOnRectangleIcon}
+          collapsed={collapsed}
+          onClick={handleLogout}
+          fullWidth
+        />
       </div>
     </aside>
   );

@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "public"."Role" AS ENUM ('USER', 'ADMIN');
+CREATE TYPE "public"."UserRole" AS ENUM ('USER', 'ADMIN');
 
 -- CreateEnum
 CREATE TYPE "public"."TechnicianStatus" AS ENUM ('ON_JOB', 'ON_ROUTE', 'FINISHED_JOB', 'AWAITING_JOB');
@@ -16,7 +16,7 @@ CREATE TABLE "public"."User" (
     "email" TEXT NOT NULL,
     "name" TEXT,
     "passwordDigest" TEXT NOT NULL,
-    "role" "public"."Role" NOT NULL DEFAULT 'USER',
+    "role" "public"."UserRole" NOT NULL DEFAULT 'USER',
     "imageId" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -26,13 +26,13 @@ CREATE TABLE "public"."User" (
 );
 
 -- CreateTable
-CREATE TABLE "public"."UserImage" (
+CREATE TABLE "public"."Image" (
     "id" TEXT NOT NULL,
     "url" TEXT NOT NULL,
     "publicId" TEXT NOT NULL,
     "uploadedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "UserImage_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Image_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -194,10 +194,10 @@ CREATE UNIQUE INDEX "Booking_jobId_key" ON "public"."Booking"("jobId");
 CREATE INDEX "Booking_scheduledFor_idx" ON "public"."Booking"("scheduledFor");
 
 -- AddForeignKey
-ALTER TABLE "public"."User" ADD CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."UserImage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."User" ADD CONSTRAINT "User_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."Image"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Technician" ADD CONSTRAINT "Technician_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."UserImage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Technician" ADD CONSTRAINT "Technician_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."Image"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."ServiceToJobTypeSkill" ADD CONSTRAINT "ServiceToJobTypeSkill_serviceToJobTypeId_fkey" FOREIGN KEY ("serviceToJobTypeId") REFERENCES "public"."ServiceToJobType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -218,7 +218,7 @@ ALTER TABLE "public"."Customer" ADD CONSTRAINT "Customer_emailAddressId_fkey" FO
 ALTER TABLE "public"."Customer" ADD CONSTRAINT "Customer_phoneNumberId_fkey" FOREIGN KEY ("phoneNumberId") REFERENCES "public"."PhoneNumber"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "public"."Customer" ADD CONSTRAINT "Customer_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."UserImage"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "public"."Customer" ADD CONSTRAINT "Customer_imageId_fkey" FOREIGN KEY ("imageId") REFERENCES "public"."Image"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."Booking" ADD CONSTRAINT "Booking_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "public"."Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

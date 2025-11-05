@@ -6,12 +6,12 @@ import { AdapterUser } from "next-auth/adapters";
 import pino from "pino";
 import type { Session, User } from "next-auth";
 import type { JWT } from "next-auth/jwt";
-import type { Role } from "@/types/next-auth";
+import type { UserRole } from "@/app/dashboard/users/types";
 
 const logger = pino({ name: "Auth" });
 
 export interface UserWithRole extends AdapterUser {
-  role: Role;
+  role: UserRole;
   image: string | null;
   enabled: boolean;
 }
@@ -127,7 +127,7 @@ export const authOptions = {
         session.user = {
           ...session.user,
           id: (token.id as string) || "",
-          role: (token.role as Role) || "USER",
+          role: (token.role as UserRole) || "USER",
           name: token.name ?? null,
           image: (token.image as string) || null,
           enabled: token.enabled ?? true,

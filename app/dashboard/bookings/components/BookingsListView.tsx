@@ -7,8 +7,6 @@ import { Combobox } from "@headlessui/react";
 import { PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 
-
-
 function statusColor(status: BookingStatus) {
   switch (status) {
     case "SCHEDULED":
@@ -118,7 +116,7 @@ export function BookingsListView({
 
   async function refresh() {
     const bookings = await getAllBookings();
-    setBookings(bookings);
+    setBookings(bookings as unknown as Booking[]);
   }
 
   useEffect(() => {
