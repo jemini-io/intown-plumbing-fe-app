@@ -2,6 +2,7 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { env } from '@/lib/config/env';
 import { PostHogProvider } from '@/components/PostHogProvider';
+import { GTMProvider } from '@/components/GTMProvider';
 import Providers from "@/components/SessionProviderWrapper";
 
 export const metadata: Metadata = {
@@ -19,16 +20,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <Providers>
-          <PostHogProvider>
-            {isTestEnv && (
-              <div className="w-full fixed top-0 left-0 z-50 bg-red-700 text-white text-center py-4 text-md font-bold shadow-lg">
-                TEST ENV | Texting and Video Calling Enabled. Use Personal Phone/Email ONLY
-              </div>
-            )}
-            <div className={isTestEnv ? 'pt-20' : ''}>{children}</div>
-          </PostHogProvider>
-        </Providers>
+        <GTMProvider>
+          <Providers>
+            <PostHogProvider>
+              {isTestEnv && (
+                <div className="w-full fixed top-0 left-0 z-50 bg-red-700 text-white text-center py-4 text-md font-bold shadow-lg">
+                  TEST ENV | Texting and Video Calling Enabled. Use Personal Phone/Email ONLY
+                </div>
+              )}
+              <div className={isTestEnv ? 'pt-20' : ''}>{children}</div>
+            </PostHogProvider>
+          </Providers>
+        </GTMProvider>
       </body>
     </html>
   );
