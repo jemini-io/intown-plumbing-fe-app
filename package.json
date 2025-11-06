@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "dotenv -e .env next dev | pino-pretty",
+    "dev:test": "dotenv -e .env.test next dev | pino-pretty",
     "dev:prod": "dotenv -e .env.prod next dev | pino-pretty",
     "dev:iframe": "cd test && dotenv -e .env.test.local http-server -p 3001",
     "clean": "rm -rf .next && rm -rf node_modules && npm run clean:sdk",
