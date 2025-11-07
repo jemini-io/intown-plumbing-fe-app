@@ -26,7 +26,7 @@ export const navItemsData: NavItemData[] = [
   },
   { 
     // Customers page link
-    href: "/dashboard/coming-soon", 
+    href: "/dashboard/customers", 
     label: "Customers", 
     icon: UserGroupIcon, 
     requireAdmin: true 

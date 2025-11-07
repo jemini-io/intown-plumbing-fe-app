@@ -1,7 +1,9 @@
-const fs = require('fs');
-const path = require('path');
-const pino = require("pino");
-const { PrismaClient } = require('../lib/generated/prisma');
+import fs from 'fs';
+import path from 'path';
+import pino from "pino";
+import { PrismaClient } from '../lib/generated/prisma';
+import { addEmailAddress } from '../app/dashboard/emailAddresses/actions';
+import { addPhoneNumber } from '../app/dashboard/phoneNumbers/actions';
 
 const prisma = new PrismaClient();
 
@@ -16,7 +18,7 @@ if (!env) {
 }
 
 // Load and parse a JSON fixture file
-function loadJsonFixture(filename) {
+function loadJsonFixture(filename: string) {
   const filePath = path.join(__dirname, '..', 'prisma', 'fixtures', filename);
   if (!fs.existsSync(filePath)) {
     logger.error(`JSON file not found: ${filePath}`);
@@ -28,21 +30,26 @@ function loadJsonFixture(filename) {
 
 // 1. Import email addresses and build a map: { fixtureId: prismaId }
 async function importEmailAddressesAndGetMap() {
-  const emailAddresses = loadJsonFixture('emailAddresses.json');
+  const emailAddresses = loadJsonFixture('emailAddresses.json') as Array<{ id?: string; address: string }>;
   if (!Array.isArray(emailAddresses)) {
     logger.error('emailAddresses.json is not an array.');
     process.exit(1);
   }
   
   let count = 0;
-  const emailMap = {};
+  const emailMap: Record<string, string> = {};
   
   for (const email of emailAddresses) {
     const emailData = { ...email };
     const fixtureId = emailData.id;
+    if (!fixtureId) {
+      logger.error('Email address missing id in fixture');
+      process.exit(1);
+    }
     delete emailData.id;
-    
-    const created = await prisma.emailAddress.create({ data: emailData });
+
+    // Use addEmailAddress which includes validation
+    const created = await addEmailAddress({ address: emailData.address });
     emailMap[fixtureId] = created.id;
     count++;
   }
@@ -53,21 +60,29 @@ async function importEmailAddressesAndGetMap() {
 
 // 2. Import phone numbers and build a map: { fixtureId: prismaId }
 async function importPhoneNumbersAndGetMap() {
-  const phoneNumbers = loadJsonFixture('phoneNumbers.json');
+  const phoneNumbers = loadJsonFixture('phoneNumbers.json') as Array<{ id?: string; countryCode: string; number: string }>;
   if (!Array.isArray(phoneNumbers)) {
     logger.error('phoneNumbers.json is not an array.');
     process.exit(1);
   }
   
   let count = 0;
-  const phoneMap = {};
+  const phoneMap: Record<string, string> = {};
   
   for (const phone of phoneNumbers) {
     const phoneData = { ...phone };
     const fixtureId = phoneData.id;
+    if (!fixtureId) {
+      logger.error('Phone number missing id in fixture');
+      process.exit(1);
+    }
     delete phoneData.id;
     
-    const created = await prisma.phoneNumber.create({ data: phoneData });
+    // Use addPhoneNumber which includes sanitization of countryCode
+    const created = await addPhoneNumber({
+      countryCode: phoneData.countryCode,
+      number: phoneData.number,
+    });
     phoneMap[fixtureId] = created.id;
     count++;
   }
@@ -77,15 +92,23 @@ async function importPhoneNumbersAndGetMap() {
 }
 
 // 3. Import customers using email and phone maps, build customer map: { customerId (ServiceTitan): prismaId }
-async function importCustomersAndGetMap(emailMap, phoneMap) {
-  const customers = loadJsonFixture('customers.json');
+async function importCustomersAndGetMap(emailMap: Record<string, string>, phoneMap: Record<string, string>) {
+  const customers = loadJsonFixture('customers.json') as Array<{
+    id?: string;
+    customerId: number;
+    name: string;
+    type?: string;
+    emailAddressId?: string;
+    phoneNumberId?: string;
+    imageId?: string | null;
+  }>;
   if (!Array.isArray(customers)) {
     logger.error('customers.json is not an array.');
     process.exit(1);
   }
   
   let count = 0;
-  const customerMap = {}; // Maps ServiceTitan customerId to Prisma id
+  const customerMap: Record<number, string> = {}; // Maps ServiceTitan customerId to Prisma id
   
   for (const customer of customers) {
     const customerData = { ...customer };
@@ -93,19 +116,40 @@ async function importCustomersAndGetMap(emailMap, phoneMap) {
     delete customerData.id;
     
     // Resolve emailAddressId and phoneNumberId from maps
-    if (customerData.emailAddressId && emailMap[customerData.emailAddressId]) {
-      customerData.emailAddressId = emailMap[customerData.emailAddressId];
+    if (customerData.emailAddressId) {
+      const mappedEmailId = emailMap[customerData.emailAddressId];
+      if (mappedEmailId) {
+        customerData.emailAddressId = mappedEmailId;
+        logger.debug(`Mapped email fixture ID ${customerData.emailAddressId} to Prisma ID ${mappedEmailId}`);
+      } else {
+        logger.warn(`Email fixture ID ${customerData.emailAddressId} not found in emailMap. Available keys: ${Object.keys(emailMap).join(', ')}`);
+        customerData.emailAddressId = undefined;
+      }
     } else {
-      customerData.emailAddressId = null;
+      customerData.emailAddressId = undefined;
     }
     
-    if (customerData.phoneNumberId && phoneMap[customerData.phoneNumberId]) {
-      customerData.phoneNumberId = phoneMap[customerData.phoneNumberId];
+    if (customerData.phoneNumberId) {
+      const mappedPhoneId = phoneMap[customerData.phoneNumberId];
+      if (mappedPhoneId) {
+        customerData.phoneNumberId = mappedPhoneId;
+        logger.debug(`Mapped phone fixture ID ${customerData.phoneNumberId} to Prisma ID ${mappedPhoneId}`);
+      } else {
+        logger.warn(`Phone fixture ID ${customerData.phoneNumberId} not found in phoneMap. Available keys: ${Object.keys(phoneMap).join(', ')}`);
+        customerData.phoneNumberId = undefined;
+      }
     } else {
-      customerData.phoneNumberId = null;
+      customerData.phoneNumberId = undefined;
     }
     
-    const created = await prisma.customer.create({ data: customerData });
+    // Remove id before creating, handle imageId separately
+    const { imageId, ...createData } = customerData;
+    const createInput = {
+      ...createData,
+      ...(imageId !== null && imageId !== undefined ? { imageId } : {}),
+    };
+    
+    const created = await prisma.customer.create({ data: createInput as Parameters<typeof prisma.customer.create>[0]['data'] });
     customerMap[serviceTitanCustomerId] = created.id; // Map ServiceTitan ID to Prisma ID
     count++;
   }

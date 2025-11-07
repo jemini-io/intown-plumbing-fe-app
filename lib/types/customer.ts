@@ -10,8 +10,8 @@ export type Customer = {
   customerId: number;
   name: string;
   type: CustomerType;
-  emailAddress: EmailAddress;
-  phoneNumber: PhoneNumber;
+  emailAddress: EmailAddress | null;
+  phoneNumber: PhoneNumber | null;
   bookings: Booking[] | [];
   image?: UserImage | null;
 };

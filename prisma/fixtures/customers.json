@@ -4,79 +4,79 @@
         "customerId": 123456000,
         "name": "John Doe",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_01",
-        "phoneNumberId": "ph_01"
+        "emailAddressId": "ema_01",
+        "phoneNumberId": "phn_01"
     },
     {
         "id": "customer_02",
         "customerId": 123457000,
         "name": "Jane Doe",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_02",
-        "phoneNumberId": "ph_02"
+        "emailAddressId": "ema_02",
+        "phoneNumberId": "phn_02"
     },
     {
         "id": "customer_03",
         "customerId": 123458000,
         "name": "Bob Doe",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_03",
-        "phoneNumberId": "ph_03"
+        "emailAddressId": "ema_03",
+        "phoneNumberId": "phn_03"
     },
     {
         "id": "customer_04",
         "customerId": 123459000,
         "name": "Jason Doe",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_04",
-        "phoneNumberId": "ph_04"
+        "emailAddressId": "ema_04",
+        "phoneNumberId": "phn_04"
     },
     {
         "id": "customer_05",
         "customerId": 123460000,
         "name": "Joe Beam",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_05",
-        "phoneNumberId": "ph_05"
+        "emailAddressId": "ema_05",
+        "phoneNumberId": "phn_05"
     },
     {
         "id": "customer_06",
         "customerId": 123461000,
         "name": "Jake Beam",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_06",
-        "phoneNumberId": "ph_06"
+        "emailAddressId": "ema_06",
+        "phoneNumberId": "phn_06"
     },
     {
         "id": "customer_07",
         "customerId": 123462000,
         "name": "Jim Beam",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_07",
-        "phoneNumberId": "ph_07"
+        "emailAddressId": "ema_07",
+        "phoneNumberId": "phn_07"
     },
     {
         "id": "customer_08",
         "customerId": 123463000,
         "name": "Jill Beam",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_08",
-        "phoneNumberId": "ph_08"
+        "emailAddressId": "ema_08",
+        "phoneNumberId": "phn_08"
     },
     {
         "id": "customer_09",
         "customerId": 123464000,
         "name": "Bob Beam",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_09",
-        "phoneNumberId": "ph_09"
+        "emailAddressId": "ema_09",
+        "phoneNumberId": "phn_09"
     },
     {
         "id": "customer_10",
         "customerId": 123465000,
         "name": "Anne Beam",
         "type": "RESIDENTIAL",
-        "emailAddressId": "ea_10",
-        "phoneNumberId": "ph_10"
+        "emailAddressId": "ema_10",
+        "phoneNumberId": "phn_10"
     }
 ]
