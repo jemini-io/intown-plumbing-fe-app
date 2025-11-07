@@ -8,7 +8,7 @@
     "dev:prod": "dotenv -e .env.prod next dev | pino-pretty",
     "dev:iframe": "cd test && dotenv -e .env.test.local http-server -p 3001",
     "clean": "rm -rf .next && rm -rf node_modules && npm run clean:sdk",
-    "build": "npm run db:generate && npx prisma migrate deploy && npm run generate:sdk && npm run lint && next build",
+    "build": "npm run db:generate && npm run generate:sdk && npm run lint && next build",
     "build:test": "dotenv -e .env.test -- sh -c 'npx prisma generate && npx prisma migrate deploy && npm run generate:sdk && npm run lint && next build'",
     "build:prod": "dotenv -e .env.prod -- sh -c 'npx prisma generate && npx prisma migrate deploy && npm run generate:sdk && npm run lint && next build'",
     "start": "next start",
