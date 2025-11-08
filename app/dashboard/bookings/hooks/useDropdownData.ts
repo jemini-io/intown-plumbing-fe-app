@@ -66,7 +66,8 @@ function useDropdown<TServer, TView>(
     return () => {
       mountedRef.current = false;
     };
-  }, [cacheKey, fetchFn, mapFn, ttlMs]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cacheKey, ttlMs]);
 
   return state;
 }

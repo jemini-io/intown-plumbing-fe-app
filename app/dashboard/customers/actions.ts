@@ -13,14 +13,14 @@ export async function getAllCustomers() {
   logger.info(`${prompt} Fetching all customers`);
   const customers = await prisma.customer.findMany({
     orderBy: { name: "asc" },
-    select: {
-      id: true,
-      customerId: true,
-      name: true,
-      type: true,
+    include: {
       emailAddress: true,
       phoneNumber: true,
-      bookings: true,
+      bookings: {
+        include: {
+          service: true,
+        },
+      },
       image: true,
     },
   });
@@ -46,7 +46,8 @@ export async function getCustomersForDropdown() {
 }
 
 export async function findCustomerById(id: string) {
-  logger.info(`Fetching customer with ID: ${id}`);
+  const prompt = 'findCustomerById function says:';
+  logger.info(`${prompt} Fetching customer with ID: ${id}...`);
   const customer = await prisma.customer.findUnique({
     where: { id },
     include: {
@@ -57,8 +58,11 @@ export async function findCustomerById(id: string) {
     },
   });
   if (!customer) {
-    logger.warn(`Customer with ID ${id} not found`);
+    logger.warn(`${prompt} Customer with ID ${id} not found`);
+  } else {
+    logger.info(`${prompt} Customer with ID ${id} found!`);
   }
+  logger.info(`${prompt} Returning customer: ${customer?.id} to the caller...`);
   return customer;
 }
 
@@ -204,15 +208,85 @@ export async function updateCustomer(
 }
 
 export async function deleteCustomer(id: string) {
-  logger.info(`Deleting customer with ID: ${id}`);
+  const prompt = 'deleteCustomer function says:';
+  logger.info(`${prompt} Attempting to delete customer with ID: ${id}`);
   try {
-    const customer = await prisma.customer.delete({
+    // First, check if customer exists
+    logger.info(`${prompt} Invoking findCustomerById function to check if customer exists...`);
+    const customer = await findCustomerById(id);
+
+    if (!customer) {
+      const errorMessage = `Customer with ID ${id} not found.`;
+      logger.warn(`${prompt} Throwing error: ${errorMessage}`);
+      throw new Error(errorMessage);
+    }
+
+    // Check if customer has associated bookings
+    logger.info(`${prompt} Checking if customer has associated bookings...`);
+    const bookingsCount = customer.bookings?.length || 0;
+
+    if (bookingsCount > 0) {
+      const errorMessage = `Cannot delete customer: This customer has ${bookingsCount} booking${bookingsCount !== 1 ? 's' : ''} associated. Please delete or reassign the bookings first.`;
+      logger.warn({ id, bookingsCount }, `${prompt} Throwing error: ${errorMessage}`);
+      throw new Error(errorMessage);
+    }
+
+    logger.info(`${prompt} Customer has no associated bookings. Proceeding with deletion...`);
+    logger.info(`${prompt} Invoking prisma.customer.delete to delete customer...`);
+    const deletedCustomer = await prisma.customer.delete({
       where: { id },
     });
-    logger.info(`Customer deleted: ${customer.id}`);
-    return customer;
+    logger.info(`${prompt} Customer deleted: ${deletedCustomer.id}`);
+    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id}`);
+    return deletedCustomer;
   } catch (error) {
-    logger.error({ error, id }, "Error deleting customer");
+    logger.error({ error, id }, `${prompt} Throwing error: Error deleting customer`);
+    throw error;
+  }
+}
+
+export async function deleteCustomerAndTheirBookings(id: string) {
+  const prompt = 'deleteCustomerAndTheirBookings function says:';
+  logger.info(`${prompt} Attempting to delete customer with ID: ${id} and all associated bookings`);
+  try {
+    // First, check if customer exists
+    logger.info(`${prompt} Invoking findCustomerById function to check if customer exists...`);
+    const customer = await findCustomerById(id);
+
+    if (!customer) {
+      const errorMessage = `Customer with ID ${id} not found.`;
+      logger.warn(`${prompt} Throwing error: ${errorMessage}`);
+      throw new Error(errorMessage);
+    }
+
+    // Delete all associated bookings first
+    const bookingsCount = customer.bookings?.length || 0;
+    if (bookingsCount > 0) {
+      logger.info(`${prompt} Customer has ${bookingsCount} booking${bookingsCount !== 1 ? 's' : ''} associated. Deleting them first...`);
+      const bookingIds = customer.bookings.map(booking => booking.id);
+      
+      // Delete all bookings in a transaction
+      await prisma.booking.deleteMany({
+        where: {
+          id: {
+            in: bookingIds,
+          },
+        },
+      });
+      logger.info(`${prompt} Deleted ${bookingsCount} booking${bookingsCount !== 1 ? 's' : ''} associated with customer ${id}`);
+    }
+
+    // Now delete the customer
+    logger.info(`${prompt} All bookings deleted. Proceeding with customer deletion...`);
+    logger.info(`${prompt} Invoking prisma.customer.delete to delete customer...`);
+    const deletedCustomer = await prisma.customer.delete({
+      where: { id },
+    });
+    logger.info(`${prompt} Customer deleted: ${deletedCustomer.id}`);
+    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id}`);
+    return deletedCustomer;
+  } catch (error) {
+    logger.error({ error, id }, `${prompt} Throwing error: Error deleting customer and bookings`);
     throw error;
   }
 }

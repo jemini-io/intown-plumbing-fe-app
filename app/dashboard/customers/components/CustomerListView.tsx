@@ -2,9 +2,10 @@ import React, { useEffect, useState, Fragment } from "react";
 import { UserCircleIcon } from "@heroicons/react/24/outline";
 import { UserPlusIcon } from "@heroicons/react/24/solid";
 import { Customer } from "@/lib/types/customer";
-import { getAllCustomers, deleteCustomer } from "../actions";
+import { getAllCustomers, deleteCustomer, deleteCustomerAndTheirBookings } from "../actions";
 import { CustomerForm } from "./CustomerForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
+import { ErrorModal } from "@/app/components/ErrorModal";
 import { Combobox } from "@headlessui/react";
 import Image from "next/image";
 
@@ -32,16 +33,32 @@ export function CustomerListView({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [customerToDelete, setCustomerToDelete] = useState<Customer | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [errorOpen, setErrorOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [deletingWithBookings, setDeletingWithBookings] = useState(false);
+  const [hoveredCustomerId, setHoveredCustomerId] = useState<string | null>(null);
+  const [mousePosition, setMousePosition] = useState<{ x: number; y: number } | null>(null);
 
   // Filter state
+  const [nameFilter, setNameFilter] = useState<string>("");
   const [emailFilter, setEmailFilter] = useState<string>("");
   const [phoneFilter, setPhoneFilter] = useState<string>("");
 
   // Unique values for filters
+  const uniqueNames = Array.from(new Set((allCustomers || []).map(c => c.name).filter(Boolean)));
   const uniqueEmails = Array.from(new Set((allCustomers || []).map(c => c.emailAddress?.address || "").filter(Boolean)));
   const uniquePhones = Array.from(new Set((allCustomers || []).map(c => 
     c.phoneNumber ? `+${c.phoneNumber.countryCode} ${c.phoneNumber.number}` : ""
   ).filter(Boolean)));
+
+  // Name filter state
+  const [nameQuery, setNameQuery] = useState("");
+  const [openName, setOpenName] = useState(false);
+  const filteredNames = nameQuery === ""
+    ? uniqueNames
+    : uniqueNames.filter((name) =>
+        name.toLowerCase().includes(nameQuery.toLowerCase())
+      );
 
   // Email filter state
   const [emailQuery, setEmailQuery] = useState("");
@@ -88,19 +105,38 @@ export function CustomerListView({
   const confirmDelete = () => {
     if (customerToDelete) {
       setDeleting(true);
-      deleteCustomer(String(customerToDelete.id)).then(() => {
-        setDeleting(false);
-        refresh();
-        setConfirmOpen(false);
-        setCustomerToDelete(null);
-      });
+      deleteCustomer(String(customerToDelete.id))
+        .then(() => {
+          setDeleting(false);
+          refresh();
+          setConfirmOpen(false);
+          setCustomerToDelete(null);
+        })
+        .catch((error) => {
+          setDeleting(false);
+          setConfirmOpen(false);
+          setErrorMessage(error.message || "Failed to delete customer. Please try again.");
+          setErrorOpen(true);
+        });
     }
   };
 
   // Filter customers - support both exact filter and query-based filtering
   const filteredCustomers = allCustomers.filter(c => {
+    const customerName = c.name || "";
     const customerEmail = c.emailAddress?.address || "";
     const customerPhone = c.phoneNumber ? `+${c.phoneNumber.countryCode} ${c.phoneNumber.number}` : "";
+    
+    // Name filter: if nameFilter is set (from dropdown selection), use exact match
+    // Otherwise, if nameQuery is set (from typing), use partial match
+    let nameMatch = true;
+    if (nameFilter && nameFilter !== "") {
+      // Exact match when filter is selected from dropdown
+      nameMatch = customerName === nameFilter;
+    } else if (nameQuery && nameQuery !== "") {
+      // Partial match when typing
+      nameMatch = customerName.toLowerCase().includes(nameQuery.toLowerCase());
+    }
     
     // Email filter: if emailFilter is set (from dropdown selection), use exact match
     // Otherwise, if emailQuery is set (from typing), use partial match
@@ -124,25 +160,25 @@ export function CustomerListView({
       phoneMatch = customerPhone.toLowerCase().includes(phoneQuery.toLowerCase());
     }
     
-    return emailMatch && phoneMatch;
+    return nameMatch && emailMatch && phoneMatch;
   });
 
   const customersToRender = limit ? filteredCustomers.slice(0, limit) : filteredCustomers;
 
-  // Configuración de columnas
   const columnsConfig = [
-    showImage ? "48px" : null,                // IMAGE ancho fijo
-    "1fr",                                   // NAME flexible
-    showType ? "minmax(100px, max-content)" : null, // TYPE mínimo
-    showEmail ? "1fr" : null,                 // EMAIL flexible
-    showPhone ? "1fr" : null,                 // PHONE flexible
-    showActions ? "100px" : null,             // ACTIONS ancho fijo
+    showImage ? "48px" : null,
+    "1fr",
+    showType ? "minmax(100px, max-content)" : null,
+    showEmail ? "1fr" : null,
+    showPhone ? "1fr" : null,
+    "minmax(120px, max-content)", // Number of Bookings
+    showActions ? "100px" : null,
   ].filter(Boolean);
 
   const gridStyle = {
     display: "grid",
     gridTemplateColumns: columnsConfig.join(" "),
-    gap: "2.5rem", // más espacio entre columnas
+    gap: "2.5rem",
     alignItems: "center",
   };
 
@@ -162,12 +198,60 @@ export function CustomerListView({
       {/* Header row */}
       <div style={gridStyle} className="px-2 py-2 text-xs font-semibold tracking-wide text-gray-500 border-b">
         {showImage && <div className="text-left uppercase">Image</div>}
-        <div className="text-left uppercase">Name</div>
+        <div className="text-left">
+          <span className="flex items-center gap-2">
+            <span>Name</span>
+            <Combobox value={nameFilter} onChange={(value) => {
+              setNameFilter(value || "");
+              setNameQuery(""); // Clear query when selecting from dropdown
+            }} as="div" className="flex-1">
+              <div className="relative">
+                <Combobox.Input
+                  className="border rounded text-xs ml-2 w-full"
+                  placeholder="Name"
+                  onChange={e => {
+                    const value = e.target.value;
+                    setNameQuery(value);
+                    // Clear filter when typing to allow query-based filtering
+                    if (value !== nameFilter) {
+                      setNameFilter("");
+                    }
+                  }}
+                  displayValue={(val: string) => {
+                    if (val && val !== "") return val;
+                    if (nameQuery && nameQuery !== "") return nameQuery;
+                    return "All";
+                  }}
+                  onFocus={() => setOpenName(true)}
+                  onBlur={() => setTimeout(() => setOpenName(false), 100)}
+                />
+                {openName && (
+                  <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                    <Combobox.Option value="">
+                      All
+                    </Combobox.Option>
+                    {filteredNames.map((name) => (
+                      <Combobox.Option key={name} value={name} as={Fragment}>
+                        {({ active, selected }) => (
+                          <li
+                            className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                          >
+                            {name}
+                          </li>
+                        )}
+                      </Combobox.Option>
+                    ))}
+                  </Combobox.Options>
+                )}
+              </div>
+            </Combobox>
+          </span>
+        </div>
         {showType && <div className="text-center uppercase">Type</div>}
         {showEmail && (
           <div className="text-left">
             <span className="flex items-center gap-2">
-              <span>Email</span>
+              <span>Email Address</span>
               <Combobox value={emailFilter} onChange={(value) => {
                 setEmailFilter(value || "");
                 setEmailQuery(""); // Clear query when selecting from dropdown
@@ -267,6 +351,7 @@ export function CustomerListView({
             </span>
           </div>
         )}
+        <div className="text-center uppercase">Number of Bookings</div>
         {showActions && <div className="text-center uppercase">Actions</div>}
       </div>
 
@@ -275,7 +360,17 @@ export function CustomerListView({
           <li
             key={customer.customerId}
             style={gridStyle}
-            className="px-2 py-3 border-b last:border-b-0 hover:bg-blue-50"
+            className="px-2 py-3 border-b last:border-b-0 hover:bg-blue-50 relative"
+            onMouseEnter={() => setHoveredCustomerId(customer.id)}
+            onMouseLeave={() => {
+              setHoveredCustomerId(null);
+              setMousePosition(null);
+            }}
+            onMouseMove={(e) => {
+              if (customer.bookings && customer.bookings.length > 0) {
+                setMousePosition({ x: e.clientX, y: e.clientY });
+              }
+            }}
           >
             {showImage && (
               <div className="flex items-center justify-start">
@@ -328,6 +423,52 @@ export function CustomerListView({
                 </span>
               </div>
             )}
+            <div className="flex justify-center">
+              <span className="text-sm text-gray-700">
+                {customer.bookings?.length || 0}
+              </span>
+            </div>
+            {hoveredCustomerId === customer.id && customer.bookings && customer.bookings.length > 0 && mousePosition && (
+              <div 
+                className="fixed z-50 bg-white border rounded-md shadow-lg p-2 min-w-[250px] max-w-[400px]"
+                style={{ 
+                  left: `${mousePosition.x + 10}px`,
+                  top: `${mousePosition.y + 10}px`,
+                  pointerEvents: 'none'
+                }}
+              >
+                  <div className="text-xs font-semibold text-gray-700 mb-2">Bookings for {customer.name}:</div>
+                  <div className="space-y-2 max-h-60 overflow-auto">
+                    {customer.bookings.map((booking) => (
+                      <div key={booking.id} className="text-xs text-gray-700 border-b last:border-b-0 pb-2 last:pb-0">
+                        <div className="font-medium">{booking.service?.displayName || "N/A"}</div>
+                        <div className="text-gray-500">
+                          {booking.scheduledFor ? new Date(booking.scheduledFor).toLocaleDateString('en-US', { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            year: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          }) : "N/A"}
+                        </div>
+                        <div className="flex items-center gap-2 mt-1">
+                          <span className={`px-1.5 py-0.5 rounded text-xs ${
+                            booking.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
+                            booking.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-700' :
+                            booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {booking.status}
+                          </span>
+                          {booking.revenue > 0 && (
+                            <span className="text-gray-600">${booking.revenue.toFixed(2)}</span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             {showActions && (
               <div className="flex items-center justify-end gap-1 text-right pl-2">
                 <button
@@ -376,10 +517,61 @@ export function CustomerListView({
           title="Confirm Deletion"
           message={`Are you sure you want to delete the customer "${customerToDelete.name}"? This action cannot be undone.`}
           onCancel={() => {
-            if (!deleting) setConfirmOpen(false);
+            if (!deleting) {
+              setConfirmOpen(false);
+            }
           }}
           onConfirm={confirmDelete}
           loading={deleting}
+        />
+      )}
+
+      {errorOpen && errorMessage && (
+        <ErrorModal
+          open={errorOpen}
+          title={`Cannot Delete Customer "${customerToDelete?.name}"`}
+          message={errorMessage}
+          onClose={() => {
+            if (!deletingWithBookings) {
+              setErrorOpen(false);
+              setErrorMessage(null);
+            }
+          }}
+          secondaryAction={
+            errorMessage.includes("booking") && customerToDelete
+              ? (() => {
+                  const bookingsCount = customerToDelete.bookings?.length || 0;
+                  const isSingular = bookingsCount === 1;
+                  const countText = isSingular ? '' : ` ${bookingsCount}`;
+                  const bookingText = isSingular ? 'booking' : 'bookings';
+                  return {
+                    label: `Delete customer and their${countText} associated ${bookingText}`,
+                    onClick: async () => {
+                    if (customerToDelete) {
+                      setDeletingWithBookings(true);
+                      try {
+                        await deleteCustomerAndTheirBookings(String(customerToDelete.id));
+                        setDeletingWithBookings(false);
+                        setErrorOpen(false);
+                        setErrorMessage(null);
+                        setCustomerToDelete(null);
+                        await refresh();
+                      } catch (error) {
+                        setDeletingWithBookings(false);
+                        setErrorMessage(
+                          error instanceof Error
+                            ? error.message
+                            : "Failed to delete customer and bookings. Please try again."
+                        );
+                      }
+                    }
+                    },
+                    processing: deletingWithBookings,
+                    processingLabel: "Deleting...",
+                  };
+                })()
+              : undefined
+          }
         />
       )}
     </>
