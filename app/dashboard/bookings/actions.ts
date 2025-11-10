@@ -1,6 +1,7 @@
 "use server";
 
 import { prisma } from "@/lib/prisma";
+import type { BookingStatus } from "@/lib/types/booking";
 
 export type BookingData = {
   customerId: string;
@@ -8,7 +9,7 @@ export type BookingData = {
   serviceId: string;
   technicianId: string;
   scheduledFor: Date;
-  status: string;
+  status: BookingStatus;
   revenue?: number;
   notes: string;
 };
@@ -16,6 +17,15 @@ export type BookingData = {
 export async function getAllBookings() {
   return prisma.booking.findMany({
     orderBy: { scheduledFor: "desc" },
+    include: {
+      service: true,
+      technician: true,
+      customer: {
+        include: {
+          image: true,
+        },
+      },
+    },
   });
 }
 
@@ -27,7 +37,7 @@ export async function addBooking(bookingData: BookingData) {
         serviceId: bookingData.serviceId,
         technicianId: bookingData.technicianId,
         scheduledFor: new Date(bookingData.scheduledFor),
-        status: bookingData.status as string,
+        status: (bookingData.status as string) as BookingStatus,
         revenue: bookingData.revenue ?? 0,
         notes: bookingData.notes,
     },
@@ -43,7 +53,7 @@ export async function updateBooking(bookingId: string, bookingData: BookingData)
           serviceId: bookingData.serviceId,
           technicianId: bookingData.technicianId,
           scheduledFor: bookingData.scheduledFor,
-          status: bookingData.status as string,
+          status: (bookingData.status as string) as BookingStatus,
           revenue: bookingData.revenue,
           notes: bookingData.notes,
       },
@@ -63,4 +73,10 @@ export async function totalRevenue(): Promise<number> {
     },
   });
   return result._sum.revenue ?? 0;
+}
+
+export async function getAllCustomers() {
+  return prisma.customer.findMany({
+    orderBy: { name: "asc" },
+  });
 }

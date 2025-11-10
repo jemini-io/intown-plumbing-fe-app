@@ -7,7 +7,7 @@ import DashboardLayout from "../components/DashboardLayout";
 import Image from "next/image";
 import { PencilIcon } from "@heroicons/react/24/outline";
 import { UserForm } from "../users/user-form";
-import { Role } from "../users/types";
+import { UserRole } from "../users/types";
 
 interface SessionUser {
   id?: string;
@@ -29,7 +29,7 @@ interface UserFormExisting {
   id: string;
   name: string;
   email: string;
-  role: Role;
+  role: UserRole;
   image: UserImage | null;
   enabled: boolean;
 }
@@ -49,7 +49,7 @@ export default function ProfilePage() {
   const user = session?.user as SessionUser | undefined;
   const name = user?.name || "";
   const email = user?.email || "";
-  const role = (user?.role as Role) || "user";
+  const role = (user?.role as UserRole) || "user";
   const image = user?.image || null;
   const enabled = user?.enabled ?? true;
 

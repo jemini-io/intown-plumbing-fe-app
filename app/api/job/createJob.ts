@@ -9,6 +9,7 @@ import type { Customer, Job, Location } from './types';
 import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
 import { logger } from "../logger";
 import { createLocalBookingFromJob } from '@/lib/services/createLocalBookingFromJobService';
+import { BookingStatus } from '@/lib/types/booking';
 
 const tenantId = Number(env.servicetitan.tenantId);
 
@@ -256,10 +257,10 @@ export async function createJobAppointment({
     await createLocalBookingFromJob({
       customerId: String(stCustomer.id),
       jobId: String(jobResponse.id),
-      serviceId: String(jobTypeId),
+      serviceToJobTypeId: String(jobTypeId),
       technicianId: String(technicianId),
       scheduledFor: new Date(startTime),
-      status: jobResponse.jobStatus,
+      status: jobResponse.jobStatus as BookingStatus,
       revenue,
       notes: summary || "",
     });

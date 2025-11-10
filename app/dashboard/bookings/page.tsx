@@ -1,19 +1,26 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
 import { BookingsListView } from "./components/BookingsListView";
 import { BookingsForm } from "./components/BookingsForm";
+import { BookingsFormDataProvider, useBookingsFormData } from "./contexts/BookingsFormDataContext";
 
-export default function BookingsPage() {
+function BookingsPageContent() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === "ADMIN";
   const [showModal, setShowModal] = useState(false);
   const [selectedBooking] = useState(undefined);
+  const formData = useBookingsFormData();
 
   const openModal = useCallback(() => setShowModal(true), []);
   const closeModal = useCallback(() => setShowModal(false), []);
+
+  useEffect(() => {
+    // Prefetch dropdown data so the modal opens instantly
+    formData?.load?.();
+  }, [formData]);
 
   return (
     <DashboardLayout>
@@ -56,5 +63,13 @@ export default function BookingsPage() {
         )}
       </div>
     </DashboardLayout>
+  );
+}
+
+export default function BookingsPage() {
+  return (
+    <BookingsFormDataProvider>
+      <BookingsPageContent />
+    </BookingsFormDataProvider>
   );
 }

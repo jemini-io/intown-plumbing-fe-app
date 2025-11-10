@@ -8,7 +8,7 @@ import { cleanupOldUserImage } from "@/lib/services/imageCleanupService";
 import { cleanupCloudinaryImage } from "@/lib/services/cloudinaryCleanupService";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/authOptions";
-import { Role } from "@/lib/generated/prisma";
+import { UserRole } from "@/app/dashboard/users/types";
 
 const logger = pino({ name: "user-update-route" });
 
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 
       // 2.2.2. Create new UserImage entry in DB
       try{
-        newUserImage = await prisma.userImage.create({
+        newUserImage = await prisma.image.create({
           data: { url: uploadedImage.url, publicId: uploadedImage.publicId },
         });
         userImageId = newUserImage.id;
@@ -91,14 +91,14 @@ export async function POST(req: NextRequest) {
   const updateData: {
     name: string;
     email: string;
-    role: Role;
+    role: UserRole;
     enabled: boolean;
     passwordDigest?: string;
     image?: { connect: { id: string } } | { disconnect: true };
   } = {
     name: formData.get("name") as string,
     email: formData.get("email") as string,
-    role: formData.get("role") as Role,
+    role: formData.get("role") as UserRole,
     enabled: formData.get("enabled") === "true",
   };
 
@@ -159,7 +159,7 @@ export async function POST(req: NextRequest) {
       await deleteFromCloudinary(uploadedImage.publicId);
       logger.info({ userId, publicId: uploadedImage.publicId }, "Rolled back new image from Cloudinary");
       if (newUserImage?.id) {
-        await prisma.userImage.delete({ where: { id: newUserImage.id } });
+        await prisma.image.delete({ where: { id: newUserImage.id } });
         logger.info({ userId, imageId: newUserImage.id }, "Rolled back new UserImage entry");
       }
     }

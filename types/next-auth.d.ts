@@ -1,10 +1,9 @@
 import type { DefaultSession } from "next-auth";
-
-export type Role = "USER" | "ADMIN";
+import type { UserRole } from "@/app/dashboard/users/types";
 declare module "next-auth" {
   interface User {
     id: string;
-    role: Role;
+    role: UserRole;
     image: string | null;
     name: string | null;
     email: string | null;
@@ -14,7 +13,7 @@ declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-      role: Role;
+      role: UserRole;
       name: string | null;
       email: string | null;
       image: string | null;
@@ -26,7 +25,7 @@ declare module "next-auth" {
 declare module "next-auth/jwt" {
   interface JWT {
     id?: string;
-    role?: Role;
+    role?: UserRole;
     name?: string | null;
     email?: string | null;
     image?: string | null;

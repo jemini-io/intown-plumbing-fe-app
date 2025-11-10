@@ -1,14 +1,12 @@
 "use client";
 
-import { useEffect, useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition } from "react";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { addBooking, updateBooking } from "../actions";
 import { Booking } from "@/lib/types/booking";
-import { ServiceToJobType } from "@/lib/types/serviceToJobType";
-import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
-import { getAllServiceToJobTypes } from "@/app/dashboard/services/actions";
-import { getAllTechnicians } from "@/app/dashboard/technicians/actions";
+import { useCustomersDropdown, useServicesDropdown, useTechniciansDropdown } from "../hooks/useDropdownData";
 import { toDatetimeLocalValue } from "@/lib/utils/datetime";
+import { BookingStatus } from "@/lib/types/booking";
 
 type BookingFormProps = FormComponentProps & {
   existing?: Booking;
@@ -18,33 +16,10 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-
-  // UI state for services and technicians
-  const [allServices, setAllServices] = useState<ServiceToJobType[]>([]);
-  const [allTechnicians, setAllTechnicians] = useState<TechnicianToSkills[]>([]);
-
-  // Load services and technicians
-  useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const [services, technicians] = await Promise.all([
-          getAllServiceToJobTypes(),
-          getAllTechnicians(),
-        ]);
-        if (!mounted) return;
-        setAllServices(services.filter(s => s.enabled));
-        setAllTechnicians(technicians.filter(t => t.enabled));
-      } catch (err) {
-        console.error("Failed to load services or technicians", err);
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // uses util: toDatetimeLocalValue
+  // Load dropdown data via hooks
+  const { data: allCustomers, isLoading: loadingCustomers } = useCustomersDropdown();
+  const { data: allServices, isLoading: loadingServices } = useServicesDropdown();
+  const { data: allTechnicians, isLoading: loadingTechnicians } = useTechniciansDropdown();
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -57,7 +32,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         serviceId: formData.get("serviceId") as string,
         technicianId: formData.get("technicianId") as string,
         scheduledFor: new Date(formData.get("scheduledFor") as string),
-        status: formData.get("status") as string,
+        status: formData.get("status") as BookingStatus,
         revenue: Number(formData.get("revenue") || 0),
         notes: formData.get("notes") as string,
       };
@@ -81,7 +56,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
     });
   }
 
-  const statusOptions = ["pending", "scheduled", "confirmed", "canceled", "completed"];
+  const statusOptions: BookingStatus[] = ["PENDING", "SCHEDULED", "CANCELED", "COMPLETED"];
 
   return (
     <div>
@@ -117,17 +92,26 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             required
           />
         </div>
-        {/* Customer ID */}
+        {/* Customer */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Customer ID</label>
-          <input
-            type="text"
-            name="customerId"
-            defaultValue={existing?.customerId ?? ""}
-            className="w-full border rounded p-2"
-            required
-            placeholder="e.g. customer123"
-          />
+          <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+          {loadingCustomers ? (
+            <div className="text-sm text-gray-500 py-2">Loading customers...</div>
+          ) : (
+            <select
+              name="customerId"
+              defaultValue={existing?.customerId ?? ""}
+              className="w-full border rounded p-2"
+              required
+            >
+              <option value="">Select a customer</option>
+              {allCustomers.map(customer => (
+                <option key={customer.id} value={customer.id}>
+                  {customer.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
         {/* Job ID */}
         <div>
@@ -145,7 +129,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         {/* Service */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
-          {allServices.length === 0 ? (
+          {loadingServices ? (
             <div className="text-sm text-gray-500 py-2">Loading services...</div>
           ) : (
             <select
@@ -166,7 +150,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         {/* Technician */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Technician</label>
-          {allTechnicians.length === 0 ? (
+          {loadingTechnicians ? (
             <div className="text-sm text-gray-500 py-2">Loading technicians...</div>
           ) : (
             <select
@@ -189,14 +173,12 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select
             name="status"
-            defaultValue={existing?.status ?? "pending"}
+            defaultValue={existing?.status ?? "PENDING"}
             className="w-full border rounded p-2"
             required
           >
             {statusOptions.map(status => (
-              <option key={status} value={status}>
-                {status.charAt(0).toUpperCase() + status.slice(1)}
-              </option>
+              <option key={status} value={status}>{status}</option>
             ))}
           </select>
         </div>

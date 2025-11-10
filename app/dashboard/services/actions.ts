@@ -25,6 +25,23 @@ export async function getAllServiceToJobTypes() {
   }));
 }
 
+// Optimized function for dropdowns - only fetches id, displayName, and enabled
+export async function getServicesForDropdown() {
+  return prisma.serviceToJobType.findMany({
+    where: {
+      enabled: true,
+    },
+    orderBy: {
+      createdAt: "asc",
+    },
+    select: {
+      id: true,
+      displayName: true,
+      enabled: true,
+    },
+  });
+}
+
 export async function findServiceById(id: string) {
   logger.info(`Fetching service with ID: ${id}`);
   const service = await prisma.serviceToJobType.findUnique({

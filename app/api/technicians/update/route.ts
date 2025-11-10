@@ -53,7 +53,7 @@ export async function POST(req: NextRequest) {
     }
 
     try {
-      newTechnicianImage = await prisma.userImage.create({
+      newTechnicianImage = await prisma.image.create({
         data: { url: uploadedImage.url, publicId: uploadedImage.publicId },
       });
       technicianImageId = newTechnicianImage.id;
@@ -134,7 +134,7 @@ export async function POST(req: NextRequest) {
       await deleteFromCloudinary(uploadedImage.publicId);
       logger.info({ id, publicId: uploadedImage.publicId }, "Rolled back new image from Cloudinary");
       if (newTechnicianImage?.id) {
-        await prisma.userImage.delete({ where: { id: newTechnicianImage.id } });
+        await prisma.image.delete({ where: { id: newTechnicianImage.id } });
         logger.info({ id, imageId: newTechnicianImage.id }, "Rolled back new UserImage entry");
       }
     }

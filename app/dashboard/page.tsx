@@ -4,6 +4,7 @@ import { memo, useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createPortal } from "react-dom";
 import DashboardLayout from "./components/DashboardLayout";
+import { BookingsFormDataProvider } from "./bookings/contexts/BookingsFormDataContext";
 import { DashboardCard } from "./components/DashboardCard";
 import { DashboardHeaderPanel, DashboardHeaderTop } from "./components/DashboardHeader";
 import { DashboardProvider } from "./contexts/DashboardContext";
@@ -43,7 +44,7 @@ const TechniciansCard = memo(function TechniciansCard() {
   const [expanded, setExpanded] = useState(false);
   const toggle = useCallback(() => setExpanded(prev => !prev), []);
   const ListView = useCallback(
-    () => <TechnicianToSkillsListView limit={expanded ? undefined : 6} showImage={false} showSkills={false} />,
+    () => <TechnicianToSkillsListView limit={expanded ? undefined : 5} showImage={true} showSkills={false} />,
     [expanded]
   );
   return (
@@ -110,6 +111,7 @@ export default function DashboardPage() {
 
   return (
     <DashboardProvider refresh={refresh}>
+      <BookingsFormDataProvider>
       <DashboardLayout>
         <div className="bg-gray-100 min-h-screen p-8 space-y-8 rounded-lg">
           {/* Dashboard Header Row */}
@@ -161,6 +163,7 @@ export default function DashboardPage() {
         />,
         document.body
       )}
+      </BookingsFormDataProvider>
     </DashboardProvider>
   );
 }

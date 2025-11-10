@@ -9,7 +9,7 @@ export function cleanupOldUserImage(userId: string, imageId: string, publicId: s
     try {
       await deleteFromCloudinary(publicId);
       logger.info({ userId, publicId }, "Removed image from Cloudinary (background)");
-      await prisma.userImage.delete({ where: { id: imageId } });
+      await prisma.image.delete({ where: { id: imageId } });
       logger.info({ userId, imageId }, "Removed UserImage entry (background)");
     } catch (err) {
       logger.error({ userId, imageId, err }, "Error cleaning up old image in background");

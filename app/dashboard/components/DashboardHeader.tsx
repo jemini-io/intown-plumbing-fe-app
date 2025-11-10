@@ -5,6 +5,7 @@ import { createPortal } from "react-dom";
 import { BookingsForm } from "../bookings/components/BookingsForm";
 import { useDashboardRefresh } from "../contexts/DashboardContext";
 import { ComingSoonModal } from "@/app/components/ComingSoonModal";
+import { useBookingsFormData } from "../bookings/contexts/BookingsFormDataContext";
 
 export interface DashboardHeaderPanelProps {
   title: string;
@@ -41,10 +42,14 @@ export function DashboardHeaderTop() {
   const [comingSoonOpen, setComingSoonOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const dashboardRefresh = useDashboardRefresh();
+  const formData = useBookingsFormData();
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+    // Prefetch dropdown data so the modal opens instantly
+    formData?.load?.();
+    // Re-run if provider instance changes
+  }, [formData]);
 
   const handleOpenModal = () => {
     setModalOpen(true);
@@ -111,7 +116,7 @@ export function DashboardHeaderTop() {
         {/* New Booking Button */}
         <button
           type="button"
-          onClick={()=>setComingSoonOpen(true)}
+          onClick={()=>handleOpenModal()}
           className="bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2"
         >
           <svg 

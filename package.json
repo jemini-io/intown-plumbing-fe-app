@@ -27,16 +27,11 @@
     "migrate:prod": "DATABASE_URL=$DATABASE_URL_PROD npx prisma migrate deploy",
     "migrate:dev": "dotenv -e .env -- npx prisma migrate dev --name init",
     "migrate:test": "dotenv -e .env.test -- npx prisma migrate deploy",
-    "import:prod": "dotenv -e .env.prod -- node scripts/importAppSettings.js prod",
-    "import:dev": "dotenv -e .env -- node scripts/importAppSettings.js prod",
-    "import:test": "dotenv -e .env.test -- node scripts/importAppSettings.js test",
-    "import:skillsTechniciansAndServiceToJobTypes:test": "dotenv -e .env.test -- node scripts/importSkillsTechniciansAndServiceToJobTypes.js test",
-    "import:skillsTechniciansAndServiceToJobTypes:prod": "dotenv -e .env.prod -- node scripts/importSkillsTechniciansAndServiceToJobTypes.js prod",
-    "import:bookings:test": "dotenv -e .env.test -- node scripts/importBookingsFixtures.js test",
-    "setup:prod": "npm run db:prod:create && npm run migrate:prod && npm run import:prod",
-    "setup:dev": "npm run db:dev:create && npm run migrate:dev && npm run import:dev",
-    "setup:test": "npm run db:test:create && npm run migrate:test && npm run import:test",
-    "reset:test": "dotenv -e .env -- npx prisma migrate reset --schema=prisma/schema.prisma"
+    "import:prod": "dotenv -e .env.prod -- sh -c 'node scripts/importAppSettings.js prod && node scripts/importSkillsTechniciansAndServiceToJobTypes.js prod'",
+    "import:test": "dotenv -e .env.test -- sh -c 'node scripts/importAppSettings.js test && node scripts/importSkillsTechniciansAndServiceToJobTypes.js test'",
+    "import:fixtures:test": "dotenv -e .env.test -- npx tsx scripts/importFixtures.ts test",
+    "reset:test": "dotenv -e .env -- npx prisma migrate reset --schema=prisma/schema.prisma",
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.8",
@@ -83,8 +78,5 @@
     "ts-node": "^10.9.2",
     "tsx": "^4.20.3",
     "typescript": "^5.9.2"
-  },
-  "prisma": {
-    "seed": "tsx prisma/seed.ts"
   }
 }
