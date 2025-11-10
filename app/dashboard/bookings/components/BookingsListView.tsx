@@ -174,14 +174,49 @@ export function BookingsListView({
     }
   }
 
-  const filteredBookings = (bookings || []).filter(b =>
-    (!statusFilter || b.status === statusFilter) &&
-    (!serviceFilter || (b.service?.displayName || "") === serviceFilter) &&
-    (!technicianFilter || (b.technician?.technicianName || "") === technicianFilter) && 
-    (!customerFilter || (b.customer?.name || "") === customerFilter) &&
-    (!dateFilter || new Date(b.scheduledFor).toISOString().slice(0, 10) === dateFilter) &&
-    (!jobFilter || b.jobId === jobFilter)
-  );
+  const filteredBookings = (bookings || []).filter(b => {
+    let dateMatch = true;
+    
+    if (dateFilter && dateFilter.trim() !== "") {
+      try {
+        // datetime-local returns format: YYYY-MM-DDTHH:mm (in local timezone)
+        const filterValue = dateFilter.trim().slice(0, 16); // Normalize to YYYY-MM-DDTHH:mm
+        
+        // Convert booking date to local datetime string for comparison
+        const bookingDate = new Date(b.scheduledFor);
+        
+        // Validate booking date
+        if (isNaN(bookingDate.getTime())) {
+          dateMatch = false;
+        } else {
+          // Get local date components
+          const year = bookingDate.getFullYear();
+          const month = String(bookingDate.getMonth() + 1).padStart(2, '0');
+          const day = String(bookingDate.getDate()).padStart(2, '0');
+          const hours = String(bookingDate.getHours()).padStart(2, '0');
+          const minutes = String(bookingDate.getMinutes()).padStart(2, '0');
+          
+          // Format as YYYY-MM-DDTHH:mm (same format as datetime-local input)
+          const bookingDateTimeLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
+          
+          // Compare full datetime including hour and minute
+          dateMatch = bookingDateTimeLocal === filterValue;
+        }
+      } catch {
+        // If there's an error parsing, don't match
+        dateMatch = false;
+      }
+    }
+    
+    return (
+      (!statusFilter || b.status === statusFilter) &&
+      (!serviceFilter || (b.service?.displayName || "") === serviceFilter) &&
+      (!technicianFilter || (b.technician?.technicianName || "") === technicianFilter) && 
+      (!customerFilter || (b.customer?.name || "") === customerFilter) &&
+      dateMatch &&
+      (!jobFilter || b.jobId === jobFilter)
+    );
+  });
 
   const sortedBookings = filteredBookings.sort(sortBookings);
 
@@ -218,9 +253,9 @@ export function BookingsListView({
           <thead>
             <tr>
               {/* Image */}
-              <th className="px-4 py-2 text-left"></th>
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b"></th>
               {/* Customer */}
-              <th className="px-4 py-2 text-left">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
                 <span className="flex items-center gap-2">
                   Customer
                   <Combobox value={customerFilter} onChange={setCustomerFilter} as="div">
@@ -256,7 +291,7 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Job ID */}
-              {showJobId && ( <th className="px-4 py-2 text-left">
+              {showJobId && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
                 <span className="flex items-center gap-2">
                   JobID
                   <Combobox value={jobFilter} onChange={setJobFilter} as="div">
@@ -293,7 +328,7 @@ export function BookingsListView({
                 </span>
               </th> )}
               {/* Service */}
-              <th className="px-4 py-2 text-left">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
                 <span className="flex items-center gap-2">
                   Service
                   <Combobox value={serviceFilter} onChange={setServiceFilter} as="div">
@@ -330,7 +365,7 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Technician */}
-              <th className="px-4 py-2 text-left">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
                 <span className="flex items-center gap-2">
                   Technician
                   <Combobox value={technicianFilter} onChange={setTechnicianFilter} as="div">
@@ -367,7 +402,7 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Date & Time */}
-              <th className="px-4 py-2 text-left">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
                 <span className="flex items-center gap-2">
                   <span
                     className="flex items-center gap-1 cursor-pointer select-none"
@@ -383,7 +418,7 @@ export function BookingsListView({
                     </span>
                   </span>
                   <input
-                    type="date"
+                    type="datetime-local"
                     className="border rounded text-xs"
                     value={dateFilter}
                     onChange={e => setDateFilter(e.target.value)}
@@ -392,7 +427,7 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Status */}
-              {showStatus && ( <th className="px-4 py-2 text-left">
+              {showStatus && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
                 <span className="flex items-center gap-2">
                   Status
                   <select
@@ -410,11 +445,11 @@ export function BookingsListView({
                 </span>
               </th> )}
               {/* Notes */}
-              {showNotes && ( <th className="px-4 py-2 text-left">Notes</th> )}
+              {showNotes && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">Notes</th> )}
               {/* Revenue */}
-              {showRevenue && ( <th className="px-4 py-2 text-left">Revenue</th> )}
+              {showRevenue && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">Revenue</th> )}
               {showActions && (
-                <th className="px-4 py-2 text-left">Actions</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">Actions</th>
               )}
             </tr>
           </thead>
@@ -437,10 +472,10 @@ export function BookingsListView({
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-2 text-right">{booking.customer?.name || "-"}</td>
-                {showJobId && ( <td className="px-4 py-2 text-right">{booking.jobId || "-"}</td> )}
-                <td className="px-4 py-2 text-right">{booking.service?.displayName || "-"}</td>
-                <td className="px-4 py-2 text-right">{booking.technician?.technicianName || "-"}</td>
+                <td className="px-4 py-2 text-center">{booking.customer?.name || "-"}</td>
+                {showJobId && ( <td className="px-4 py-2 text-left">{booking.jobId || "-"}</td> )}
+                <td className="px-4 py-2 text-letf">{booking.service?.displayName || "-"}</td>
+                <td className="px-4 py-2 text-left">{booking.technician?.technicianName || "-"}</td>
                 <td className="px-4 py-2 text-right">
                   {(() => {
                     const start = new Date(booking.scheduledFor as unknown as string);

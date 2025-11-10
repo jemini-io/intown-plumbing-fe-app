@@ -20,7 +20,11 @@ export async function getAllBookings() {
     include: {
       service: true,
       technician: true,
-      customer: true,
+      customer: {
+        include: {
+          image: true,
+        },
+      },
     },
   });
 }

@@ -226,7 +226,7 @@ export async function deleteCustomer(id: string) {
     const bookingsCount = customer.bookings?.length || 0;
 
     if (bookingsCount > 0) {
-      const errorMessage = `Cannot delete customer: This customer has ${bookingsCount} booking${bookingsCount !== 1 ? 's' : ''} associated. Please delete or reassign the bookings first.`;
+      const errorMessage = `Cannot delete customer ${customer.name}. This customer has ${bookingsCount} booking${bookingsCount !== 1 ? 's' : ''} associated. Please delete or reassign the bookings first.`;
       logger.warn({ id, bookingsCount }, `${prompt} Throwing error: ${errorMessage}`);
       throw new Error(errorMessage);
     }
