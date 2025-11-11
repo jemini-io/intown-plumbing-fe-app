@@ -7,7 +7,9 @@ import pino from "pino";
 const logger = pino({ name: "serviceToJobTypes-actions" });
 
 export async function getAllServiceToJobTypes() {
-  logger.info("Fetching all service to job types");
+  const prompt = 'getAllServiceToJobTypes function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking prisma.serviceToJobType.findMany...`);
   const services = await prisma.serviceToJobType.findMany({
     orderBy: {
       createdAt: "asc",
@@ -19,6 +21,29 @@ export async function getAllServiceToJobTypes() {
     },
   });
 
+  logger.info(`${prompt} Successfully completed. Returning array of ${services.length} services to job types to the caller.`);
+  return services.map(service => ({
+    ...service,
+    skills: service.skills.map(rel => rel.skill),
+  }));
+}
+
+export async function getEnabledServiceToJobTypeOnly() {
+  const prompt = 'getEnabledServiceToJobTypeOnly function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking prisma.serviceToJobType.findMany with where: { enabled: true }...`);
+  const services = await prisma.serviceToJobType.findMany({
+    where: { enabled: true },
+    orderBy: {
+      createdAt: "asc",
+    },
+    include: {
+      skills: {
+        include: { skill: true },
+      },
+    },
+  });
+  logger.info(`${prompt} Successfully completed. Returning array of ${services.length} enabled services to job types to the caller.`);
   return services.map(service => ({
     ...service,
     skills: service.skills.map(rel => rel.skill),

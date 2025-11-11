@@ -2,7 +2,8 @@
 
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { env } from "@/lib/config/env";
-import { getServiceToJobTypes, getServiceTitanConfig } from '@/lib/appSettings/getConfig';
+import { getAllServiceToJobTypes } from '@/app/dashboard/services/actions';
+import { getServiceTitanConfig } from '@/lib/appSettings/getConfig';
 import pino from "pino";
 
 const logger = pino({ name: "getJobTypesByServiceTitanIds" });
@@ -11,17 +12,21 @@ const logger = pino({ name: "getJobTypesByServiceTitanIds" });
  * Get Job Types by Service Titan ID from the constants file
  */
 export async function getJobTypesByServiceTitanIds() {
-  logger.info("Fetching job types by ServiceTitan IDs"); 
+  const prompt = 'getJobTypesByServiceTitanIds function says:';
+  logger.info(`${prompt} Starting...`);
 
-  const serviceTitanClient = new ServiceTitanClient();
+  logger.info(`${prompt} Invoking getAllServiceToJobTypes function...`);
+  const serviceToJobTypes = await getAllServiceToJobTypes();
+  logger.info(`${prompt} Fetched ${serviceToJobTypes.length} services to job types from getAllServiceToJobTypes function.`);
 
-  const serviceToJobTypes = await getServiceToJobTypes();
-
+  logger.info(`${prompt} Mapping service to job types to unique ServiceTitan IDs`);
   const uniqueServiceTitanIds = Array.from(new Set(serviceToJobTypes.map((service) => service.serviceTitanId)));
-
+  logger.info(`${prompt} ${uniqueServiceTitanIds.length} unique ServiceTitan IDs mapped from service to job types.`);
   logger.debug({ uniqueServiceTitanIds }, "Unique ServiceTitan IDs");
-
+ 
+  const serviceTitanClient = new ServiceTitanClient();
   // Fetch job types with the specific ID
+  logger.info(`${prompt} Invoking serviceTitanClient.jpm.JobTypesService.jobTypesGetList with IDs: ${uniqueServiceTitanIds.join(',')}`);
   const jobTypes = await serviceTitanClient.jpm.JobTypesService.jobTypesGetList({
     tenant: Number(env.servicetitan.tenantId),
     ids: uniqueServiceTitanIds.join(','),
@@ -36,15 +41,19 @@ export async function getJobTypesByServiceTitanIds() {
     return [];
   }
 
-
+  logger.info(`${prompt} Invoking getServiceTitanConfig function...`);
   const serviceTitanConfig = await getServiceTitanConfig();
+  logger.info(`${prompt} Fetched serviceTitanConfig from getServiceTitanConfig function.`);
+  logger.debug({ serviceTitanConfig }, "ServiceTitan Config");
 
   // Filter by business unit
+  logger.info(`${prompt} Filtering job types by business unit: ${serviceTitanConfig.businessUnitId}`);
   const filtered = jobTypes.data.filter((jobType) => 
     jobType.businessUnitIds.includes(serviceTitanConfig.businessUnitId)
   );
+  logger.info(`${prompt} ${filtered.length} job types filtered by business unit.`);
+  logger.debug({ filtered }, "Filtered job types by business unit");
 
-  logger.info({ count: filtered.length }, "Filtered job types by business unit");
-
+  logger.info(`${prompt} Returning array of ${filtered.length} job types to the caller.`);
   return filtered;
 }

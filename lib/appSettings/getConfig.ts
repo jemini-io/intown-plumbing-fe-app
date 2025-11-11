@@ -3,64 +3,55 @@ import { ServiceTitanConfig } from '@/lib/types/serviceTitan';
 // import { ServiceToJobTypeMapping, TechnicianToSkillsMapping } from '../config/types';
 import { StripeConfig } from '@/lib/types/stripe';
 import { CustomFields } from '@/lib/types/customFields';
-import { ServiceToJobType } from '@/lib/types/serviceToJobType';
-import { TechnicianToSkills } from '@/lib/types/technicianToSkills';
-import { getAllServiceToJobTypes } from '@/app/dashboard/services/actions';
-import { getSetting } from "@/lib/appSettings/getSetting";
+import { getAppSettingByKey } from "@/lib/appSettings/getSetting";
 import pino from "pino";
 
 
 // const logger = pino({ name: 'getAvailableTimeSlots' });
 const logger = pino({ name: 'getConfig' });
 
-// export async function getServiceToJobTypes(): Promise<ServiceToJobTypeMapping[]> {
-export async function getServiceToJobTypes(): Promise<ServiceToJobType[]> {
-
-  // const serviceToJobTypes = await getSetting('serviceToJobTypes');
-  logger.info('Fetching services to job types from database...');
-  const serviceToJobTypes = await getAllServiceToJobTypes();
-
-  if (serviceToJobTypes === null) {
-    logger.error('serviceToJobTypes setting is null');
-    return [];
-  }
-
-  logger.info(`${serviceToJobTypes.length} services to job types fetched from database.`);
-  return serviceToJobTypes;
-
-  // try {
-  //   return JSON.parse(serviceToJobTypes);
-  // } catch (error) {
-  //   logger.error({ error }, 'Failed to parse serviceToJobTypes');
-  //   return [];
-  // }
-}
-
 export async function getAppointmentDuration(): Promise<number> {
-  const appointmentDuration = await getSetting('appointmentDurationInMs');
+  const prompt = 'getAppointmentDuration function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking getAppSettingByKey with key: 'appointmentDurationInMs'...`);
+  const appointmentDuration = await getAppSettingByKey('appointmentDurationInMs');
+  logger.info(`${prompt} Fetched appointment duration from getAppSettingByKey with key: 'appointmentDurationInMs'...`);
+  logger.debug({ appointmentDuration }, "Appointment Duration");
+  logger.info(`${prompt} Returning ${appointmentDuration} to the caller.`);
   return Number(appointmentDuration);
 }
 
 export async function getPodiumLocationId(): Promise<string> {
-  const podiumLocationId = await getSetting('podium.locationId');
+  const prompt = 'getPodiumLocationId function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking getAppSettingByKey with key: 'podium.locationId'...`);
+  const podiumLocationId = await getAppSettingByKey('podium.locationId');
+  logger.info(`${prompt} Fetched podium location ID from getAppSettingByKey with key: 'podium.locationId'...`);
+  logger.debug({ podiumLocationId }, "Podium Location ID");
+  
   if (podiumLocationId === null) {
     logger.error('podium.locationId setting is null');
     throw new Error('Podium location ID is not set');
   }
+  
+  logger.info(`${prompt} Returning ${podiumLocationId} to the caller.`);
   return podiumLocationId;
 }
 
 export async function getServiceTitanConfig(): Promise<ServiceTitanConfig> {
-  const businessUnitId = await getSetting('serviceTitan.businessUnitId');
-  const campaignId = await getSetting('serviceTitan.campaignId');
-  const virtualServiceSkuId = await getSetting('serviceTitan.virtualServiceSkuId');
-  const stripePaymentTypeId = await getSetting('serviceTitan.stripePaymentTypeId');
+  const prompt = 'getServiceTitanConfig function says:';
+  logger.info(`${prompt} Starting...`);
+  const businessUnitId = await getAppSettingByKey('serviceTitan.businessUnitId');
+  const campaignId = await getAppSettingByKey('serviceTitan.campaignId');
+  const virtualServiceSkuId = await getAppSettingByKey('serviceTitan.virtualServiceSkuId');
+  const stripePaymentTypeId = await getAppSettingByKey('serviceTitan.stripePaymentTypeId');
 
   if (!businessUnitId || !campaignId || !virtualServiceSkuId || !stripePaymentTypeId) {
     logger.error('One or more ServiceTitan config values are missing');
     throw new Error('Missing ServiceTitan configuration');
   }
 
+  logger.info(`${prompt} Returning ServiceTitan config to the caller.`);
   return {
     businessUnitId: Number(businessUnitId),
     campaignId,
@@ -70,7 +61,7 @@ export async function getServiceTitanConfig(): Promise<ServiceTitanConfig> {
 }
 
 export async function getStripeConfig(): Promise<StripeConfig> {
-  const virtualConsultationProductName = await getSetting('stripe.virtualConsultationProductName');
+  const virtualConsultationProductName = await getAppSettingByKey('stripe.virtualConsultationProductName');
 
   if (!virtualConsultationProductName) {
     logger.error('stripe.virtualConsultationProductName setting is null');
@@ -83,8 +74,8 @@ export async function getStripeConfig(): Promise<StripeConfig> {
 }
 
 export async function getCustomFields(): Promise<CustomFields> {
-  const customerJoinLink = await getSetting('customFields.customerJoinLink');
-  const technicianJoinLink = await getSetting('customFields.technicianJoinLink');
+  const customerJoinLink = await getAppSettingByKey('customFields.customerJoinLink');
+  const technicianJoinLink = await getAppSettingByKey('customFields.technicianJoinLink');
 
   if (!customerJoinLink || !technicianJoinLink) {
     logger.error('One or more custom fields are missing');
@@ -97,24 +88,8 @@ export async function getCustomFields(): Promise<CustomFields> {
   };
 }
 
-export async function getQuoteSkills(): Promise<string[]> {
-  const quoteSkills = await getSetting('quoteSkills');
-  
-  if (quoteSkills === null) {
-    logger.error('quoteSkills setting is null');
-    return [];
-  }
-
-  try {
-    return JSON.parse(quoteSkills);
-  } catch (error) {
-    logger.error({ error }, 'Failed to parse quoteSkills');
-    return [];
-  }
-}
-
 export async function getDefaultManagedTechId(): Promise<number> {
-  const defaultManagedTechId = await getSetting('defaultManagedTechId');
+  const defaultManagedTechId = await getAppSettingByKey('defaultManagedTechId');
 
   if (defaultManagedTechId === null) {
     logger.error('defaultManagedTechId setting is null');
@@ -122,20 +97,4 @@ export async function getDefaultManagedTechId(): Promise<number> {
   }
 
   return Number(defaultManagedTechId);
-}
-
-export async function getTechnicianToSkills(): Promise<TechnicianToSkills[]> {
-  const technicianToSkills = await getSetting('technicianToSkills');
-
-  if (technicianToSkills === null) {
-    logger.error('technicianToSkills setting is null');
-    return [];
-  }
-
-  try {
-    return JSON.parse(technicianToSkills);
-  } catch (error) {
-    logger.error({ error }, 'Failed to parse technicianToSkills');
-    return [];
-  }
 }
