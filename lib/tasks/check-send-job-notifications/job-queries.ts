@@ -95,20 +95,64 @@ export async function queryJobsInTimeWindow(timeWindow: TimeWindow): Promise<Enr
     // Get configured serviceTitanName values for filtering
     const configuredServiceTitanNames = config.serviceToJobTypes.map(service => service.serviceTitanName)
     
+    // Valid job statuses for reminder notifications
+    // Include 'Scheduled', 'Dispatched', and 'InProgress' as these are active states
+    // where the appointment may still be upcoming or in progress
+    const validJobStatuses = ['Scheduled', 'Dispatched', 'InProgress']
+    
+    // Log job statuses before filtering for debugging
+    const jobsByStatus = enrichedJobs.reduce((acc, job) => {
+      const status = job?.jobStatus || 'Unknown'
+      if (!acc[status]) acc[status] = []
+      acc[status].push({
+        jobId: job?.id,
+        jobType: job?.jobType,
+        startTime: job?.startTime
+      })
+      return acc
+    }, {} as Record<string, Array<{ jobId?: number; jobType?: string; startTime?: string }>>)
+    
+    logger.info({
+      jobsByStatus,
+      totalEnriched: enrichedJobs.length,
+      validJobStatuses
+    }, 'Jobs by status before filtering')
+    
     const validJobs: EnrichedJob[] = enrichedJobs.filter((job: EnrichedJob | null): job is EnrichedJob => {
-      if (job?.jobStatus !== 'Scheduled') return false
+      // Check if job status is valid for notifications
+      if (!job?.jobStatus || !validJobStatuses.includes(job.jobStatus)) {
+        logger.info({
+          jobId: job?.id,
+          jobStatus: job?.jobStatus,
+          jobType: job?.jobType,
+          startTime: job?.startTime,
+          reason: `Job status '${job?.jobStatus}' is not in valid statuses: ${validJobStatuses.join(', ')}`
+        }, 'Job filtered out by status')
+        return false
+      }
 
       if (job?.jobType && configuredServiceTitanNames.includes(job.jobType)) {
         return true
       }
+      
+      logger.info({
+        jobId: job?.id,
+        jobStatus: job?.jobStatus,
+        jobType: job?.jobType,
+        startTime: job?.startTime,
+        reason: 'Job type not in configured service types'
+      }, 'Job filtered out by job type')
       return false
     })
 
     logger.info({
       totalCount: response.data.length,
+      enrichedCount: enrichedJobs.length,
       filteredCount: validJobs.length,
-      configuredServiceTitanNames
-    }, `Found ${validJobs.length} matching job types`)
+      configuredServiceTitanNames,
+      validJobStatuses,
+      jobsFilteredByStatus: enrichedJobs.filter(j => !j?.jobStatus || !validJobStatuses.includes(j.jobStatus)).length
+    }, `Found ${validJobs.length} matching job types with valid statuses (after filtering)`)
 
     return validJobs
 
