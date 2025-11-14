@@ -7,6 +7,7 @@
  */
 
 export { ServiceRepository } from './ServiceRepository';
+export { TechnicianRepository } from './TechnicianRepository';
 
 // Add other repositories as they are created:
 // export { CustomerRepository } from './CustomerRepository';

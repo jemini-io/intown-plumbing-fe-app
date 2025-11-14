@@ -13,6 +13,8 @@ import { TechnicianStatusEnum } from "@/lib/types/technicianToSkills";
 const logger = pino({ name: "technician-update-route" });
 
 export async function POST(req: NextRequest) {
+  const prompt = "technician-update-route function says:";
+  logger.info(`${prompt} Starting...`);
   // 1. Check authentication. Technician updates require authentication.
   const session = await getServerSession(authOptions);
   if (!session) {
@@ -25,15 +27,18 @@ export async function POST(req: NextRequest) {
   const imageFile = formData.get("image") as File | null;
 
   // 2. Fetch existing technician
+  logger.info(`${prompt} Checking if technician with ID: ${id} exists for update...`);
   let technician;
   try {
+    logger.info(`${prompt} Invoking prisma.technician.findUnique function with ID: ${id}...`);
     technician = await prisma.technician.findUnique({
       where: { id },
       include: { image: true },
     });
-    logger.info({ technicianName: technician?.technicianName }, "Fetched technician for update");
+    logger.info(`${prompt} Invocation of prisma.technician.findUnique function successfully completed.`);
+    logger.info({ technicianName: technician }, `${prompt} Fetched technician with ID: ${id}. Technician exists.`);
   } catch (err) {
-    logger.error({ id, err }, "Error fetching technician for update");
+    logger.error({ id, err }, `${prompt} Error fetching technician for update`);
     return NextResponse.json({ error: "Error fetching technician." }, { status: 500 });
   }
 
@@ -43,35 +48,42 @@ export async function POST(req: NextRequest) {
   let uploadedImage;
 
   if (imageFile) {
+    logger.info(`${prompt} Image file provided. Proceeding with image upload...`);
     try {
       const buffer = Buffer.from(await imageFile.arrayBuffer());
+      logger.info(`${prompt} Invoking uploadToCloudinaryServer function...`);
       uploadedImage = await uploadToCloudinaryServer(buffer);
-      logger.info({ id, uploadedImage }, "Image uploaded to Cloudinary");
+      logger.info({ id, uploadedImage }, `${prompt} Invocation of uploadToCloudinaryServer function successfully completed. Image uploaded to Cloudinary.`);
     } catch (err) {
-      logger.error({ err }, "Error uploading image to Cloudinary");
+      logger.error({ err }, `${prompt} Error uploading image to Cloudinary`);
       return NextResponse.json({ error: "Error uploading image." }, { status: 500 });
     }
 
     try {
+      logger.info(`${prompt} Proceeding to create new UserImage entry in local DB...`);
+      logger.info(`${prompt} Invoking prisma.image.create function...`);
       newTechnicianImage = await prisma.image.create({
         data: { url: uploadedImage.url, publicId: uploadedImage.publicId },
       });
+      logger.info(`${prompt} Invocation of prisma.image.create function successfully completed.`);
       technicianImageId = newTechnicianImage.id;
-      logger.info({ id, newTechnicianImageId: newTechnicianImage.id }, "Created new UserImage entry in DB");
+      logger.info({ id, newTechnicianImageId: newTechnicianImage.id }, `${prompt} New UserImage entry created in DB`);
     } catch (err) {
-      logger.error({ err }, "Error creating UserImage entry in DB");
+      logger.error({ err }, `${prompt} Error creating UserImage entry in DB`);
       cleanupCloudinaryImage(uploadedImage.publicId);
       return NextResponse.json({ error: "Error creating image entry." }, { status: 500 });
     }
   } else {
     const removeImage = formData.get("removeImage") === "true";
     if (removeImage && technician?.image?.publicId) {
+      logger.info(`${prompt} Image removal requested. Technician has associated an image with public ID: ${technician.image.publicId}. Proceeding with image removal...`);
       try {
         technicianImageId = null;
-        logger.info({ id }, "Delegating image cleanup to background...");
+        logger.info({ id }, `${prompt} Invoking cleanupOldUserImage function to delegate image cleanup to background...`);
         cleanupOldUserImage(id, technician.image.id, technician.image.publicId);
+        logger.info({ id }, `${prompt} Invocation of cleanupOldUserImage function successfully completed. Image cleanup delegated to background.`);
       } catch (err) {
-        logger.error({ id, err }, "Error removing image");
+        logger.error({ id, err }, `${prompt} Error removing image`);
         return NextResponse.json({ error: "Error removing image." }, { status: 500 });
       }
     }
@@ -102,12 +114,12 @@ export async function POST(req: NextRequest) {
   const skillIds = skillIdsRaw ? skillIdsRaw.split(",").filter(Boolean) : [];
 
   try {
-    logger.info({ id, updateData }, "Updating technician in DB");
+    logger.info({ id, updateData }, `${prompt} Updating technician in DB`);
     await prisma.technician.update({
       where: { id: id },
       data: updateData,
     });
-    logger.info({ technicianName: technician?.technicianName }, "Technician updated successfully");
+    logger.info({ technicianName: technician?.technicianName }, `${prompt} Technician updated successfully`);
 
     // Update skills
     await prisma.technicianSkill.deleteMany({ where: { technicianId: id } });
@@ -122,20 +134,20 @@ export async function POST(req: NextRequest) {
     }
 
     if (imageFile && technician?.image?.publicId && technician?.image?.id) {
-      logger.info({ technicianName: technician?.technicianName }, "Delegating old image cleanup to background...");
+      logger.info({ technicianName: technician?.technicianName }, `${prompt} Delegating old image cleanup to background...`);
       cleanupOldUserImage(id, technician.image.id, technician.image.publicId);
     }
 
-    logger.info("Response returned to frontend");
+    logger.info(`${prompt} Response returned to frontend`);
     return NextResponse.json({ success: true });
   } catch (err) {
-    logger.error({ id, err }, "Error updating technician");
+    logger.error({ id, err }, `${prompt} Error updating technician`);
     if (uploadedImage?.publicId) {
       await deleteFromCloudinary(uploadedImage.publicId);
-      logger.info({ id, publicId: uploadedImage.publicId }, "Rolled back new image from Cloudinary");
+      logger.info({ id, publicId: uploadedImage.publicId }, `${prompt} Rolled back new image from Cloudinary`);
       if (newTechnicianImage?.id) {
         await prisma.image.delete({ where: { id: newTechnicianImage.id } });
-        logger.info({ id, imageId: newTechnicianImage.id }, "Rolled back new UserImage entry");
+        logger.info({ id, imageId: newTechnicianImage.id }, `${prompt} Rolled back new UserImage entry`);
       }
     }
     return NextResponse.json(
