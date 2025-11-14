@@ -31,6 +31,7 @@ export interface TechnicianToSkills {
   technicianName: string;
   enabled: boolean;
   skills?: Skill[] | [];
+  enabledSkills?: Skill[] | [];
   status: TechnicianStatusEnum;
   image?: UserImage | null;
 }

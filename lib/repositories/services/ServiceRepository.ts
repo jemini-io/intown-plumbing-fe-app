@@ -58,10 +58,15 @@ export class ServiceRepository {
 
     logger.info(`${prompt} Invocation of prisma.serviceToJobType.findMany function successfully completed.`);
     logger.info(`${prompt} Returning array of ${services.length} enabled services to job types to the caller.`);
-    return services.map(service => ({
-      ...service,
-      skills: service.skills.map(rel => rel.skill),
-    }));
+    return services.map(service => {
+      const allSkills = service.skills.map(rel => rel.skill);
+      const enabledSkills = allSkills.filter(skill => skill.enabled);
+      return {
+        ...service,
+        skills: allSkills,
+        enabledSkills,
+      };
+    });
   }
 
   /**

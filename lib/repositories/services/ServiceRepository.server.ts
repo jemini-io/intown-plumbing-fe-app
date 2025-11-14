@@ -1,5 +1,5 @@
 /**
- * Server-side wrapper for ServiceToJobTypeRepository
+ * Server-side wrapper for ServiceRepository
  * This file re-exports repository methods as Server Actions
  * for use in client components
  */
@@ -9,7 +9,7 @@
 import { ServiceRepository } from "./ServiceRepository";
 
 /**
- * Server Action: Get all enabled service to job types
+ * Server Action: Get ENABLED services only
  * Can be called from client components
  */
 export async function getEnabledServicesOnly() {
@@ -17,7 +17,7 @@ export async function getEnabledServicesOnly() {
 }
 
 /**
- * Server Action: Get all service to job types
+ * Server Action: Get all service
  * Can be called from client components
  */
 export async function getAllServices() {
@@ -25,7 +25,7 @@ export async function getAllServices() {
 }
 
 /**
- * Server Action: Get service to job type by ID
+ * Server Action: Get service by ID
  * Can be called from client components
  */
 export async function getServiceById(id: string) {

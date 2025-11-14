@@ -53,10 +53,15 @@ export class TechnicianRepository {
 
     logger.info(`${prompt} Invocation of prisma.technician.findMany function successfully completed.`);
     logger.info(`${prompt} Returning array of ${technicians.length} enabled services to job types to the caller.`);
-    return technicians.map(technician => ({
-      ...technician,
-      skills: technician.skills.map(rel => rel.skill),
-    }));
+    return technicians.map(technician => {
+      const allSkills = technician.skills.map(rel => rel.skill);
+      const enabledSkills = allSkills.filter(skill => skill.enabled);
+      return {
+        ...technician,
+        skills: allSkills,
+        enabledSkills,
+      };
+    });
   }
 
   /**

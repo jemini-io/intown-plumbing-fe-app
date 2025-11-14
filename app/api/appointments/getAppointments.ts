@@ -45,21 +45,20 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
     const now = new Date();
 
     
-    let enabledTechnicians = [];
+    let enabledTechnicians: TechnicianToSkills[] = [];
     if (jobType.skillId) {
         // If a specific skill is provided, filter for that skill
 
         // Fetch the whole skill object from DB by the given skillId
         logger.info(`${prompt} Invoking findSkillById function with ID: ${jobType.skillId}`);
         const selectedSkill = await findSkillById(jobType.skillId || '');
-        logger.info({ selectedSkill }, `${prompt} findSkillById function return the skill:`);
+        logger.info(`${prompt} Invocation of findSkillById function successfully completed.`);
+        logger.info({ selectedSkill }, `${prompt} findSkillById function returned the skill:`);
+        
+        logger.info(`${prompt} The selected skill has ${selectedSkill?.technicians?.length} technicians: ${selectedSkill?.technicians?.map((tech) => tech.technicianName).join(', ')}`);
+        enabledTechnicians = selectedSkill?.enabledTechnicians || [];
+        logger.info(`${prompt} The selected skill has ${enabledTechnicians?.length} ENABLED technicians: ${enabledTechnicians?.map((tech) => tech.technicianName).join(', ')}`);
 
-        logger.info(`${prompt} The selected skill has ${selectedSkill?.technicians?.length} technicians.`);
-
-        // Filtering ENABLED technicians only from the selected skill
-        logger.info({ name: selectedSkill?.name }, `${prompt} Getting only ENABLED technicians from the selected skill:`);
-        enabledTechnicians = selectedSkill?.technicians?.filter(tech => tech.enabled === true) || [];
-        logger.info(`Found ${enabledTechnicians.length} technicians for job type ${jobType.serviceTitanId} with skill ${selectedSkill?.id}(${selectedSkill?.name}): ${enabledTechnicians.map((tech) => tech.technicianName).join(', ')}`);
     } else {
         // Otherwise, filter by jobTypeSkills as before
 

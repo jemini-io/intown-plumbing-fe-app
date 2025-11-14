@@ -6,9 +6,14 @@ This directory contains repositories that encapsulate all database access, follo
 
 ```
 lib/repositories/
-├── ServiceRepository.ts      # Main repository (server-side code only)
-├── ServiceRepository.server.ts # Server Actions for client components
-└── index.ts                  # Centralized exports
+├── services/
+│   ├── ServiceRepository.ts      # Main repository (server-side code only)
+│   └── ServiceRepository.server.ts # Server Actions for client components
+├── technicians/
+│   ├── TechnicianRepository.ts
+│   └── TechnicianRepository.server.ts
+├── index.ts                  # Centralized exports
+└── README.md
 ```
 
 ## Structure
@@ -34,10 +39,10 @@ const services = await ServiceRepository.findEnabled();
 
 **Example:**
 ```typescript
-import { getEnabledService } from '@/lib/repositories/ServiceRepository.server';
+import { getEnabledServicesOnly } from '@/lib/repositories/services/ServiceRepository.server';
 
 // In a Client Component
-const services = await getEnabledService();
+const services = await getEnabledServicesOnly();
 ```
 
 ### 3. Server Actions in `/app/dashboard/*/actions.ts`
@@ -86,7 +91,9 @@ export async function getAllServices() {
 
 ## Creating a new repository
 
-1. Create `lib/repositories/YourEntityRepository.ts`:
+1. Create a directory for your entity: `lib/repositories/your-entity/`
+
+2. Create `lib/repositories/your-entity/YourEntityRepository.ts`:
 ```typescript
 import { prisma } from "@/lib/prisma";
 
@@ -103,7 +110,7 @@ export class YourEntityRepository {
 }
 ```
 
-2. Create `lib/repositories/YourEntityRepository.server.ts` if you need access from client components:
+3. Create `lib/repositories/your-entity/YourEntityRepository.server.ts` if you need access from client components:
 ```typescript
 "use server";
 
@@ -114,12 +121,12 @@ export async function getAllYourEntities() {
 }
 ```
 
-3. Export in `lib/repositories/index.ts`:
+4. Export in `lib/repositories/index.ts`:
 ```typescript
-export { YourEntityRepository } from './YourEntityRepository';
+export { YourEntityRepository } from './your-entity/YourEntityRepository';
 ```
 
-4. Update actions in `/app/dashboard/your-entity/actions.ts` to use the repository.
+5. Update actions in `/app/dashboard/your-entity/actions.ts` to use the repository.
 
 ## References
 

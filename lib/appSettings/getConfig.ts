@@ -7,7 +7,6 @@ import { getAppSettingByKey } from "@/lib/appSettings/getSetting";
 import pino from "pino";
 
 
-// const logger = pino({ name: 'getAvailableTimeSlots' });
 const logger = pino({ name: 'getConfig' });
 
 export async function getAppointmentDuration(): Promise<number> {

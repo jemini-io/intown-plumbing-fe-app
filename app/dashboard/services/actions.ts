@@ -1,7 +1,7 @@
 "use server";
 
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
-import { ServiceRepository } from "@/lib/repositories/ServiceRepository";
+import { ServiceRepository } from "@/lib/repositories";
 import pino from "pino";
 
 const logger = pino({ name: "services-actions" });

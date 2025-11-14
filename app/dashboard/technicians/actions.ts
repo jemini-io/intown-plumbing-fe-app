@@ -1,6 +1,6 @@
 "use server";
 
-import { TechnicianRepository } from "@/lib/repositories/TechnicianRepository";
+import { TechnicianRepository } from "@/lib/repositories";
 import { deleteFromCloudinary } from "@/lib/cloudinary";
 import pino from "pino";
 

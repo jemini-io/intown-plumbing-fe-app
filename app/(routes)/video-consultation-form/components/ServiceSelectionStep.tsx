@@ -2,7 +2,7 @@
 
 import FormLayout from '@/components/FormLayout';
 import Icon from '@/components/Icon';
-import { getEnabledServicesOnly } from '@/lib/repositories/ServiceRepository.server';
+import { getEnabledServicesOnly } from '@/lib/repositories/services/ServiceRepository.server';
 import { ServiceToJobType } from '@/lib/types/serviceToJobType';
 import { Skill } from '@/lib/types/skill';
 import { useEffect, useState } from 'react';
@@ -184,7 +184,7 @@ export default function ServiceStep() {
           <div className="mt-6 mb-2">
             <div className="mb-2 text-sm font-semibold text-gray-800">Type of Quote</div>
             <div className="flex flex-col gap-3">
-              {selectedJobType.skills.map((skill: Skill) => (
+              {selectedJobType.enabledSkills?.map((skill: Skill) => (
                 <label
                   key={skill.id}
                   className={`
