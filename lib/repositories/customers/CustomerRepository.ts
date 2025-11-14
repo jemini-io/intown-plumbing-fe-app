@@ -224,13 +224,19 @@ export class CustomerRepository {
   static async delete(id: string) {
     const prompt = 'CustomerRepository.delete function says:';
     logger.info(`${prompt} Starting...`);
-    logger.info(`${prompt} Invoking prisma.customer.delete function...`);
-    const deletedCustomer = await prisma.customer.delete({
-      where: { id },
-    });
-    logger.info(`${prompt} Invocation of prisma.customer.delete function successfully completed.`);
-    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id} to the caller...`);
-    return deletedCustomer;
+    try {
+      logger.info(`${prompt} Invoking prisma.customer.delete function...`);
+      const deletedCustomer = await prisma.customer.delete({
+        where: { id },
+      });
+      logger.info(`${prompt} Invocation of prisma.customer.delete function successfully completed.`);
+      logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id} to the caller...`);
+      return deletedCustomer;
+    } catch (error) {
+      logger.error({ error, id }, `${prompt} Error deleting customer`);
+      logger.info(`${prompt} Returning null to the caller...`);
+      return null;
+    }
   }
 }
 

@@ -207,8 +207,8 @@ export async function deleteCustomer(id: string) {
     logger.info(`${prompt} Invoking CustomerRepository.delete function...`);
     const deletedCustomer = await CustomerRepository.delete(id);
     logger.info(`${prompt} Invocation of CustomerRepository.delete function successfully completed.`);
-    logger.info(`${prompt} Customer deleted: ${deletedCustomer.id}`);
-    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id}`);
+    logger.info(`${prompt} Customer deleted: ${deletedCustomer?.id}`);
+    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer?.id}`);
     return deletedCustomer;
   } catch (error) {
     logger.error({ error, id }, `${prompt} Throwing error: Error deleting customer`);
@@ -246,8 +246,8 @@ export async function deleteCustomerAndTheirBookings(id: string) {
     logger.info(`${prompt} Invoking CustomerRepository.delete function...`);
     const deletedCustomer = await CustomerRepository.delete(id);
     logger.info(`${prompt} Invocation of CustomerRepository.delete function successfully completed.`);
-    logger.info(`${prompt} Customer deleted: ${deletedCustomer.id}`);
-    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id}`);
+    logger.info(`${prompt} Customer deleted: ${deletedCustomer?.id}`);
+    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer?.id}`);
     return deletedCustomer;
   } catch (error) {
     logger.error({ error, id }, `${prompt} Throwing error: Error deleting customer and bookings`);
