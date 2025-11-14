@@ -2,7 +2,7 @@
 
 import { ServiceTitanClient } from "@/lib/servicetitan";
 import { env } from "@/lib/config/env";
-import { getAllServiceToJobTypes } from '@/app/dashboard/services/actions';
+import { getAllServices } from '@/app/dashboard/services/actions';
 import { getServiceTitanConfig } from '@/lib/appSettings/getConfig';
 import pino from "pino";
 
@@ -15,13 +15,13 @@ export async function getJobTypesByServiceTitanIds() {
   const prompt = 'getJobTypesByServiceTitanIds function says:';
   logger.info(`${prompt} Starting...`);
 
-  logger.info(`${prompt} Invoking getAllServiceToJobTypes function...`);
-  const serviceToJobTypes = await getAllServiceToJobTypes();
-  logger.info(`${prompt} Fetched ${serviceToJobTypes.length} services to job types from getAllServiceToJobTypes function.`);
+  logger.info(`${prompt} Invoking getAllServices function...`);
+  const services = await getAllServices();
+  logger.info(`${prompt} Fetched ${services.length} services from getAllServices function.`);
 
-  logger.info(`${prompt} Mapping service to job types to unique ServiceTitan IDs`);
-  const uniqueServiceTitanIds = Array.from(new Set(serviceToJobTypes.map((service) => service.serviceTitanId)));
-  logger.info(`${prompt} ${uniqueServiceTitanIds.length} unique ServiceTitan IDs mapped from service to job types.`);
+  logger.info(`${prompt} Mapping services to unique ServiceTitan IDs`);
+  const uniqueServiceTitanIds = Array.from(new Set(services.map((service) => service.serviceTitanId)));
+  logger.info(`${prompt} ${uniqueServiceTitanIds.length} unique ServiceTitan IDs mapped from services.`);
   logger.debug({ uniqueServiceTitanIds }, "Unique ServiceTitan IDs");
  
   const serviceTitanClient = new ServiceTitanClient();

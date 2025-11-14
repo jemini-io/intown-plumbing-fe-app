@@ -2,7 +2,7 @@
 
 import FormLayout from '@/components/FormLayout';
 import Icon from '@/components/Icon';
-import { getEnabledServiceToJobTypeOnly } from '@/app/dashboard/services/actions';
+import { getEnabledServicesOnly } from '@/lib/repositories/ServiceRepository.server';
 import { ServiceToJobType } from '@/lib/types/serviceToJobType';
 import { Skill } from '@/lib/types/skill';
 import { useEffect, useState } from 'react';
@@ -36,7 +36,7 @@ export default function ServiceStep() {
       try {
         setIsLoadingJobTypes(true);
         setError(null);
-        const jobTypes = await getEnabledServiceToJobTypeOnly();
+        const jobTypes = await getEnabledServicesOnly();
         setAvailableJobTypes(jobTypes);
         console.log('Fetched enabled job types:', jobTypes);
       } catch (error) {
