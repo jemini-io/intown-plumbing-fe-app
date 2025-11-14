@@ -9,6 +9,6 @@
 export { ServiceRepository } from './services/ServiceRepository';
 export { TechnicianRepository } from './technicians/TechnicianRepository';
 export { SkillRepository } from './skills/SkillRepository';
-// export { CustomerRepository } from './customers/CustomerRepository'; // waiting for Repository pattern refactor to be uncommented
+export { CustomerRepository } from './customers/CustomerRepository';
 // export { BookingRepository } from './bookings/BookingRepository'; // waiting for Repository pattern refactor to be uncommented
 // export { UserRepository } from './users/UserRepository'; // waiting for Repository pattern refactor to be uncommented
