@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { PlusIcon } from "@heroicons/react/24/outline";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
-import { getAllServiceToJobTypes, updateService, deleteService } from "../actions";
+import { getAllServices, updateService, deleteService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 import { useDashboardRefresh } from "../../contexts/DashboardContext";
@@ -11,7 +11,7 @@ export interface ServiceToJobTypesListViewProps {
 }
 
 export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps) {
-  const [allServiceToJobTypes, setAllServiceToJobTypes] = useState<ServiceToJobType[]>([]);
+  const [allServices, setAllServices] = useState<ServiceToJobType[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedService, setSelectedService] = useState<ServiceToJobType | undefined>(undefined);
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -21,8 +21,8 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   const dashboardRefresh = useDashboardRefresh();
 
   async function refresh() {
-    const services: ServiceToJobType[] = await getAllServiceToJobTypes();
-    setAllServiceToJobTypes(services);
+    const services: ServiceToJobType[] = await getAllServices();
+    setAllServices(services);
   }
 
   useEffect(() => {
@@ -57,13 +57,13 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
   };
 
   const servicesToRender = props.limit
-    ? allServiceToJobTypes.slice(0, props.limit)
-    : allServiceToJobTypes;
+    ? allServices.slice(0, props.limit)
+    : allServices;
 
   // Get the service being updated to determine message
   // Note: After optimistic update, enabled state is already toggled
   const updatingService = updatingId 
-    ? allServiceToJobTypes.find(s => String(s.id) === String(updatingId))
+    ? allServices.find(s => String(s.id) === String(updatingId))
     : null;
   // If enabled is true after toggle, we were enabling (going from false to true)
   // If enabled is false after toggle, we were disabling (going from true to false)
@@ -75,7 +75,7 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
     const next = !svc.enabled;
     setUpdatingId(id);
     // Optimistic update
-    setAllServiceToJobTypes(prev =>
+    setAllServices(prev =>
       prev.map(item =>
         String(item.id) === id ? { ...item, enabled: next } : item
       )
@@ -83,7 +83,6 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
     try {
       await updateService(id, { enabled: next, skillIds: svc.skills?.map(s => s.id) ?? [] });
       await refresh();
-      // Actualizar el dashboard header
       if (dashboardRefresh) {
         await dashboardRefresh();
       }

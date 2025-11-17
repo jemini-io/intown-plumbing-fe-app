@@ -128,3 +128,9 @@ appointmentDurationInMs: 1800000
 # Default managed technician ID to assign when non-managed techs are assigned
 # Doug W.
 defaultManagedTechId: 49786183
+
+adminAuditData:
+  - phoneNumber: "+15555555555"
+    enabled: true
+  - emailAddress: "admin@example.com"
+    enabled: true

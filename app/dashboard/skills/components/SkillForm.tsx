@@ -6,7 +6,7 @@ import { ServiceToJobType } from "@/lib/types/serviceToJobType";
 import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { addSkill, updateSkill } from "../actions";
-import { getAllServiceToJobTypes } from "@/app/dashboard/services/actions";
+import { getAllServices } from "@/app/dashboard/services/actions";
 import { getAllTechnicians } from "@/app/dashboard/technicians/actions";
 
 type SkillFormProps = FormComponentProps & {
@@ -35,7 +35,7 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
     let mounted = true;
     (async () => {
       try {
-        const services = await getAllServiceToJobTypes();
+        const services = await getAllServices();
         if (!mounted) return;
         setAllServices(services);
         if (existing?.serviceToJobTypes) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
-import { getAllServiceToJobTypes, updateService, deleteService, unlinkSkillFromService } from "../actions";
+import { getAllServices, updateService, deleteService, unlinkSkillFromService } from "../actions";
 import { ServiceToJobTypesForm } from "./ServiceToJobTypesForm";
 import ServiceToJobTypesCard from "./ServiceToJobTypesCard";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
@@ -26,7 +26,7 @@ export function ServiceToJobTypesCardsPanel(props: ServiceToJobTypesCardPanelPro
   const [unlinkLoading, setUnlinkLoading] = useState(false);
 
   async function refresh() {
-    const services: ServiceToJobType[] = await getAllServiceToJobTypes();
+    const services: ServiceToJobType[] = await getAllServices();
     setAllServiceToJobTypes(services);
   }
 

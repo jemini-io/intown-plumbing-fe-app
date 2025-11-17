@@ -17,7 +17,7 @@ import {
   CurrencyDollarIcon,
   WrenchIcon,
 } from "@heroicons/react/24/outline";
-import { getAllServiceToJobTypes } from "./services/actions";
+import { getAllServices } from "./services/actions";
 import { getAllBookings, totalRevenue } from "./bookings/actions";
 
 // Optional: if DashboardCard not already memoized and you want to reduce renders,
@@ -93,7 +93,7 @@ export default function DashboardPage() {
   const refresh = useCallback(async () => {
     const [bookings, services, revenue] = await Promise.all([
       getAllBookings(),
-      getAllServiceToJobTypes(),
+      getAllServices(),
       totalRevenue(),
     ]);
     setBookingsCount(bookings.length);

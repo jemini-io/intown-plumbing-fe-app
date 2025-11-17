@@ -1,63 +1,57 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import { ServiceToJobType } from "@/lib/types/serviceToJobType";
+import { ServiceRepository } from "@/lib/repositories";
 import pino from "pino";
 
-const logger = pino({ name: "serviceToJobTypes-actions" });
+const logger = pino({ name: "services-actions" });
 
-export async function getAllServiceToJobTypes() {
-  logger.info("Fetching all service to job types");
-  const services = await prisma.serviceToJobType.findMany({
-    orderBy: {
-      createdAt: "asc",
-    },
-    include: {
-      skills: {
-        include: { skill: true },
-      },
-    },
-  });
+/**
+ * Server Actions for ServiceToJobType
+ * These actions use the Repository pattern for database access
+ * and add logging/validation/business logic as needed
+ */
 
-  return services.map(service => ({
-    ...service,
-    skills: service.skills.map(rel => rel.skill),
-  }));
+export async function getAllServices() {
+  const prompt = 'getAllServices function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking ServiceRepository.findAll function...`);
+  const services = await ServiceRepository.findAll();
+  logger.info(`${prompt} Invocation of ServiceRepository.findAll function successfully completed.`);
+  logger.info(`${prompt} Returning array of ${services.length} services to job types to the caller.`);
+  return services;
+}
+
+export async function getEnabledServicesOnly() {
+  const prompt = 'getEnabledServicesOnly function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking ServiceRepository.findEnabled function...`);
+  const services = await ServiceRepository.findEnabled();
+  logger.info(`${prompt} Invocation of ServiceRepository.findEnabled function successfully completed.`);
+  logger.info(`${prompt} Returning array of ${services.length} enabled services to job types to the caller.`);
+  return services;
 }
 
 // Optimized function for dropdowns - only fetches id, displayName, and enabled
 export async function getServicesForDropdown() {
-  return prisma.serviceToJobType.findMany({
-    where: {
-      enabled: true,
-    },
-    orderBy: {
-      createdAt: "asc",
-    },
-    select: {
-      id: true,
-      displayName: true,
-      enabled: true,
-    },
-  });
+  const prompt = "getServicesForDropdown function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking ServiceRepository.findForDropdown function...`);
+  const services = await ServiceRepository.findForDropdown();
+  logger.info(`${prompt} Invocation of ServiceRepository.findForDropdown function successfully completed.`);
+  logger.info(`${prompt} Returning array of ${services.length} services for dropdown to the caller.`);
+  return services;
 }
 
 export async function findServiceById(id: string) {
-  logger.info(`Fetching service with ID: ${id}`);
-  const service = await prisma.serviceToJobType.findUnique({
-    where: { id },
-    include: {
-      skills: {
-        include: { skill: true },
-      },
-    },
-  });
-
-  if (!service) return null;
-  return {
-    ...service,
-    skills: service.skills.map(rel => rel.skill),
-  };
+  const prompt = "findServiceById function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking ServiceRepository.findById function with ID: ${id}`);
+  const service = await ServiceRepository.findById(id);
+  logger.info(`${prompt} Invocation of ServiceRepository.findById function successfully completed.`);
+  logger.info(`${prompt} Service found with ID: ${service?.id}`);
+  logger.info(`${prompt} Returning the service with ID: ${service?.id} to the caller.`);
+  return service;
 }
 
 export async function addService(
@@ -65,21 +59,11 @@ export async function addService(
 ) {
   const prompt = "addService function says:";
   logger.info(`${prompt} Starting...`);
-
-  const { skillIds, ...serviceData } = data;
-  logger.info({ serviceData }, `${prompt} Invoking prisma.serviceToJobType.create with data:`);
-  const createdService = await prisma.serviceToJobType.create({ data: serviceData });
-
-  if (skillIds && skillIds.length > 0) {
-    await prisma.serviceToJobTypeSkill.createMany({
-      data: skillIds.map(skillId => ({
-        serviceToJobTypeId: createdService.id,
-        skillId,
-      })),
-      skipDuplicates: true,
-    });
-  }
-
+  logger.info({ data }, `${prompt} Invoking ServiceRepository.create function with data:`);
+  const createdService = await ServiceRepository.create(data);
+  logger.info(`${prompt} Invocation of ServiceRepository.create function successfully completed.`);
+  logger.info(`${prompt} Service created with ID: ${createdService.id}`);
+  logger.info(`${prompt} Returning the created service with ID: ${createdService.id} to the caller.`);
   return createdService;
 }
 
@@ -87,51 +71,31 @@ export async function updateService(
   id: string,
   data: Partial<Omit<ServiceToJobType, "skills">> & { skillIds?: string[] }
 ) {
-  logger.info(`Updating service with ID: ${id}`);
-  const { skillIds, ...serviceData } = data;
-
-  const updatedService = await prisma.serviceToJobType.update({
-    where: { id },
-    data: serviceData,
-  });
-
-  if (skillIds) {
-    await prisma.serviceToJobTypeSkill.deleteMany({
-      where: { serviceToJobTypeId: id },
-    });
-    await prisma.serviceToJobTypeSkill.createMany({
-      data: skillIds.map(skillId => ({
-        serviceToJobTypeId: id,
-        skillId,
-      })),
-      skipDuplicates: true,
-    });
-  }
-
-  return updatedService;
+  const prompt = "updateService function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info({ data }, `${prompt} Invoking ServiceRepository.update function with data:`);
+  const updatedService = await ServiceRepository.update(id, data);
+  logger.info(`${prompt} Invocation of ServiceRepository.update function successfully completed.`);
+  logger.info(`${prompt} Service updated with ID: ${updatedService.id}`);
+  logger.info(`${prompt} Returning the updated service with ID: ${updatedService.id} to the caller.`);
+  return ServiceRepository.update(id, data);
 }
 
 export async function deleteService(id: string) {
-  logger.info(`Deleting service with ID: ${id}`);
-  // Elimina primero las asociaciones en la tabla intermedia
-  await prisma.serviceToJobTypeSkill.deleteMany({
-    where: { serviceToJobTypeId: id },
-  });
-  // Ahora elimina el service
-  return prisma.serviceToJobType.delete({
-    where: { id },
-  });
+  const prompt = "deleteService function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking ServiceRepository.delete function with ID: ${id}`);
+  const deletedService = await ServiceRepository.delete(id);
+  logger.info(`${prompt} Invocation of ServiceRepository.delete function successfully completed.`);
+  logger.info(`${prompt} Service deleted with ID: ${id}`);
+  logger.info(`${prompt} Returning the deleted service with ID: ${id} to the caller.`);
+  return deletedService;
 }
 
 export async function unlinkSkillFromService(serviceId: string, skillId: string) {
-  // Elimina solo la relación, no el skill ni el service
-  await prisma.serviceToJobTypeSkill.delete({
-    where: {
-      serviceToJobTypeId_skillId: {
-        serviceToJobTypeId: serviceId,
-        skillId: skillId,
-      },
-    },
-  });
+  const prompt = 'unlinkSkillFromService function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Returning invocation of ServiceRepository.unlinkSkill function to the caller.`);
+  return ServiceRepository.unlinkSkill(serviceId, skillId);
 }
 

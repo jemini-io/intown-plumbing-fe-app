@@ -1,82 +1,63 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
 import pino from "pino";
 import { CustomerType } from "@/lib/types/customer";
+import { CustomerRepository } from "@/lib/repositories";
 import { findEmailAddressById, findEmailAddressByAddress, addEmailAddress } from "@/app/dashboard/emailAddresses/actions";
 import { findPhoneNumberById, findPhoneNumberByCountryCodeAndNumber, addPhoneNumber } from "@/app/dashboard/phoneNumbers/actions";
 
 const logger = pino({ name: "customers-actions" });
 
+/**
+ * Server Actions for Customer
+ * These actions use the Repository pattern for database access
+ * and add logging/validation/business logic as needed
+ */
+
 export async function getAllCustomers() {
   const prompt = 'getAllCustomers function says:';
-  logger.info(`${prompt} Fetching all customers`);
-  const customers = await prisma.customer.findMany({
-    orderBy: { name: "asc" },
-    include: {
-      emailAddress: true,
-      phoneNumber: true,
-      bookings: {
-        include: {
-          service: true,
-        },
-      },
-      image: true,
-    },
-  });
-
-  logger.info(`${prompt} Fetched ${customers.length} customers`);
-
-  return customers.map(customer => ({
-    ...customer,
-    emailAddress: customer.emailAddress,
-    phoneNumber: customer.phoneNumber,
-  }));
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking CustomerRepository.findAll function...`);
+  const customers = await CustomerRepository.findAll();
+  logger.info(`${prompt} Invocation of CustomerRepository.findAll function successfully completed.`);
+  logger.info(`${prompt} Returning array of ${customers.length} customers to the caller.`);
+  return customers;
 }
 
 // Optimized function for dropdowns - only fetches id and name
 export async function getCustomersForDropdown() {
-  return prisma.customer.findMany({
-    orderBy: { name: "asc" },
-    select: {
-      id: true,
-      name: true,
-    },
-  });
+  const prompt = "getCustomersForDropdown function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking CustomerRepository.findForDropdown function...`);
+  const customers = await CustomerRepository.findForDropdown();
+  logger.info(`${prompt} Invocation of CustomerRepository.findForDropdown function successfully completed.`);
+  logger.info(`${prompt} Returning array of ${customers.length} customers for dropdown to the caller.`);
+  return customers;
 }
 
 export async function findCustomerById(id: string) {
   const prompt = 'findCustomerById function says:';
-  logger.info(`${prompt} Fetching customer with ID: ${id}...`);
-  const customer = await prisma.customer.findUnique({
-    where: { id },
-    include: {
-      emailAddress: true,
-      phoneNumber: true,
-      bookings: true,
-      image: true,
-    },
-  });
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking CustomerRepository.findById function with ID: ${id}...`);
+  const customer = await CustomerRepository.findById(id);
   if (!customer) {
     logger.warn(`${prompt} Customer with ID ${id} not found`);
   } else {
     logger.info(`${prompt} Customer with ID ${id} found!`);
   }
+  logger.info(`${prompt} Invocation of CustomerRepository.findById function successfully completed.`);
   logger.info(`${prompt} Returning customer: ${customer?.id} to the caller...`);
   return customer;
 }
 
 export async function findCustomerByServiceTitanId(customerId: number) {
-  logger.info(`Fetching customer with ServiceTitan ID: ${customerId}`);
-  const customer = await prisma.customer.findUnique({
-    where: { customerId },
-    include: {
-      emailAddress: true,
-      phoneNumber: true,
-      bookings: true,
-      image: true,
-    },
-  });
+  const prompt = "findCustomerByServiceTitanId function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking CustomerRepository.findByServiceTitanId function with ServiceTitan ID: ${customerId}...`);
+  const customer = await CustomerRepository.findByServiceTitanId(customerId);
+  logger.info(`${prompt} Invocation of CustomerRepository.findByServiceTitanId function successfully completed.`);
+  logger.info(`${prompt} Customer found with ServiceTitan ID: ${customer?.customerId}`);
+  logger.info(`${prompt} Returning customer: ${customer?.id} to the caller...`);
   return customer;
 }
 
@@ -147,23 +128,19 @@ export async function addCustomer(data: {
       }
     }
 
-    const customer = await prisma.customer.create({
-      data: {
-        customerId: data.customerId,
-        name: data.name,
-        type: data.type || "RESIDENTIAL",
-        emailAddressId,
-        phoneNumberId,
-        imageId: data.imageId,
-      },
-      include: {
-        emailAddress: true,
-        phoneNumber: true,
-        bookings: true,
-        image: true,
-      },
+    const prompt = "addCustomer function says:";
+    logger.info(`${prompt} Invoking CustomerRepository.create function...`);
+    const customer = await CustomerRepository.create({
+      customerId: data.customerId,
+      name: data.name,
+      type: data.type || "RESIDENTIAL",
+      emailAddressId,
+      phoneNumberId,
+      imageId: data.imageId,
     });
-    logger.info(`Customer created with ID: ${customer.id}`);
+    logger.info(`${prompt} Invocation of CustomerRepository.create function successfully completed.`);
+    logger.info(`${prompt} Customer created with ID: ${customer.id}`);
+    logger.info(`${prompt} Returning the created customer with ID: ${customer.id} to the caller.`);
     return customer;
   } catch (error) {
     logger.error({ error, data }, "Error creating customer");
@@ -181,28 +158,23 @@ export async function updateCustomer(
     imageId?: string | null;
   }
 ) {
-  logger.info(`Updating customer with ID: ${id}`);
+  const prompt = "updateCustomer function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking CustomerRepository.update function with ID: ${id}...`);
   try {
-    const customer = await prisma.customer.update({
-      where: { id },
-      data: {
-        ...(data.name !== undefined && { name: data.name }),
-        ...(data.type !== undefined && { type: data.type }),
-        ...(data.emailAddressId !== undefined && { emailAddressId: data.emailAddressId }),
-        ...(data.phoneNumberId !== undefined && { phoneNumberId: data.phoneNumberId }),
-        ...(data.imageId !== undefined && { imageId: data.imageId }),
-      },
-      include: {
-        emailAddress: true,
-        phoneNumber: true,
-        bookings: true,
-        image: true,
-      },
+    const customer = await CustomerRepository.update(id, {
+      name: data.name,
+      type: data.type,
+      emailAddressId: data.emailAddressId,
+      phoneNumberId: data.phoneNumberId,
+      imageId: data.imageId,
     });
-    logger.info(`Customer updated: ${customer.id}`);
+    logger.info(`${prompt} Invocation of CustomerRepository.update function successfully completed.`);
+    logger.info(`${prompt} Customer updated: ${customer.id}`);
+    logger.info(`${prompt} Returning the updated customer with ID: ${customer.id} to the caller.`);
     return customer;
   } catch (error) {
-    logger.error({ error, id, data }, "Error updating customer");
+    logger.error({ error, id, data }, `${prompt} Error updating customer`);
     throw error;
   }
 }
@@ -232,12 +204,11 @@ export async function deleteCustomer(id: string) {
     }
 
     logger.info(`${prompt} Customer has no associated bookings. Proceeding with deletion...`);
-    logger.info(`${prompt} Invoking prisma.customer.delete to delete customer...`);
-    const deletedCustomer = await prisma.customer.delete({
-      where: { id },
-    });
-    logger.info(`${prompt} Customer deleted: ${deletedCustomer.id}`);
-    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id}`);
+    logger.info(`${prompt} Invoking CustomerRepository.delete function...`);
+    const deletedCustomer = await CustomerRepository.delete(id);
+    logger.info(`${prompt} Invocation of CustomerRepository.delete function successfully completed.`);
+    logger.info(`${prompt} Customer deleted: ${deletedCustomer?.id}`);
+    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer?.id}`);
     return deletedCustomer;
   } catch (error) {
     logger.error({ error, id }, `${prompt} Throwing error: Error deleting customer`);
@@ -247,6 +218,7 @@ export async function deleteCustomer(id: string) {
 
 export async function deleteCustomerAndTheirBookings(id: string) {
   const prompt = 'deleteCustomerAndTheirBookings function says:';
+  logger.info(`${prompt} Starting...`);
   logger.info(`${prompt} Attempting to delete customer with ID: ${id} and all associated bookings`);
   try {
     // First, check if customer exists
@@ -263,27 +235,19 @@ export async function deleteCustomerAndTheirBookings(id: string) {
     const bookingsCount = customer.bookings?.length || 0;
     if (bookingsCount > 0) {
       logger.info(`${prompt} Customer has ${bookingsCount} booking${bookingsCount !== 1 ? 's' : ''} associated. Deleting them first...`);
-      const bookingIds = customer.bookings.map(booking => booking.id);
-      
-      // Delete all bookings in a transaction
-      await prisma.booking.deleteMany({
-        where: {
-          id: {
-            in: bookingIds,
-          },
-        },
-      });
+      logger.info(`${prompt} Invoking CustomerRepository.deleteBookings function...`);
+      await CustomerRepository.deleteBookings(id);
+      logger.info(`${prompt} Invocation of CustomerRepository.deleteBookings function successfully completed.`);
       logger.info(`${prompt} Deleted ${bookingsCount} booking${bookingsCount !== 1 ? 's' : ''} associated with customer ${id}`);
     }
 
     // Now delete the customer
     logger.info(`${prompt} All bookings deleted. Proceeding with customer deletion...`);
-    logger.info(`${prompt} Invoking prisma.customer.delete to delete customer...`);
-    const deletedCustomer = await prisma.customer.delete({
-      where: { id },
-    });
-    logger.info(`${prompt} Customer deleted: ${deletedCustomer.id}`);
-    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer.id}`);
+    logger.info(`${prompt} Invoking CustomerRepository.delete function...`);
+    const deletedCustomer = await CustomerRepository.delete(id);
+    logger.info(`${prompt} Invocation of CustomerRepository.delete function successfully completed.`);
+    logger.info(`${prompt} Customer deleted: ${deletedCustomer?.id}`);
+    logger.info(`${prompt} Returning deleted customer: ${deletedCustomer?.id}`);
     return deletedCustomer;
   } catch (error) {
     logger.error({ error, id }, `${prompt} Throwing error: Error deleting customer and bookings`);

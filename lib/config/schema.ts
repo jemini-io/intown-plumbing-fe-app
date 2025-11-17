@@ -64,6 +64,16 @@ export const ConfigSchema = z.object({
   }),
   appointmentDurationInMs: z.number(),
   defaultManagedTechId: z.number(),
+  adminAuditData: z.array(z.union([
+    z.object({
+      phoneNumber: z.string(),
+      enabled: z.boolean(),
+    }),
+    z.object({
+      emailAddress: z.string(),
+      enabled: z.boolean(),
+    }),
+  ])).optional(),
 });
 
 export type Config = z.infer<typeof ConfigSchema>;

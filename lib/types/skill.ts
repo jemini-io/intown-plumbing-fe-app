@@ -7,5 +7,7 @@ export interface Skill {
   description?: string | null;
   enabled: boolean;
   serviceToJobTypes?: ServiceToJobType[];
+  enabledServiceToJobTypes?: ServiceToJobType[];
   technicians?: TechnicianToSkills[];
+  enabledTechnicians?: TechnicianToSkills[];
 }

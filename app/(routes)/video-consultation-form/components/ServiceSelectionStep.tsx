@@ -2,10 +2,10 @@
 
 import FormLayout from '@/components/FormLayout';
 import Icon from '@/components/Icon';
-import { getServiceToJobTypes } from '@/lib/appSettings/getConfig';
+import { getEnabledServicesOnly } from '@/lib/repositories/services/ServiceRepository.server';
 import { ServiceToJobType } from '@/lib/types/serviceToJobType';
 import { Skill } from '@/lib/types/skill';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 
 export default function ServiceStep() {
@@ -36,9 +36,9 @@ export default function ServiceStep() {
       try {
         setIsLoadingJobTypes(true);
         setError(null);
-        const jobTypes = await getServiceToJobTypes();
+        const jobTypes = await getEnabledServicesOnly();
         setAvailableJobTypes(jobTypes);
-        console.log('Fetched job types:', jobTypes);
+        console.log('Fetched enabled job types:', jobTypes);
       } catch (error) {
         console.error('Error fetching job types:', error);
         setError('Failed to load available services. Please try again.');
@@ -77,18 +77,6 @@ export default function ServiceStep() {
     return <span className="text-2xl">{jobType.emoji}</span>;
   };
 
-  // Memoized list of enabled job types
-  const enabledJobTypes = useMemo(
-    () => availableJobTypes.filter(j => j.enabled === true),
-    [availableJobTypes]
-  );
-
-  useEffect(() => {
-    if (selectedJobType && !selectedJobType.enabled) {
-      setSelectedJobType(null);
-      setSelectedSkill(null);
-    }
-  }, [selectedJobType, setSelectedJobType, setSelectedSkill]);
 
   if (isLoadingJobTypes) {
     return (
@@ -125,13 +113,13 @@ export default function ServiceStep() {
   return (
     <FormLayout>
       <div className="survey-container space-y-6">
-        {enabledJobTypes.length === 0 ? (
+        {availableJobTypes.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-600 text-sm sm:text-base">No services available at this time.</p>
           </div>
         ) : (
           <div className="button-row flex items-stretch">
-            {enabledJobTypes.map(jobType => (
+            {availableJobTypes.map(jobType => (
               <div key={jobType.id} className="flex mr-2 mb-2 flex-1">
                 <div className="relative flex-1">
                   <button
@@ -191,13 +179,12 @@ export default function ServiceStep() {
           </div>
         )}
 
-        {/* Show quote skills if 'Get A Quote' is selected */}
+        {/* Show skills if selected job type has skills, such as 'Get a Quote' has*/}
         {selectedJobType && selectedJobType.skills && selectedJobType.skills.length > 0 && (
           <div className="mt-6 mb-2">
             <div className="mb-2 text-sm font-semibold text-gray-800">Type of Quote</div>
             <div className="flex flex-col gap-3">
-              {/* {selectedJobType.skills.map((skill: QuoteSkill) => ( */}
-              {selectedJobType.skills.map((skill: Skill) => (
+              {selectedJobType.enabledSkills?.map((skill: Skill) => (
                 <label
                   key={skill.id}
                   className={`

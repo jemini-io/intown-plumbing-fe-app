@@ -5,7 +5,7 @@ import {
   PodiumMessageResponse,
 } from "./types";
 import { createOrUpdateContact } from "./contacts";
-import { getPodiumLocationId } from "@/lib/appSettings/getConfig";
+import { getPodiumLocationId, getAdminAuditPhoneNumber, isAdminAuditPhoneEnabled } from "@/lib/appSettings/getConfig";
 import { env } from "../config/env";
 import { logger } from './logger'
 
@@ -226,6 +226,43 @@ export async function sendTechnicianAppointmentConfirmationToManager(
     `Hi ${name}! A new Virtual Consultation is booked for ${formattedDateAtTime} with ${scheduledTechnicianName}.`,
   ].join("\n");
   return sendTextMessage(phoneNumber, message, name);
+}
+
+/**
+ * Send admin audit notification when a booking is created
+ * This sends a notification to the admin audit phone number configured in App Settings
+ */
+export async function sendAdminAuditNotification(
+  customerName: string,
+  technicianName: string,
+  serviceName: string,
+  date: Date,
+  jobId?: number
+) {
+  const isEnabled = await isAdminAuditPhoneEnabled();
+  if (!isEnabled) {
+    logger.info("Admin audit phone notifications are disabled");
+    return null;
+  }
+
+  const phoneNumber = await getAdminAuditPhoneNumber();
+  if (!phoneNumber) {
+    logger.info("Admin audit phone number is not configured");
+    return null;
+  }
+
+  const formattedDateAtTime = formatDateAtTimeString(date);
+  const jobIdText = jobId ? ` (Job ID: ${jobId})` : "";
+  
+  const message = [
+    `New Virtual Consultation booked:`,
+    `Customer: ${customerName}`,
+    `Technician: ${technicianName}`,
+    `Service: ${serviceName}`,
+    `Date/Time: ${formattedDateAtTime}${jobIdText}`,
+  ].join("\n");
+
+  return sendTextMessage(phoneNumber, message, "Admin");
 }
 
 function formatDateAtTimeString(date: Date): string {
