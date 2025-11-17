@@ -97,3 +97,94 @@ export async function getDefaultManagedTechId(): Promise<number> {
 
   return Number(defaultManagedTechId);
 }
+
+export type AdminAuditData = {
+  phone?: {
+    number: string;
+    enabled: boolean;
+  };
+  email?: {
+    address: string;
+    enabled: boolean;
+  };
+};
+
+type AdminAuditDataRaw = Array<
+  | { phoneNumber: string; enabled: boolean }
+  | { emailAddress: string; enabled: boolean }
+>;
+
+/**
+ * Get admin audit data from App Settings
+ * Returns null if the setting doesn't exist or is invalid
+ */
+export async function getAdminAuditData(): Promise<AdminAuditData | null> {
+  const prompt = 'getAdminAuditData function says:';
+  logger.info(`${prompt} Starting...`);
+  
+  try {
+    const value = await getAppSettingByKey('adminAuditData');
+    
+    if (!value) {
+      logger.info(`${prompt} adminAuditData setting not set. Returning null to the caller.`);
+      return null;
+    }
+
+    const parsed = JSON.parse(value) as AdminAuditDataRaw;
+    logger.info(`${prompt} Successfully parsed adminAuditData.`);
+    
+    if (!Array.isArray(parsed) || parsed.length === 0) {
+      logger.info(`${prompt} adminAuditData array is empty. Returning null to the caller.`);
+      return null;
+    }
+
+    // Transform array format to object format
+    const result: AdminAuditData = {};
+    
+    for (const item of parsed) {
+      if ('phoneNumber' in item) {
+        result.phone = {
+          number: item.phoneNumber,
+          enabled: item.enabled,
+        };
+      } else if ('emailAddress' in item) {
+        result.email = {
+          address: item.emailAddress,
+          enabled: item.enabled,
+        };
+      }
+    }
+    
+    logger.debug({ adminAuditData: result }, "Admin Audit Data");
+    
+    return result;
+  } catch (error) {
+    logger.error(
+      { err: error },
+      `${prompt} Failed to parse adminAuditData. Returning null.`
+    );
+    return null;
+  }
+}
+
+/**
+ * Check if admin audit phone notifications are enabled
+ */
+export async function isAdminAuditPhoneEnabled(): Promise<boolean> {
+  const data = await getAdminAuditData();
+  return data?.phone?.enabled === true;
+}
+
+/**
+ * Get admin audit phone number
+ * Returns null if not configured or disabled
+ */
+export async function getAdminAuditPhoneNumber(): Promise<string | null> {
+  const data = await getAdminAuditData();
+  
+  if (!data?.phone?.enabled || !data.phone.number) {
+    return null;
+  }
+  
+  return data.phone.number;
+}

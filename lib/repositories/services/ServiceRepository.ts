@@ -91,6 +91,37 @@ export class ServiceRepository {
   }
 
   /**
+   * Get service to job type by ServiceTitan ID
+   */
+  static async findByServiceTitanId(serviceTitanId: number): Promise<ServiceToJobType | null> {
+    const prompt = 'ServiceRepository.findByServiceTitanId function says:';
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking prisma.serviceToJobType.findFirst with where: { serviceTitanId: ${serviceTitanId} }...`);
+    
+    const service = await prisma.serviceToJobType.findFirst({
+      where: { serviceTitanId },
+      include: {
+        skills: {
+          include: { skill: true },
+        },
+      },
+    });
+
+    if (!service) {
+      logger.info(`${prompt} No service found with serviceTitanId: ${serviceTitanId}. Returning null to the caller.`);
+      return null;
+    }
+
+    logger.info(`${prompt} Service found with serviceTitanId: ${serviceTitanId} and id: ${service.id}.`);
+    logger.info(`${prompt} Returning the service to the caller.`);
+    
+    return {
+      ...service,
+      skills: service.skills.map(rel => rel.skill),
+    };
+  }
+
+  /**
    * Get services for dropdown (optimized query)
    */
   static async findForDropdown() {

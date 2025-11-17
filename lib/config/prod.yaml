@@ -122,3 +122,11 @@ appointmentDurationInMs: 1800000
 # Default managed technician ID to assign when non-managed techs are assigned
 # Doug W.
 defaultManagedTechId: 49786183
+
+# Admin Audit Configuration
+# Used to send audit notifications (SMS/Email) when bookings are created
+# adminAuditData:
+#   - phoneNumber: "+1234567890"
+#     enabled: true
+#   - emailAddress: "admin@example.com"
+#     enabled: true

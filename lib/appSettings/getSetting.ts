@@ -10,8 +10,14 @@ export async function getAppSettingByKey(key: string): Promise<string | null> {
   const appSetting = await prisma.appSetting.findUnique({
     where: { key }
   })
-  logger.info(`${prompt} Fetched app setting from prisma.appSetting.findUnique with where: { key: ${key} }...`);
-  logger.debug({ appSetting }, "App Setting");
-  logger.info(`${prompt} Returning ${appSetting?.value ?? null} from getAppSettingByKey function.`);
-  return appSetting?.value ?? null
+  logger.info(`${prompt} Invocation of prisma.appSetting.findUnique function successfully completed.`);
+
+  if (!appSetting) {
+    logger.info(`${prompt} App setting not found. Returning null to the caller.`);
+    return null;
+  }
+
+  logger.info(`${prompt} Returning app setting to the caller.`);
+  logger.debug({ appSetting }, `App Setting "${key}`);
+  return appSetting.value
 }
