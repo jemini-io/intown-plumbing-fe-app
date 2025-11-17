@@ -27,6 +27,7 @@ serviceToJobTypes:
     emoji: "🔧"
     icon: "wrench"
     description: "Have a licensed plumber help you assess or diagnose your DIY plumbing questions."
+    enabled: true
   - id: 2
     displayName: "Help! Emergency!"
     serviceTitanId: 76820749
@@ -34,6 +35,7 @@ serviceToJobTypes:
     emoji: "🚨"
     icon: "siren"
     description: "Urgent plumbing problem? Get immediate virtual help to assess and guide you through the next steps."
+    enabled: true
   - id: 3
     displayName: "Get A Quote"
     serviceTitanId: 76820748
@@ -45,6 +47,7 @@ serviceToJobTypes:
       - "Virtual Quote - Remodel Project"
       - "Virtual Quote - Repair/Install"
       - "Virtual Quote - Water Filtration"
+    enabled: true
 
 # Quote Skills
 # These must match EXACTLY with what is in Service Titan as Skills
@@ -125,3 +128,9 @@ appointmentDurationInMs: 1800000
 # Default managed technician ID to assign when non-managed techs are assigned
 # Doug W.
 defaultManagedTechId: 49786183
+
+adminAuditData:
+  - phoneNumber: "+15555555555"
+    enabled: true
+  - emailAddress: "admin@example.com"
+    enabled: true
