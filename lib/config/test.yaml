@@ -65,7 +65,7 @@ technicianToSkills:
       - "Virtual Quote - Water Filtration"
       - "Virtual Quote - Remodel Project"
       - "Virtual Service"
-    enabled: true
+    enabled: false
   - technicianId: 76734742
     technicianName: "David G."
     skills:
@@ -131,6 +131,6 @@ defaultManagedTechId: 49786183
 
 adminAuditData:
   - phoneNumber: "+15555555555"
-    enabled: true
+    enabled: false
   - emailAddress: "admin@example.com"
-    enabled: true
+    enabled: false
