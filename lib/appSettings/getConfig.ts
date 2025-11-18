@@ -1,6 +1,6 @@
 'use server';
 import { ServiceTitanConfig } from '@/lib/types/serviceTitan';
-// import { ServiceToJobTypeMapping, TechnicianToSkillsMapping } from '../config/types';
+import { ServiceToJobTypeMapping, TechnicianToSkillsMapping } from '../config/types';
 import { StripeConfig } from '@/lib/types/stripe';
 import { CustomFields } from '@/lib/types/customFields';
 import { getAppSettingByKey } from "@/lib/appSettings/getSetting";
@@ -8,6 +8,30 @@ import pino from "pino";
 
 
 const logger = pino({ name: 'getConfig' });
+
+export async function getServiceToJobTypes(): Promise<ServiceToJobTypeMapping[]> {
+  const prompt = 'getServiceToJobTypes function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking getAppSettingByKey with key: 'serviceToJobTypes'...`);
+  const serviceToJobTypes = await getAppSettingByKey('serviceToJobTypes');
+  logger.info(`${prompt} Fetched serviceToJobTypes from getAppSettingByKey with key: 'serviceToJobTypes'...`);
+  logger.debug({ serviceToJobTypes }, "Service To Job Types");
+
+  if (serviceToJobTypes === null) {
+    logger.error('serviceToJobTypes setting is null');
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(serviceToJobTypes);
+    logger.info(`${prompt} Successfully parsed serviceToJobTypes.`);
+    logger.info(`${prompt} Returning array of ${parsed.length} service to job types to the caller.`);
+    return parsed;
+  } catch (error) {
+    logger.error({ error }, 'Failed to parse serviceToJobTypes');
+    return [];
+  }
+}
 
 export async function getAppointmentDuration(): Promise<number> {
   const prompt = 'getAppointmentDuration function says:';
@@ -96,6 +120,30 @@ export async function getDefaultManagedTechId(): Promise<number> {
   }
 
   return Number(defaultManagedTechId);
+}
+
+export async function getTechnicianToSkills(): Promise<TechnicianToSkillsMapping[]> {
+  const prompt = 'getTechnicianToSkills function says:';
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking getAppSettingByKey with key: 'technicianToSkills'...`);
+  const technicianToSkills = await getAppSettingByKey('technicianToSkills');
+  logger.info(`${prompt} Fetched technicianToSkills from getAppSettingByKey with key: 'technicianToSkills'...`);
+  logger.debug({ technicianToSkills }, "Technician To Skills");
+
+  if (technicianToSkills === null) {
+    logger.error('technicianToSkills setting is null');
+    return [];
+  }
+
+  try {
+    const parsed = JSON.parse(technicianToSkills);
+    logger.info(`${prompt} Successfully parsed technicianToSkills.`);
+    logger.info(`${prompt} Returning array of ${parsed.length} technician to skills mappings to the caller.`);
+    return parsed;
+  } catch (error) {
+    logger.error({ error }, 'Failed to parse technicianToSkills');
+    return [];
+  }
 }
 
 export type AdminAuditData = {
