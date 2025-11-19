@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 type DeleteConfirmModalProps = {
   open: boolean;
@@ -21,9 +22,16 @@ export function DeleteConfirmModal({
   confirmLabel = "Delete",
   loadingLabel = "Deleting...",
 }: DeleteConfirmModalProps) {
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!open || !mounted) return null;
+  
+  return createPortal(
+    <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-30 flex items-center justify-center" style={{ zIndex: 9999 }}>
       <div className="bg-white rounded-xl shadow-lg p-8 w-[400px] text-center relative">
         <button
           onClick={onCancel}
@@ -72,6 +80,7 @@ export function DeleteConfirmModal({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

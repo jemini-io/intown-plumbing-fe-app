@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState, useRef } from "react";
-import { updateSetting } from "../actions";
+import { createSetting, updateSetting } from "../actions";
 import { isJson } from "@/lib/utils/isJson";
 import { JsonTreeEditor } from "@/app/dashboard/components/JsonTreeEditor";
 
@@ -11,18 +11,18 @@ type Setting = {
   value: string;
 };
 
-type SettingsFormProps = {
-  existing: Setting;
+type JSONSettingFormProps = {
+  existing?: Setting;
   onSaved: () => void;
 };
 
-export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
+export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
-  const [value, setValue] = useState(existing.value);
+  const [value, setValue] = useState(existing?.value ?? "[]");
+  const [key, setKey] = useState(existing?.key ?? "");
   const [isRawEditing, setIsRawEditing] = useState(false);
-
 
   type JSONValue =
     | string
@@ -47,10 +47,16 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
     e.preventDefault();
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
+      const newKey = formData.get("key") as string;
       const newValue = formData.get("value") as string;
       try {
-        await updateSetting(existing.id!, { key: existing.key, value: newValue });
-        setMessage({ type: "success", text: "Setting updated successfully!" });
+        if (existing) {
+          await updateSetting(existing.id!, { key: existing.key, value: newValue });
+          setMessage({ type: "success", text: "Setting updated successfully!" });
+        } else {
+          await createSetting({ key: newKey, value: newValue });
+          setMessage({ type: "success", text: "Setting created successfully!" });
+        }
         setTimeout(() => {
           setMessage(null);
           onSaved();
@@ -63,13 +69,14 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
   }
 
   const jsonObj = parsedValue();
+  const showJsonEditor = jsonObj && !isRawEditing;
 
   function toggleMode() {
     setIsRawEditing(prev => {
       const next = !prev;
       if (next && jsonObj) {
         try {
-            setValue(JSON.stringify(JSON.parse(value), null, 2));
+          setValue(JSON.stringify(JSON.parse(value), null, 2));
         } catch {
           /* ignore */
         }
@@ -80,7 +87,9 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">Edit Setting</h2>
+      <h2 className="text-xl font-semibold mb-4 text-center">
+        {existing ? "Edit Setting" : "Add New Setting (JSON)"}
+      </h2>
 
       {message && (
         <div
@@ -95,32 +104,41 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
       <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 items-start">
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">Key</label>
-            <input
-              type="text"
-              name="key"
-              value={existing.key}
-              readOnly
-              className="w-full border rounded p-2 bg-gray-100 text-gray-500 cursor-not-allowed"
-            />
+          <input
+            type="text"
+            name="key"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            readOnly={!!existing}
+            className={existing ? "w-full border rounded p-2 bg-gray-100 text-gray-500 cursor-not-allowed" : "w-full border rounded p-2"}
+            required
+          />
         </div>
 
         <div className="col-span-2">
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">
-              Value
-            </label>
-            {!!jsonObj && (
+            <label className="block text-sm font-medium text-gray-700">Value</label>
+            {showJsonEditor && (
               <button
                 type="button"
                 onClick={toggleMode}
                 className="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
               >
-                {isRawEditing ? "Edit as JSON" : "Edit as raw text"}
+                Edit as raw text
+              </button>
+            )}
+            {isRawEditing && jsonObj && (
+              <button
+                type="button"
+                onClick={toggleMode}
+                className="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
+              >
+                Edit as JSON
               </button>
             )}
           </div>
 
-          {jsonObj && !isRawEditing ? (
+          {showJsonEditor ? (
             <div
               className="w-full text-neutral-100 text-sm"
               style={{
@@ -139,7 +157,7 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
               />
               <input type="hidden" name="value" value={value} />
             </div>
-          ) : jsonObj && isRawEditing ? (
+          ) : (
             <textarea
               name="value"
               value={value}
@@ -147,15 +165,6 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
               className="w-full border rounded p-2 font-mono text-xs leading-5 bg-neutral-900 text-neutral-100"
               style={{ resize: "none", minHeight: 400, maxHeight: 600, height: "60vh" }}
               spellCheck={false}
-              required
-            />
-          ) : (
-            <input
-              type="text"
-              name="value"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className="w-full border rounded p-2 text-sm"
               required
             />
           )}
@@ -167,10 +176,11 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
             disabled={isPending}
             className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
-            {isPending ? "Saving..." : "Update"}
+            {isPending ? "Saving..." : existing ? "Update" : "Add"}
           </button>
         </div>
       </form>
     </div>
   );
 }
+
