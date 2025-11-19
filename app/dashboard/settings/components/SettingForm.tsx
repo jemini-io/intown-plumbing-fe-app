@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState, useRef } from "react";
-import { updateSetting } from "./actions";
+import { updateSetting } from "../actions";
 import { isJson } from "@/lib/utils/isJson";
 import { JsonTreeEditor } from "@/app/dashboard/components/JsonTreeEditor";
 
@@ -23,9 +23,6 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
   const [value, setValue] = useState(existing.value);
   const [isRawEditing, setIsRawEditing] = useState(false);
 
-  function handleValueChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setValue(e.target.value);
-  }
 
   type JSONValue =
     | string
@@ -123,45 +120,52 @@ export function SettingsForm({ existing, onSaved }: SettingsFormProps) {
             )}
           </div>
 
-          <div
-            className="w-full text-neutral-100 text-sm"
-            style={{
-              minHeight: 400,
-              maxHeight: 600,
-              height: "60vh",
-            }}
-          >
-            {jsonObj && !isRawEditing ? (
-              <>
-                <JsonTreeEditor
-                  value={jsonObj}
-                  onChange={(updated) => {
-                    try {
-                      setValue(JSON.stringify(updated, null, 2));
-                    } catch { /* ignore */ }
-                  }}
-                />
-                <input type="hidden" name="value" value={value} />
-              </>
-            ) : (
-              <textarea
-                name="value"
-                value={value}
-                onChange={handleValueChange}
-                className="w-full h-full border rounded p-2 font-mono text-xs leading-5 bg-neutral-900 text-neutral-100"
-                style={{ resize: "none", minHeight: "100%" }}
-                spellCheck={false}
-                required
+          {jsonObj && !isRawEditing ? (
+            <div
+              className="w-full text-neutral-100 text-sm"
+              style={{
+                minHeight: 400,
+                maxHeight: 600,
+                height: "60vh",
+              }}
+            >
+              <JsonTreeEditor
+                value={jsonObj}
+                onChange={(updated) => {
+                  try {
+                    setValue(JSON.stringify(updated, null, 2));
+                  } catch { /* ignore */ }
+                }}
               />
-            )}
-          </div>
+              <input type="hidden" name="value" value={value} />
+            </div>
+          ) : jsonObj && isRawEditing ? (
+            <textarea
+              name="value"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="w-full border rounded p-2 font-mono text-xs leading-5 bg-neutral-900 text-neutral-100"
+              style={{ resize: "none", minHeight: 400, maxHeight: 600, height: "60vh" }}
+              spellCheck={false}
+              required
+            />
+          ) : (
+            <input
+              type="text"
+              name="value"
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              className="w-full border rounded p-2 text-sm"
+              required
+            />
+          )}
         </div>
 
         <div className="col-span-2 flex justify-center mt-2">
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-gradient-to-r from-gray-800 to-gray-700 text-white py-2 rounded-md font-medium shadow-md hover:from-gray-900 hover:to-gray-800 transition disabled:from-gray-400 disabled:to-gray-400 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : "Update"}
           </button>

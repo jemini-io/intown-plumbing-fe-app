@@ -14,7 +14,7 @@ const SyntaxHighlighter = dynamic(
 );
 
 const SettingsForm = dynamic(
-  () => import("./settings-form").then(m => m.SettingsForm), 
+  () => import("./components/SettingForm").then(m => m.SettingsForm), 
   {
     ssr: false,
     loading: () => <div className="p-4 text-sm text-gray-500">Loading...</div>,
