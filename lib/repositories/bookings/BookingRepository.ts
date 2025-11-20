@@ -203,7 +203,7 @@ export class BookingRepository {
   /**
    * Delete a booking
    */
-  static async delete(id: string) {
+  static async delete(id: string): Promise<Booking> {
     const prompt = 'BookingRepository.delete function says:';
     logger.info(`${prompt} Starting...`);
     logger.info(`${prompt} Invoking prisma.booking.delete function with ID: ${id}...`);

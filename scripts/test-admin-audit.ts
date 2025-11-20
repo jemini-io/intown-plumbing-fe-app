@@ -3,7 +3,7 @@
  * Run with: npx tsx scripts/test-admin-audit.ts
  */
 
-import { getAdminAuditData, isAdminAuditPhoneEnabled, getAdminAuditPhoneNumber } from '../lib/appSettings/getConfig';
+import { getAdminAuditData, isAdminAuditPhoneEnabled, getAdminAuditPhoneNumber } from '../lib/repositories/appSettings/getConfig';
 import { sendAdminAuditNotification } from '../lib/podium/messages';
 
 async function testAdminAudit() {

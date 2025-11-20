@@ -5,7 +5,7 @@ import {
   PodiumMessageResponse,
 } from "./types";
 import { createOrUpdateContact } from "./contacts";
-import { getPodiumLocationId, getAdminAuditPhoneNumber, isAdminAuditPhoneEnabled } from "@/lib/appSettings/getConfig";
+import { getPodiumLocationId, getAdminAuditPhoneNumber, isAdminAuditPhoneEnabled } from "@/lib/repositories/appSettings/getConfig";
 import { env } from "../config/env";
 import { logger } from './logger'
 

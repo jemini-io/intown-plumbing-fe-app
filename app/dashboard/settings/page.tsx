@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { getSettings, deleteSetting } from "./actions";
+import { getAllAppSettings, deleteAppSetting } from "./actions";
 import DashboardLayout from "../components/DashboardLayout";
 import { ClipboardDocumentIcon, CheckIcon } from "@heroicons/react/24/outline";
 import { isJson } from "@/lib/utils/isJson";
@@ -151,7 +151,7 @@ export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
 
   async function refresh() {
-    const all = await getSettings();
+    const all = await getAllAppSettings();
     setSettings(all);
     
     // Calculate max key width
@@ -197,7 +197,7 @@ export default function SettingsPage() {
     if (!settingToDelete?.id) return;
     setDeleting(true);
     try {
-      await deleteSetting(settingToDelete.id);
+      await deleteAppSetting(settingToDelete.id);
       setConfirmOpen(false);
       setSettingToDelete(null);
       await refresh();

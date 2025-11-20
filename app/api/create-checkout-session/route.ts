@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { env } from "@/lib/config/env";
 import { handleApiError } from "@/lib/utils/api-error-handler";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
-import { getStripeConfig } from "@/lib/appSettings/getConfig";
+import { getStripeConfig } from "@/lib/repositories/appSettings/getConfig";
 import pino from "pino";
 
 const logger = pino();

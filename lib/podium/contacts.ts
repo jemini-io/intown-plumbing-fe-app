@@ -1,4 +1,4 @@
-import { getPodiumLocationId } from "@/lib/appSettings/getConfig"
+import { getPodiumLocationId } from "@/lib/repositories/appSettings/getConfig"
 import { podiumClient } from './client'
 import { PodiumContact, PodiumContactCreatedResponse, PodiumContactRequest } from './types'
 import { logger } from './logger'
