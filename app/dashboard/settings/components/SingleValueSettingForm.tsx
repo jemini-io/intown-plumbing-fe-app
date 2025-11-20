@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useState, useRef } from "react";
-import { createSetting, updateSetting } from "../actions";
+import { createAppSetting, updateAppSetting } from "../actions";
 
 type Setting = {
   id?: number;
@@ -29,10 +29,10 @@ export function SingleValueSettingForm({ existing, onSaved }: SingleValueSetting
       const newValue = formData.get("value") as string;
       try {
         if (existing) {
-          await updateSetting(existing.id!, { key: existing.key, value: newValue });
+          await updateAppSetting(existing.id!, { key: existing.key, value: newValue });
           setMessage({ type: "success", text: "Setting updated successfully!" });
         } else {
-          await createSetting({ key: newKey, value: newValue });
+          await createAppSetting({ key: newKey, value: newValue });
           setMessage({ type: "success", text: "Setting created successfully!" });
         }
         setTimeout(() => {

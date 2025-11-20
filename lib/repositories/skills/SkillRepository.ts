@@ -189,6 +189,30 @@ export class SkillRepository {
   }
 
   /**
+   * Link a service to a skill
+   */
+  static async linkService(skillId: string, serviceId: string) {
+    const prompt = 'SkillRepository.linkService function says:';
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking prisma.serviceToJobTypeSkill.create...`);
+    try {
+      return await prisma.serviceToJobTypeSkill.create({
+        data: {
+          skillId,
+          serviceToJobTypeId: serviceId,
+        },
+      });
+    } catch (error: unknown) {
+      // If relation already exists, ignore the error
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        logger.info(`${prompt} Service ${serviceId} is already linked to skill ${skillId}. Skipping.`);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Unlink a service from a skill
    */
   static async unlinkService(skillId: string, serviceId: string) {
@@ -200,6 +224,30 @@ export class SkillRepository {
         },
       },
     });
+  }
+
+  /**
+   * Link a technician to a skill
+   */
+  static async linkTechnician(skillId: string, technicianId: string) {
+    const prompt = 'SkillRepository.linkTechnician function says:';
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking prisma.technicianSkill.create...`);
+    try {
+      return await prisma.technicianSkill.create({
+        data: {
+          skillId,
+          technicianId,
+        },
+      });
+    } catch (error: unknown) {
+      // If relation already exists, ignore the error
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        logger.info(`${prompt} Technician ${technicianId} is already linked to skill ${skillId}. Skipping.`);
+        return null;
+      }
+      throw error;
+    }
   }
 
   /**

@@ -1,9 +1,12 @@
 "use client";
 
 import { useTransition, useState, useRef } from "react";
-import { createSetting, updateSetting } from "../actions";
+import { createAppSetting, updateAppSetting } from "../actions";
 import { isJson } from "@/lib/utils/isJson";
 import { JsonTreeEditor } from "@/app/dashboard/components/JsonTreeEditor";
+
+// Virtual setting keys that should have readonly 'id' fields
+const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills'] as const;
 
 type Setting = {
   id?: number;
@@ -51,10 +54,10 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
       const newValue = formData.get("value") as string;
       try {
         if (existing) {
-          await updateSetting(existing.id!, { key: existing.key, value: newValue });
+          await updateAppSetting(existing.id!, { key: existing.key, value: newValue });
           setMessage({ type: "success", text: "Setting updated successfully!" });
         } else {
-          await createSetting({ key: newKey, value: newValue });
+          await createAppSetting({ key: newKey, value: newValue });
           setMessage({ type: "success", text: "Setting created successfully!" });
         }
         setTimeout(() => {
@@ -154,6 +157,12 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
                     setValue(JSON.stringify(updated, null, 2));
                   } catch { /* ignore */ }
                 }}
+                readonlyFields={
+                  VIRTUAL_SETTING_KEYS.includes(existing?.key as typeof VIRTUAL_SETTING_KEYS[number])
+                    ? ['id', 'serviceTitanId', 'technicianId']
+                    : []
+                }
+                readonlyObjects={VIRTUAL_SETTING_KEYS.includes(existing?.key as typeof VIRTUAL_SETTING_KEYS[number]) ? ['skills', 'serviceToJobTypes', 'technicians'] : []}
               />
               <input type="hidden" name="value" value={value} />
             </div>

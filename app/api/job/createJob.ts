@@ -4,7 +4,7 @@ import { Accounting_V2_InvoiceUpdateRequest, Accounting_V2_PaymentCreateRequest 
 import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan/generated/crm";
 import { Jpm_V2_JobResponse } from "@/lib/servicetitan/generated/jpm";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
-import { getServiceTitanConfig, getStripeConfig, getDefaultManagedTechId } from "@/lib/appSettings/getConfig";
+import { getServiceTitanConfig, getStripeConfig, getDefaultManagedTechId } from "@/lib/repositories/appSettings/getConfig";
 import type { Customer, Job, Location } from './types';
 import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
 import { logger } from "../logger";
@@ -23,6 +23,9 @@ export async function createJobAppointment({
   customer: Customer,
   productName?: string
 }): Promise<Jpm_V2_JobResponse> {
+    const prompt = 'createJobAppointment function says:';
+    logger.info(`${prompt} Starting...`);
+
     const serviceTitanClient = new ServiceTitanClient();
 
     const { startTime, endTime, technicianId, jobTypeId, summary } = job;
@@ -49,6 +52,8 @@ export async function createJobAppointment({
         // zip: zip,
         phone: phone,
     });
+    logger.info(`${prompt} Existing customers count in ServiceTitan: ${existingCustomers.data.length}`);
+
     let stCustomer;
 
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {

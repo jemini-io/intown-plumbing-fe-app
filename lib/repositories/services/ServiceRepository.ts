@@ -209,6 +209,30 @@ export class ServiceRepository {
   }
 
   /**
+   * Link a skill to a service
+   */
+  static async linkSkill(serviceId: string, skillId: string) {
+    const prompt = 'ServiceRepository.linkSkill function says:';
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking prisma.serviceToJobTypeSkill.create...`);
+    try {
+      return await prisma.serviceToJobTypeSkill.create({
+        data: {
+          serviceToJobTypeId: serviceId,
+          skillId: skillId,
+        },
+      });
+    } catch (error: unknown) {
+      // If relation already exists, ignore the error
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        logger.info(`${prompt} Skill ${skillId} is already linked to service ${serviceId}. Skipping.`);
+        return null;
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Unlink a skill from a service
    */
   static async unlinkSkill(serviceId: string, skillId: string) {

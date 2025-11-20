@@ -12,7 +12,7 @@ import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
 import { env } from "@/lib/config/env";
 import pino from "pino";
-import { getCustomFields, getDefaultManagedTechId } from "@/lib/appSettings/getConfig";
+import { getCustomFields, getDefaultManagedTechId } from "@/lib/repositories/appSettings/getConfig";
 import { ServiceRepository } from "@/lib/repositories/services/ServiceRepository";
 
 const logger = pino({ name: "createJobAction" });
