@@ -5,6 +5,9 @@ import { createAppSetting, updateAppSetting } from "../actions";
 import { isJson } from "@/lib/utils/isJson";
 import { JsonTreeEditor } from "@/app/dashboard/components/JsonTreeEditor";
 
+// Virtual setting keys that should have readonly 'id' fields
+const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills'] as const;
+
 type Setting = {
   id?: number;
   key: string;
@@ -154,6 +157,12 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
                     setValue(JSON.stringify(updated, null, 2));
                   } catch { /* ignore */ }
                 }}
+                readonlyFields={
+                  VIRTUAL_SETTING_KEYS.includes(existing?.key as typeof VIRTUAL_SETTING_KEYS[number])
+                    ? ['id', 'serviceTitanId', 'technicianId']
+                    : []
+                }
+                readonlyObjects={VIRTUAL_SETTING_KEYS.includes(existing?.key as typeof VIRTUAL_SETTING_KEYS[number]) ? ['skills', 'serviceToJobTypes', 'technicians'] : []}
               />
               <input type="hidden" name="value" value={value} />
             </div>

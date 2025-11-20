@@ -116,25 +116,43 @@ function ValueCell({ value }: { value: string }) {
   );
 }
 
-function KeyCell({ value }: { value: string }) {
+const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills'] as const;
+
+const VIRTUAL_SETTING_TABLE_NAMES: Record<typeof VIRTUAL_SETTING_KEYS[number], string> = {
+  serviceToJobTypes: 'ServiceToJobType',
+  quoteSkills: 'Skill',
+  technicianToSkills: 'Technician',
+};
+
+function KeyCell({ settingKey }: { settingKey: string }) {
   const { copied, handleCopy } = useCopy();
+  const isVirtualSetting = VIRTUAL_SETTING_KEYS.includes(settingKey as typeof VIRTUAL_SETTING_KEYS[number]);
+  const tableName = isVirtualSetting ? VIRTUAL_SETTING_TABLE_NAMES[settingKey as typeof VIRTUAL_SETTING_KEYS[number]] : null;
+  
   return (
-    <div className="group relative min-h-[40px] flex items-center">
-      <span className="font-mono">{value}</span>
-      <button
-        type="button"
-        className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-1 shadow hover:bg-gray-100"
-        title="Copy key"
-        onClick={() => handleCopy(value)}
-      >
-        {copied ? (
-          <span className="flex items-center gap-1 text-green-600 font-semibold text-xs">
-            <CheckIcon className="h-4 w-4" /> Copied!
-          </span>
-        ) : (
-          <ClipboardDocumentIcon className="h-5 w-5 text-gray-500" />
-        )}
-      </button>
+    <div className="group relative min-h-[40px] flex flex-col items-start justify-center">
+      <div className="flex items-center w-full">
+        <span className="font-mono">{settingKey}</span>
+        <button
+          type="button"
+          className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity bg-white rounded-full p-1 shadow hover:bg-gray-100"
+          title="Copy key"
+          onClick={() => handleCopy(settingKey)}
+        >
+          {copied ? (
+            <span className="flex items-center gap-1 text-green-600 font-semibold text-xs">
+              <CheckIcon className="h-4 w-4" /> Copied!
+            </span>
+          ) : (
+            <ClipboardDocumentIcon className="h-5 w-5 text-gray-500" />
+          )}
+        </button>
+      </div>
+      {isVirtualSetting && tableName && (
+        <span className="text-xs text-gray-500 italic mt-1">
+          (pointing to the real &quot;{tableName}&quot; table in db)
+        </span>
+      )}
     </div>
   );
 }
@@ -263,7 +281,7 @@ export default function SettingsPage() {
               style={{ width: "100%" }}
             >
               <div className="font-mono text-gray-700 flex-shrink-0 whitespace-nowrap" style={{ width: `${maxKeyWidth}px` }}>
-                <KeyCell value={s.key} />
+                <KeyCell settingKey={s.key} />
               </div>
               <div className="text-gray-600 flex-1 min-w-0">
                 <ValueCell value={s.value} />

@@ -105,6 +105,29 @@ export class TechnicianRepository {
   }
 
   /**
+   * Update a technician
+   */
+  static async update(
+    id: string,
+    data: Partial<{
+      technicianName: string;
+      enabled: boolean;
+      imageId: string | null;
+    }>
+  ) {
+    const prompt = 'TechnicianRepository.update function says:';
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking prisma.technician.update with where: { id: ${id} }...`);
+    const updatedTechnician = await prisma.technician.update({
+      where: { id },
+      data,
+    });
+    logger.info(`${prompt} Invocation of prisma.technician.update function successfully completed.`);
+    logger.info(`${prompt} Technician updated with ID: ${updatedTechnician.id}.`);
+    return updatedTechnician;
+  }
+
+  /**
    * Get technician with image for deletion
    */
   static async findByIdWithImageAndSkills(id: string) {
@@ -139,6 +162,30 @@ export class TechnicianRepository {
     return prisma.technician.delete({
       where: { id },
     });
+  }
+
+  /**
+   * Link a skill to a technician
+   */
+  static async linkSkill(technicianId: string, skillId: string) {
+    const prompt = 'TechnicianRepository.linkSkill function says:';
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking prisma.technicianSkill.create...`);
+    try {
+      return await prisma.technicianSkill.create({
+        data: {
+          technicianId,
+          skillId,
+        },
+      });
+    } catch (error: unknown) {
+      // If relation already exists, ignore the error
+      if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
+        logger.info(`${prompt} Skill ${skillId} is already linked to technician ${technicianId}. Skipping.`);
+        return null;
+      }
+      throw error;
+    }
   }
 
   /**
