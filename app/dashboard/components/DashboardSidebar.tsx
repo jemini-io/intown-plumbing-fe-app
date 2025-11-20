@@ -8,6 +8,7 @@ import { CustomNavLink } from "./CustomNavLink";
 import { Dispatch, SetStateAction } from "react";
 import { navItemsData } from "./navItemsData";
 import { UserRole } from "@/app/dashboard/users/types";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface DashboardSidebarProps {
   collapsed: boolean;
@@ -34,7 +35,7 @@ export default function DashboardSidebar({
     <aside
       className={`fixed top-0 left-0 bottom-0 ${
         collapsed ? "w-20" : "w-72"
-      } bg-[#1e3a4f] border-r p-4 flex flex-col items-start z-50 overflow-y-auto transition-all duration-200`}
+      } bg-[#1e3a4f] dark:bg-gray-900 border-r dark:border-gray-700 p-4 flex flex-col items-start z-50 overflow-y-auto transition-all duration-200`}
     >
       {/* Collapse/Expand button */}
       <div className="w-full flex items-center justify-between">
@@ -49,7 +50,7 @@ export default function DashboardSidebar({
           type="button"
           title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
           onClick={() => setCollapsed((v: boolean) => !v)}
-          className="self-center bg-[#25405a] text-white rounded-full p-2 hover:bg-[#3d5a73] transition"
+          className="self-center bg-[#25405a] dark:bg-gray-800 text-white rounded-full p-2 hover:bg-[#3d5a73] dark:hover:bg-gray-700 transition"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           <svg width="24" height="24" fill="none">
@@ -81,6 +82,11 @@ export default function DashboardSidebar({
       </div>
 
       <div className="mt-auto flex flex-col items-center space-y-2 pb-4 flex-shrink-0 w-full">
+        {/* Theme Toggle */}
+        <div className={`w-full ${collapsed ? "flex justify-center" : ""}`}>
+          <ThemeToggle collapsed={collapsed} />
+        </div>
+        
         {(() => {
           const ProfileIcon: React.ComponentType<{ className?: string }> = () => (
             userImageUrl ? (

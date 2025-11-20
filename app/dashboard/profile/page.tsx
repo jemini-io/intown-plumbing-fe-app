@@ -76,7 +76,7 @@ export default function ProfilePage() {
     return (
       <DashboardLayout>
         <div className="min-h-screen p-8 flex items-center justify-center">
-          <div className="text-sm text-gray-500">Loading profile...</div>
+          <div className="text-sm text-gray-500 dark:text-gray-400">Loading profile...</div>
         </div>
       </DashboardLayout>
     );
@@ -87,14 +87,14 @@ export default function ProfilePage() {
   return (
     <DashboardLayout>
       <div className="min-h-screen p-8">
-        <h3 className="text-3xl font-bold mb-6">My Profile</h3>
+        <h3 className="text-3xl font-bold mb-6 dark:text-white">My Profile</h3>
 
-        <div className="bg-white rounded-xl shadow p-6 max-w-xl">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6 max-w-xl">
           <div className="flex items-center justify-between mb-6">
-            <h4 className="text-lg font-semibold">Account</h4>
+            <h4 className="text-lg font-semibold dark:text-white">Account</h4>
             <button
               onClick={() => setEditing(true)}
-              className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded bg-gray-800 text-white hover:bg-gray-900"
+              className="inline-flex items-center gap-2 px-3 py-2 text-sm rounded bg-gray-800 dark:bg-gray-700 text-white hover:bg-gray-900 dark:hover:bg-gray-600"
             >
               <PencilIcon className="h-4 w-4" />
               Edit
@@ -113,25 +113,25 @@ export default function ProfilePage() {
                   unoptimized
                 />
               ) : (
-                <div className="h-20 w-20 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-sm">
+                <div className="h-20 w-20 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-gray-500 dark:text-gray-400 text-sm">
                   No Img
                 </div>
               )}
             </div>
 
             <div className="col-span-3 sm:col-span-4">
-              <div className="text-xs font-semibold uppercase text-gray-500">Name</div>
-              <div className="text-base font-medium">{name}</div>
+              <div className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Name</div>
+              <div className="text-base font-medium dark:text-white">{name}</div>
             </div>
 
             <div className="col-span-3 sm:col-span-4">
-              <div className="text-xs font-semibold uppercase text-gray-500">Email</div>
-              <div className="text-sm">{email}</div>
+              <div className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Email</div>
+              <div className="text-sm dark:text-gray-300">{email}</div>
             </div>
 
             <div className="col-span-3 sm:col-span-4">
-              <div className="text-xs font-semibold uppercase text-gray-500">Role</div>
-              <div className="text-sm">{role}</div>
+              <div className="text-xs font-semibold uppercase text-gray-500 dark:text-gray-400">Role</div>
+              <div className="text-sm dark:text-gray-300">{role}</div>
             </div>
           </div>
         </div>
@@ -140,12 +140,12 @@ export default function ProfilePage() {
       {editing && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
           <div
-            className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative"
+            className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative"
             style={{ minWidth: 400, maxHeight: "90vh" }}
           >
             <button
               onClick={() => setEditing(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl leading-none"
+              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 text-xl leading-none"
               aria-label="Close"
             >
               ×

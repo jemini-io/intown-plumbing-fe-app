@@ -27,7 +27,7 @@ export default function CustomersPage() {
     <DashboardLayout>
       <div className="min-h-screen p-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Customers</h1>
+          <h1 className="text-3xl font-bold dark:text-white">Customers</h1>
         </div>
         <CustomersCard />
       </div>

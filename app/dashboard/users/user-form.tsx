@@ -119,12 +119,12 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
         {title ?? (existing ? `Edit user ${existing.name}` : "Add new user")}
       </h2>
       {message && (
         <div className={`mb-4 text-center text-base font-medium transition-all
-          ${message.type === "success" ? "text-green-600" : "text-red-600"}`}>
+          ${message.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
           {message.text}
         </div>
       )}
@@ -135,22 +135,22 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
       >
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
           <input
             type="text"
             name="name"
             defaultValue={existing?.name ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border rounded p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
           />
         </div>
         {/* Role */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Role</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
           <select
             name="role"
             defaultValue={existing?.role ?? "USER"}
-            className="w-full border rounded p-2"
+            className="w-full border rounded p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
             disabled={isProtectedAdmin || !isCurrentUserAnAdmin}
           >
@@ -167,12 +167,12 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
         </div>
         {/* Email */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
           <input
             type="email"
             name="email"
             defaultValue={existing?.email ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border rounded p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
             disabled={isProtectedAdmin}
           />
@@ -186,7 +186,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
         </div>
         {/* Password */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
           <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -197,7 +197,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
 
         {isCurrentUserAnAdmin && !isCurrentUser&& (
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-700">Enabled</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enabled</span>
             <button
               type="button"
               name="enabled"
@@ -219,7 +219,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
         {/* For self-editing user show pill but intercept disable to ask confirmation */}
         {isCurrentUserAnAdmin && isCurrentUser && (
           <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-gray-700">Enabled</span>
+            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enabled</span>
             <button
               type="button"
               role="switch"
@@ -248,7 +248,7 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
         <input type="hidden" name="enabled" value={enabled === true ? "true" : "false"} />
 
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image</label>
         </div>
         {/* Pic Preview | Upload input */}
         <div className="col-span-2 flex items-center gap-6">
@@ -270,15 +270,15 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
                     setImageFile(null);
                     setRemoveImage(true);
                   }}
-                  className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow hover:bg-red-100"
+                  className="absolute -top-2 -right-2 bg-white dark:bg-gray-700 rounded-full p-1 shadow hover:bg-red-100 dark:hover:bg-red-900"
                   title="Remove image"
                 >
-                  <TrashIcon className="h-4 w-4 text-red-600" />
+                  <TrashIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
                 </button>
               </>
             ) : (
-              <div className="h-16 w-16 flex items-center justify-center rounded-full bg-gray-200 border">
-                <UserCircleIcon className="h-8 w-8 text-gray-500" />
+              <div className="h-16 w-16 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 border dark:border-gray-600">
+                <UserCircleIcon className="h-8 w-8 text-gray-500 dark:text-gray-400" />
               </div>
             )}
           </div>
@@ -288,19 +288,19 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
             name="picture"
             accept="image/*"
             onChange={handleImageChange}
-            className="block text-sm text-gray-500
+            className="block text-sm text-gray-500 dark:text-gray-400
               file:mr-2 file:py-1 file:px-2
               file:rounded file:border-0
               file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100"
+              file:bg-blue-50 file:text-blue-700 dark:file:bg-blue-900 dark:file:text-blue-300
+              hover:file:bg-blue-100 dark:hover:file:bg-blue-800"
           />
         </div>
         <div className="col-span-2 flex justify-center mt-2">
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 dark:bg-white hover:bg-blue-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 dark:disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update" : "Add"}
           </button>

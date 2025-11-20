@@ -21,7 +21,7 @@ type CustomNavLinkProps = {
 export function CustomNavLink({ href, label, title, icon: Icon, collapsed, external, onClick, fullWidth }: CustomNavLinkProps) {
   const pathname = usePathname();
   const baseClasses = `group flex items-center ${collapsed ? "justify-center" : "gap-4 px-5"} py-3 rounded transition ${fullWidth ? "w-full" : ""}`;
-  const colorClasses = "hover:bg-[#3d5a73]";
+  const colorClasses = "hover:bg-[#3d5a73] dark:hover:bg-gray-700";
   const isRoutable = !external && !onClick;
   const isActive = isRoutable && typeof pathname === "string" && (
     href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href)

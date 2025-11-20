@@ -1,5 +1,6 @@
 import DashboardSidebar from "./DashboardSidebar";
 import { ReactNode, useState, useEffect } from "react";
+import { ThemeProvider } from "../contexts/ThemeContext";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
@@ -22,14 +23,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
   if (loading) return null;
 
   return (
-    <>
+    <ThemeProvider>
       <DashboardSidebar collapsed={collapsed} setCollapsed={setCollapsed} />
       <main
-        className="transition-all duration-200 bg-gray-100"
+        className="transition-all duration-200 bg-gray-100 dark:bg-gray-900"
         style={{ marginLeft: sidebarWidth }}
       >
         {children}
       </main>
-    </>
+    </ThemeProvider>
   );
 }

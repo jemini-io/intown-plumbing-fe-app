@@ -48,14 +48,14 @@ export function SingleValueSettingForm({ existing, onSaved }: SingleValueSetting
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
         {existing ? "Edit Setting" : "Add New Setting"}
       </h2>
 
       {message && (
         <div
           className={`mb-4 text-center text-base font-medium ${
-            message.type === "success" ? "text-green-600" : "text-red-600"
+            message.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           }`}
         >
           {message.text}
@@ -64,26 +64,26 @@ export function SingleValueSettingForm({ existing, onSaved }: SingleValueSetting
 
       <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 items-start">
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Key</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key</label>
           <input
             type="text"
             name="key"
             value={key}
             onChange={(e) => setKey(e.target.value)}
             readOnly={!!existing}
-            className={existing ? "w-full border rounded p-2 bg-gray-100 text-gray-500 cursor-not-allowed" : "w-full border rounded p-2"}
+            className={existing ? "w-full border rounded p-2 bg-gray-100 dark:bg-gray-700 dark:border-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed" : "w-full border rounded p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"}
             required
           />
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Value</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Value</label>
           <input
             type="text"
             name="value"
             value={value}
             onChange={(e) => setValue(e.target.value)}
-            className="w-full border rounded p-2 text-sm"
+            className="w-full border rounded p-2 text-sm dark:bg-gray-700 dark:border-gray-600 dark:text-white"
             required
           />
         </div>
@@ -92,7 +92,7 @@ export function SingleValueSettingForm({ existing, onSaved }: SingleValueSetting
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 dark:bg-white hover:bg-blue-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 dark:disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update" : "Add"}
           </button>

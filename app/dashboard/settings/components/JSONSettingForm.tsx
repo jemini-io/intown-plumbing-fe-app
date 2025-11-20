@@ -90,14 +90,14 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
         {existing ? "Edit Setting" : "Add New Setting (JSON)"}
       </h2>
 
       {message && (
         <div
           className={`mb-4 text-center text-base font-medium ${
-            message.type === "success" ? "text-green-600" : "text-red-600"
+            message.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           }`}
         >
           {message.text}
@@ -106,26 +106,26 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
 
       <form ref={formRef} onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 items-start">
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Key</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Key</label>
           <input
             type="text"
             name="key"
             value={key}
             onChange={(e) => setKey(e.target.value)}
             readOnly={!!existing}
-            className={existing ? "w-full border rounded p-2 bg-gray-100 text-gray-500 cursor-not-allowed" : "w-full border rounded p-2"}
+            className={existing ? "w-full border rounded p-2 bg-gray-100 dark:bg-gray-700 dark:border-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed" : "w-full border rounded p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"}
             required
           />
         </div>
 
         <div className="col-span-2">
           <div className="flex items-center justify-between mb-1">
-            <label className="block text-sm font-medium text-gray-700">Value</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Value</label>
             {showJsonEditor && (
               <button
                 type="button"
                 onClick={toggleMode}
-                className="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
+                className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 dark:text-gray-300 transition"
               >
                 Edit as raw text
               </button>
@@ -134,7 +134,7 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
               <button
                 type="button"
                 onClick={toggleMode}
-                className="text-xs px-2 py-1 rounded bg-gray-200 hover:bg-gray-300 transition"
+                className="text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 dark:text-gray-300 transition"
               >
                 Edit as JSON
               </button>
@@ -143,7 +143,7 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
 
           {showJsonEditor ? (
             <div
-              className="w-full text-neutral-100 text-sm"
+              className="w-full text-sm dark:text-gray-100"
               style={{
                 minHeight: 400,
                 maxHeight: 600,
@@ -171,7 +171,7 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
               name="value"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full border rounded p-2 font-mono text-xs leading-5 bg-neutral-900 text-neutral-100"
+              className="w-full border rounded p-2 font-mono text-xs leading-5 bg-neutral-900 dark:bg-gray-800 text-neutral-100 dark:text-gray-100 border-gray-700 dark:border-gray-600"
               style={{ resize: "none", minHeight: 400, maxHeight: 600, height: "60vh" }}
               spellCheck={false}
               required
@@ -183,7 +183,7 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 dark:bg-white hover:bg-blue-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 dark:disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update" : "Add"}
           </button>

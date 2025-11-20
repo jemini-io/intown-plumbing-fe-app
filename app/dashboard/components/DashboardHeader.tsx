@@ -17,17 +17,17 @@ export interface DashboardHeaderPanelProps {
 
 export function DashboardHeaderPanel({ title, content, icon: Icon, linkText, onLinkClick }: DashboardHeaderPanelProps) {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-200">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-sm p-6 border border-gray-200 dark:border-gray-700">
       <div className="flex gap-2 mb-2">
-        <Icon className="h-5 w-5 text-gray-600 flex-shrink-0 self-center -mt-2" />
-        <h3 className="text-sm font-medium text-gray-600 leading-none flex items-center">{title}</h3>
+        <Icon className="h-5 w-5 text-gray-600 dark:text-gray-400 flex-shrink-0 self-center -mt-2" />
+        <h3 className="text-sm font-medium text-gray-600 dark:text-gray-400 leading-none flex items-center">{title}</h3>
       </div>
       <div className="flex items-baseline gap-3">
-        <div className="text-4xl font-semibold text-gray-900">{content}</div>
+        <div className="text-4xl font-semibold text-gray-900 dark:text-white">{content}</div>
         {linkText && (
           <span
             onClick={onLinkClick}
-            className="text-blue-600 uppercase font-semibold text-sm hover:text-blue-800 transition cursor-pointer"
+            className="text-blue-600 dark:text-blue-400 uppercase font-semibold text-sm hover:text-blue-800 dark:hover:text-blue-300 transition cursor-pointer"
           >
             {linkText}
           </span>
@@ -68,10 +68,10 @@ export function DashboardHeaderTop() {
 
   const modalContent = modalOpen ? (
     <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
         <button
           onClick={handleCloseModal}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+          className="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl font-bold"
         >
           ×
         </button>
@@ -87,24 +87,24 @@ export function DashboardHeaderTop() {
     <>
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">Dashboard</h1>
+          <h1 className="text-xl font-bold dark:text-white">Dashboard</h1>
           {/* Time Range Selector Stub */}
           <div className="flex items-center gap-2 px-3 py-2">
             <button
               type="button"
               onClick={() => setComingSoonOpen(true)}
-              className="text-gray-600 hover:text-gray-900 transition"
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition"
               aria-label="Previous period"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
               </svg>
             </button>
-            <span className="px-3 text-gray-700 font-medium">Last Month</span>
+            <span className="px-3 text-gray-700 dark:text-gray-300 font-medium">Last Month</span>
             <button
               type="button"
               onClick={() => setComingSoonOpen(true)}
-              className="text-gray-600 hover:text-gray-900 transition"
+              className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition"
               aria-label="Next period"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -117,10 +117,10 @@ export function DashboardHeaderTop() {
         <button
           type="button"
           onClick={()=>handleOpenModal()}
-          className="bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2"
+          className="bg-blue-600 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 dark:hover:bg-gray-200 transition flex items-center gap-2"
         >
           <svg 
-            className="w-4 h-4 text-white" 
+            className="w-4 h-4 text-white dark:text-gray-900" 
             fill="none" 
             stroke="currentColor" 
             viewBox="0 0 24 24"

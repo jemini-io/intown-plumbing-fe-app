@@ -128,13 +128,13 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
         {existing ? "Edit Skill" : "Add New Skill"}
       </h2>
       {message && (
         <div
           className={`mb-4 text-center text-base font-medium transition-all ${
-            message.type === "success" ? "text-green-600" : "text-red-600"
+            message.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           }`}
         >
           {message.text}
@@ -147,30 +147,30 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
       >
         {/* Name */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
           <input
             type="text"
             name="name"
             defaultValue={existing?.name ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
             placeholder="e.g. Water Heater"
           />
         </div>
         {/* Enabled pill toggle */}
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-700">Enabled</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enabled</span>
           <button
             type="button"
             role="switch"
             aria-checked={enabled}
             onClick={() => setEnabled(v => !v)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-              enabled ? "bg-green-500" : "bg-gray-300"
+              enabled ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
             }`}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+              className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 shadow transition ${
                 enabled ? "translate-x-5" : "translate-x-1"
               }`}
             />
@@ -178,11 +178,11 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
         </div>
         {/* Description */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
           <textarea
             name="description"
             defaultValue={existing?.description ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             rows={4}
             required
             placeholder="e.g. Skill description"
@@ -190,11 +190,11 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
         </div>
         {/* Associated Services */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Associated Services</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Associated Services</label>
           {allServices.length === 0 ? (
-            <div className="text-sm text-gray-500">Loading services...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Loading services...</div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border rounded p-2">
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border dark:border-gray-600 dark:bg-gray-700 rounded p-2">
               {allServices.map(service => (
                 <label key={service.id} className="flex items-center gap-2">
                   <input
@@ -202,9 +202,9 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
                     value={service.id}
                     checked={selectedServiceIds.includes(service.id)}
                     onChange={() => toggleServiceSelection(service.id)}
-                    className="h-4 w-4 rounded"
+                    className="h-4 w-4 rounded dark:bg-gray-600 dark:border-gray-500"
                   />
-                  <span className="text-sm">{service.displayName}</span>
+                  <span className="text-sm dark:text-white">{service.displayName}</span>
                 </label>
               ))}
             </div>
@@ -212,11 +212,11 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
         </div>
         {/* Associated Technicians */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Associated Technicians</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Associated Technicians</label>
           {allTechnicians.length === 0 ? (
-            <div className="text-sm text-gray-500">Loading technicians...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Loading technicians...</div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border rounded p-2">
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border dark:border-gray-600 dark:bg-gray-700 rounded p-2">
               {allTechnicians.map(tech => (
                 <label key={tech.id} className="flex items-center gap-2">
                   <input
@@ -224,9 +224,9 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
                     value={tech.id}
                     checked={selectedTechnicianIds.includes(tech.id)}
                     onChange={() => toggleTechnicianSelection(tech.id)}
-                    className="h-4 w-4 rounded"
+                    className="h-4 w-4 rounded dark:bg-gray-600 dark:border-gray-500"
                   />
-                  <span className="text-sm">{tech.technicianName}</span>
+                  <span className="text-sm dark:text-white">{tech.technicianName}</span>
                 </label>
               ))}
             </div>
@@ -236,7 +236,7 @@ export function SkillForm({ existing, onSaved }: SkillFormProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 dark:bg-white hover:bg-blue-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 dark:disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update skill" : "Add skill"}
           </button>

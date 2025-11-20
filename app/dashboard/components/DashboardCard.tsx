@@ -41,11 +41,11 @@ export function DashboardCard({
   modalContent,
 }: DashboardCardProps) {
   return (
-    <div className={`${backgroundEnabled ? "bg-white p-6 rounded-lg shadow" : ""}`}>
+    <div className={`${backgroundEnabled ? "bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-gray-700/50" : ""}`}>
       {showHeader && (
         <div className="flex items-center justify-between mb-4">
           <div className="flex flex-row items-center gap-4">
-            {title && <h2 className="text-2xl font-bold">{title}</h2>}
+            {title && <h2 className="text-2xl font-bold dark:text-white">{title}</h2>}
             {showViewAllLink && onViewAll && (
               <button
                 type="button"
@@ -54,20 +54,20 @@ export function DashboardCard({
                 onClick={onViewAll}
                 title={viewAllLabel}
                 onMouseOver={e => {
-                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#f3f4f6";
+                  (e.currentTarget as HTMLButtonElement).style.backgroundColor = document.documentElement.classList.contains("dark") ? "#374151" : "#f3f4f6";
                 }}
                 onMouseOut={e => {
                   (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
                 }}
               >
-                <span className="text-xs font-semibold text-blue-600">SHOW ALL</span>
+                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">SHOW ALL</span>
               </button>
             )}
           </div>
           {actionLabel && onAction && (
             <button
               type="button"
-              className="bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 transition flex items-center"
+              className="bg-blue-600 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 dark:hover:bg-gray-200 transition flex items-center"
               onClick={onAction}
               title={iconsData?.plusIconTitle || actionLabel}
             >
@@ -88,13 +88,13 @@ export function DashboardCard({
             onClick={onViewAll}
             title={viewAllLabel}
             onMouseOver={e => {
-              (e.currentTarget as HTMLButtonElement).style.backgroundColor = "#f3f4f6";
+              (e.currentTarget as HTMLButtonElement).style.backgroundColor = document.documentElement.classList.contains("dark") ? "#374151" : "#f3f4f6";
             }}
             onMouseOut={e => {
               (e.currentTarget as HTMLButtonElement).style.backgroundColor = "transparent";
             }}
           >
-            <span className="text-xs font-semibold text-blue-600">{viewAllLabel}</span>
+            <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">{viewAllLabel}</span>
           </button>
         </div>
       )}

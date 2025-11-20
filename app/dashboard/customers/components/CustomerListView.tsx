@@ -185,9 +185,9 @@ export function CustomerListView({
   return (
     <>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold">Customers</h2>
+        <h2 className="text-xl font-semibold dark:text-white">Customers</h2>
         <button
-          className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
+          className="p-2 rounded-full bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition"
           title="Add new customer"
           onClick={handleAdd}
         >
@@ -196,7 +196,7 @@ export function CustomerListView({
       </div>
 
       {/* Header row */}
-      <div style={gridStyle} className="px-2 py-2 text-xs font-semibold tracking-wide text-gray-500 border-b">
+      <div style={gridStyle} className="px-2 py-2 text-xs font-semibold tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
         {showImage && <div className="text-left uppercase">Image</div>}
         <div className="text-left">
           <span className="flex items-center gap-2">
@@ -207,7 +207,7 @@ export function CustomerListView({
             }} as="div" className="flex-1">
               <div className="relative">
                 <Combobox.Input
-                  className="border rounded text-xs ml-2 w-full"
+                  className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2 w-full"
                   placeholder="Name"
                   onChange={e => {
                     const value = e.target.value;
@@ -226,7 +226,7 @@ export function CustomerListView({
                   onBlur={() => setTimeout(() => setOpenName(false), 100)}
                 />
                 {openName && (
-                  <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                  <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                     <Combobox.Option value="">
                       All
                     </Combobox.Option>
@@ -234,7 +234,7 @@ export function CustomerListView({
                       <Combobox.Option key={name} value={name} as={Fragment}>
                         {({ active, selected }) => (
                           <li
-                            className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                            className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                           >
                             {name}
                           </li>
@@ -258,7 +258,7 @@ export function CustomerListView({
               }} as="div" className="flex-1">
                 <div className="relative">
                   <Combobox.Input
-                    className="border rounded text-xs ml-2 w-full"
+                    className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2 w-full"
                     placeholder="Email"
                     onChange={e => {
                       const value = e.target.value;
@@ -277,7 +277,7 @@ export function CustomerListView({
                     onBlur={() => setTimeout(() => setOpenEmail(false), 100)}
                   />
                   {openEmail && (
-                    <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                    <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                       <Combobox.Option value="">
                         All
                       </Combobox.Option>
@@ -285,7 +285,7 @@ export function CustomerListView({
                         <Combobox.Option key={email} value={email} as={Fragment}>
                           {({ active, selected }) => (
                             <li
-                              className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                              className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                             >
                               {email}
                             </li>
@@ -309,7 +309,7 @@ export function CustomerListView({
               }} as="div">
                 <div className="relative">
                   <Combobox.Input
-                    className="border rounded text-xs ml-2"
+                    className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                     placeholder="Phone"
                     onChange={e => {
                       const value = e.target.value;
@@ -329,7 +329,7 @@ export function CustomerListView({
                     onBlur={() => setTimeout(() => setOpenPhone(false), 100)}
                   />
                   {openPhone && (
-                    <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                    <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                       <Combobox.Option value="">
                         All
                       </Combobox.Option>
@@ -337,7 +337,7 @@ export function CustomerListView({
                         <Combobox.Option key={phone} value={phone} as={Fragment}>
                           {({ active, selected }) => (
                             <li
-                              className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                              className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                             >
                               {phone}
                             </li>
@@ -360,7 +360,7 @@ export function CustomerListView({
           <li
             key={customer.customerId}
             style={gridStyle}
-            className="px-2 py-3 border-b last:border-b-0 hover:bg-blue-50 relative"
+            className="px-2 py-3 border-b dark:border-gray-700 last:border-b-0 hover:bg-blue-50 dark:hover:bg-gray-700 relative"
             onMouseEnter={() => setHoveredCustomerId(customer.id)}
             onMouseLeave={() => {
               setHoveredCustomerId(null);
@@ -385,7 +385,7 @@ export function CustomerListView({
                   />
                 ) : (
                   <div className="h-10 w-10 rounded-full flex items-center justify-center">
-                    <UserCircleIcon className="text-gray-700 h-7 w-7" />
+                    <UserCircleIcon className="text-gray-700 dark:text-gray-400 h-7 w-7" />
                   </div>
                 )}
               </div>
@@ -398,25 +398,25 @@ export function CustomerListView({
                 overflowWrap: "anywhere",
               }}
             >
-              <span className="font-medium">{customer.name}</span>
+              <span className="font-medium dark:text-white">{customer.name}</span>
             </div>
             {showType && (
               <div className="flex justify-center">
-                <span className="text-sm text-gray-700">
+                <span className="text-sm text-gray-700 dark:text-gray-300">
                   {customer.type}
                 </span>
               </div>
             )}
             {showEmail && (
               <div className="flex">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
                   {customer.emailAddress?.address || "—"}
                 </span>
               </div>
             )}
             {showPhone && (
               <div className="flex">
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-300">
                   {customer.phoneNumber 
                     ? `+${customer.phoneNumber.countryCode} ${customer.phoneNumber.number}`
                     : "—"}
@@ -424,66 +424,66 @@ export function CustomerListView({
               </div>
             )}
             <div className="flex justify-center">
-              <span className="text-sm text-gray-700">
+              <span className="text-sm text-gray-700 dark:text-white">
                 {customer.bookings?.length || 0}
               </span>
             </div>
             {hoveredCustomerId === customer.id && customer.bookings && customer.bookings.length > 0 && mousePosition && (
               <div 
-                className="fixed z-50 bg-white border rounded-md shadow-lg p-2 min-w-[250px] max-w-[400px]"
+                className="fixed z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg p-2 min-w-[250px] max-w-[400px]"
                 style={{ 
                   left: `${mousePosition.x + 10}px`,
                   top: `${mousePosition.y + 10}px`,
                   pointerEvents: 'none'
                 }}
               >
-                  <div className="text-xs font-semibold text-gray-700 mb-2">Bookings for {customer.name}:</div>
-                  <div className="space-y-2 max-h-60 overflow-auto">
-                    {customer.bookings.map((booking) => (
-                      <div key={booking.id} className="text-xs text-gray-700 border-b last:border-b-0 pb-2 last:pb-0">
-                        <div className="font-medium">{booking.service?.displayName || "N/A"}</div>
-                        <div className="text-gray-500">
-                          {booking.scheduledFor ? new Date(booking.scheduledFor).toLocaleDateString('en-US', { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            year: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit'
-                          }) : "N/A"}
-                        </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className={`px-1.5 py-0.5 rounded text-xs ${
-                            booking.status === 'COMPLETED' ? 'bg-green-100 text-green-700' :
-                            booking.status === 'SCHEDULED' ? 'bg-blue-100 text-blue-700' :
-                            booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-red-100 text-red-700'
-                          }`}>
-                            {booking.status}
-                          </span>
-                          {booking.revenue > 0 && (
-                            <span className="text-gray-600">${booking.revenue.toFixed(2)}</span>
-                          )}
-                        </div>
+                <div className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Bookings for {customer.name}:</div>
+                <div className="space-y-2 max-h-60 overflow-auto">
+                  {customer.bookings.map((booking) => (
+                    <div key={booking.id} className="text-xs text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 last:border-b-0 pb-2 last:pb-0">
+                      <div className="font-medium dark:text-white">{booking.service?.displayName || "N/A"}</div>
+                      <div className="text-gray-500 dark:text-gray-400">
+                        {booking.scheduledFor ? new Date(booking.scheduledFor).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric', 
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        }) : "N/A"}
                       </div>
-                    ))}
-                  </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <span className={`px-1.5 py-0.5 rounded text-xs ${
+                          booking.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                          booking.status === 'SCHEDULED' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                          booking.status === 'PENDING' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                        }`}>
+                          {booking.status}
+                        </span>
+                        {booking.revenue > 0 && (
+                          <span className="text-gray-600 dark:text-gray-400">${booking.revenue.toFixed(2)}</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              )}
+              </div>
+            )}
             {showActions && (
               <div className="flex items-center justify-end gap-1 text-right pl-2">
                 <button
-                  className="px-1 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
+                  className="px-1 py-0 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition h-6 flex items-center"
                   title="Edit"
                   onClick={() => handleEdit(customer)}
                 >
-                  <span className="text-xs font-semibold text-blue-600">EDIT</span>
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">EDIT</span>
                 </button>
                 <button
-                  className="px-1 py-0 rounded hover:bg-gray-100 transition h-6 flex items-center"
+                  className="px-1 py-0 rounded hover:bg-gray-100 dark:hover:bg-gray-600 transition h-6 flex items-center"
                   title="Remove"
                   onClick={() => handleDeleteCustomer(customer)}
                 >
-                  <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
+                  <span className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">REMOVE</span>
                 </button>
               </div>
             )}
@@ -493,10 +493,10 @@ export function CustomerListView({
 
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+              className="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl font-bold"
             >
               ×
             </button>

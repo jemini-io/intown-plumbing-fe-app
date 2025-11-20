@@ -154,10 +154,10 @@ export default function UsersPage() {
         {/* Blocking overlay shown while a toggle/update is in progress */}
         {updatingId && <SpinnerOverlay message={updatingMessage} />}
          <div className="flex items-center justify-between mb-8">
-           <h3 className="text-3xl font-bold">Users</h3>
+           <h3 className="text-3xl font-bold dark:text-white">Users</h3>
            <button
              onClick={handleAddNew}
-             className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
+             className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-300 transition"
              title="Add new user"
              disabled={Boolean(updatingId)}
            >
@@ -165,21 +165,21 @@ export default function UsersPage() {
            </button>
          </div>
 
-        <div className="bg-white rounded-xl shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-6">
           <table className="min-w-full table-auto">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="px-4 py-2 text-left">Image</th>
-                <th className="px-4 py-2 text-left">Name</th>
-                <th className="px-4 py-2 text-left">Email</th>
-                <th className="px-4 py-2 text-left">Role</th>
-                <th className="px-4 py-2 text-left">Enabled</th>
-                <th className="px-4 py-2 text-left">Actions</th>
+              <tr className="bg-gray-100 dark:bg-gray-700">
+                <th className="px-4 py-2 text-left dark:text-gray-300">Image</th>
+                <th className="px-4 py-2 text-left dark:text-gray-300">Name</th>
+                <th className="px-4 py-2 text-left dark:text-gray-300">Email</th>
+                <th className="px-4 py-2 text-left dark:text-gray-300">Role</th>
+                <th className="px-4 py-2 text-left dark:text-gray-300">Enabled</th>
+                <th className="px-4 py-2 text-left dark:text-gray-300">Actions</th>
               </tr>
             </thead>
             <tbody>
               {users.map((user: User) => (
-                <tr key={user.id} className="border-b hover:bg-blue-50">
+                <tr key={user.id} className="border-b dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-gray-700">
                   <td className="pl-2 pr-1 py-2 w-12">
                     {user.image?.url ? (
                       <Image
@@ -192,13 +192,13 @@ export default function UsersPage() {
                       />
                     ) : (
                       <div className="h-10 w-10 rounded-full flex items-center justify-center">
-                        <UserCircleIcon className="text-gray-700 h-7 w-7" />
+                        <UserCircleIcon className="text-gray-700 dark:text-gray-300 h-7 w-7" />
                       </div>
                     )}
                   </td>
-                  <td className="py-2 pl-0">{user.name}</td>
-                  <td className="px-4 py-2">{user.email}</td>
-                  <td className="px-4 py-2">{user.role}</td>
+                  <td className="py-2 pl-0 dark:text-white">{user.name}</td>
+                  <td className="px-4 py-2 dark:text-gray-300">{user.email}</td>
+                  <td className="px-4 py-2 dark:text-gray-300">{user.role}</td>
                   <td className="px-4 py-2 text-center">
                     {(() => {
                       const isAdmin = user.email === "admin@example.com";
@@ -231,18 +231,18 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2 h-full">
                       <button
                         onClick={() => handleEditUser(user)}
-                        className="text-blue-600 hover:text-blue-800 p-1 rounded transition"
+                        className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 p-1 rounded transition"
                         title="Edit user"
                       >
-                        <span className="text-xs font-semibold text-blue-600">EDIT</span>
+                        <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">EDIT</span>
                       </button>
                       {user.email !== "admin@example.com" && (
                         <button
                           onClick={() => handleDeleteUser(user)}
-                          className="text-red-600 hover:text-red-800 p-1 rounded transition"
+                          className="text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 p-1 rounded transition"
                           title="Delete user"
                         >
-                          <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
+                          <span className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">REMOVE</span>
                         </button>
                       )}
                     </div>
@@ -254,10 +254,10 @@ export default function UsersPage() {
         </div>
         {modalOpen && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
               <button
                 onClick={() => setModalOpen(false)}
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+                className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 text-xl font-bold"
               >
                 ×
               </button>

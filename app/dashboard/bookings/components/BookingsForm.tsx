@@ -60,13 +60,13 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
         {existing ? "Edit Booking" : "Add New Booking"}
       </h2>
       {message && (
         <div
           className={`mb-4 text-center text-base font-medium transition-all ${
-            message.type === "success" ? "text-green-600" : "text-red-600"
+            message.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           }`}
         >
           {message.text}
@@ -79,7 +79,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
       >
         {/* Scheduled For */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Scheduled For</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Scheduled For</label>
           <input
             type="datetime-local"
             name="scheduledFor"
@@ -88,20 +88,20 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
                 ? toDatetimeLocalValue(existing.scheduledFor)
                 : ""
             }
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
           />
         </div>
         {/* Customer */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Customer</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer</label>
           {loadingCustomers ? (
-            <div className="text-sm text-gray-500 py-2">Loading customers...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Loading customers...</div>
           ) : (
             <select
               name="customerId"
               defaultValue={existing?.customerId ?? ""}
-              className="w-full border rounded p-2"
+              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
               required
             >
               <option value="">Select a customer</option>
@@ -115,12 +115,12 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         </div>
         {/* Job ID */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Job ID</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Job ID</label>
           <input
             type="text"
             name="jobId"
             defaultValue={existing?.jobId ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 disabled:bg-gray-100 dark:disabled:bg-gray-800"
             required
             placeholder="e.g. job123"
             disabled={!!existing}
@@ -128,14 +128,14 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         </div>
         {/* Service */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Service</label>
           {loadingServices ? (
-            <div className="text-sm text-gray-500 py-2">Loading services...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Loading services...</div>
           ) : (
             <select
               name="serviceId"
               defaultValue={existing?.serviceId ?? ""}
-              className="w-full border rounded p-2"
+              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
               required
             >
               <option value="">Select a service</option>
@@ -149,14 +149,14 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         </div>
         {/* Technician */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Technician</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Technician</label>
           {loadingTechnicians ? (
-            <div className="text-sm text-gray-500 py-2">Loading technicians...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Loading technicians...</div>
           ) : (
             <select
               name="technicianId"
               defaultValue={existing?.technicianId ?? ""}
-              className="w-full border rounded p-2"
+              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
               required
             >
               <option value="">Select a technician</option>
@@ -170,11 +170,11 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         </div>
         {/* Status */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
           <select
             name="status"
             defaultValue={existing?.status ?? "PENDING"}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
           >
             {statusOptions.map(status => (
@@ -184,12 +184,12 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         </div>
         {/* Revenue */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Revenue ($)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Revenue ($)</label>
           <input
             type="number"
             name="revenue"
             defaultValue={existing?.revenue ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             step="0.01"
             min="0"
             placeholder="e.g. 150.00"
@@ -197,11 +197,11 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
         </div>
         {/* Notes */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notes</label>
           <textarea
             name="notes"
             defaultValue={existing?.notes ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             rows={3}
             placeholder="Additional notes (optional)"
           />
@@ -210,7 +210,7 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 dark:bg-white hover:bg-blue-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 dark:disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update booking" : "Add booking"}
           </button>

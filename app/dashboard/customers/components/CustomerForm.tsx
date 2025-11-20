@@ -229,12 +229,12 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
         {title ?? (existing ? `Edit customer ${existing.name}` : "Add new customer")}
       </h2>
       {message && (
         <div className={`mb-4 text-center text-base font-medium transition-all
-          ${message.type === "success" ? "text-green-600" : "text-red-600"}`}>
+          ${message.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
           {message.text}
         </div>
       )}
@@ -245,12 +245,12 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
       >
         {/* Customer ID (ServiceTitan) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Customer ID (ServiceTitan)</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Customer ID (ServiceTitan)</label>
           <input
             type="number"
             name="customerId"
             defaultValue={existing?.customerId ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 disabled:bg-gray-100 dark:disabled:bg-gray-800"
             required
             disabled={!!existing}
           />
@@ -264,22 +264,22 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
         </div>
         {/* Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Name</label>
           <input
             type="text"
             name="name"
             defaultValue={existing?.name ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
           />
         </div>
         {/* Type */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
           <select
             name="type"
             defaultValue={existing?.type ?? "RESIDENTIAL"}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
           >
             <option value="RESIDENTIAL">RESIDENTIAL</option>
@@ -288,18 +288,18 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
         </div>
         {/* Email Address */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email Address</label>
           <input
             type="email"
             name="emailAddress"
             value={emailAddress}
             onChange={(e) => setEmailAddress(e.target.value)}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             placeholder="user@example.com"
           />
           {emailCustomersCount !== null && (
             <div className="relative" ref={emailListRef}>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 {isEmailUsedByCurrentCustomer
                   ? emailCustomersCount === 0
                     ? "This email address is used by this customer only"
@@ -309,7 +309,7 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                           <button
                             type="button"
                             onClick={() => setShowEmailCustomersList(!showEmailCustomersList)}
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                           >
                             {emailCustomersCount} more customer{emailCustomersCount !== 1 ? 's' : ''}
                           </button>
@@ -322,7 +322,7 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                           <button
                             type="button"
                             onClick={() => setShowEmailCustomersList(!showEmailCustomersList)}
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                            className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                           >
                             {emailCustomersCount} more customer{emailCustomersCount !== 1 ? 's' : ''}
                           </button>
@@ -331,8 +331,8 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                     : "This email address is not in use by any other customer"}
               </p>
               {showEmailCustomersList && emailCustomers.length > 0 && (
-                <div className="absolute z-50 mt-2 left-0 bg-white border rounded-md shadow-lg p-2 min-w-[200px] max-w-[300px]">
-                  <div className="text-xs font-semibold text-gray-700 mb-2">Customers using this email:</div>
+                <div className="absolute z-50 mt-2 left-0 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg p-2 min-w-[200px] max-w-[300px]">
+                  <div className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Customers using this email:</div>
                   <div className="space-y-2 max-h-60 overflow-auto">
                     {emailCustomers.map((customer) => (
                       <div key={customer.id} className="flex items-center gap-2">
@@ -346,9 +346,9 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                             unoptimized
                           />
                         ) : (
-                          <UserCircleIcon className="h-6 w-6 text-gray-400" />
+                          <UserCircleIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
                         )}
-                        <span className="text-xs text-gray-700">{customer.name}</span>
+                        <span className="text-xs text-gray-700 dark:text-gray-300">{customer.name}</span>
                       </div>
                     ))}
                   </div>
@@ -359,7 +359,7 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
         </div>
         {/* Phone Country Code and Number */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Phone Number</label>
           <div className="flex gap-2">
             <div className="w-32">
               <CountryCodeSelector
@@ -374,13 +374,13 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                 name="phoneNumber"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
-                className="w-full border rounded p-2"
+                className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
                 placeholder="4697300194"
                 pattern="[0-9]+"
               />
               {phoneCustomersCount !== null && (
                 <div className="relative" ref={phoneListRef}>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {isPhoneUsedByCurrentCustomer
                       ? phoneCustomersCount === 0
                         ? "This phone number is used by this customer only"
@@ -390,7 +390,7 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                               <button
                                 type="button"
                                 onClick={() => setShowPhoneCustomersList(!showPhoneCustomersList)}
-                                className="text-blue-600 hover:text-blue-800 hover:underline"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                               >
                                 {phoneCustomersCount} more customer{phoneCustomersCount !== 1 ? 's' : ''}
                               </button>
@@ -403,7 +403,7 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                               <button
                                 type="button"
                                 onClick={() => setShowPhoneCustomersList(!showPhoneCustomersList)}
-                                className="text-blue-600 hover:text-blue-800 hover:underline"
+                                className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:underline"
                               >
                                 {phoneCustomersCount} more customer{phoneCustomersCount !== 1 ? 's' : ''}
                               </button>
@@ -412,8 +412,8 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                         : "This phone number is not in use by any other customer"}
                   </p>
                   {showPhoneCustomersList && phoneCustomers.length > 0 && (
-                    <div className="absolute z-50 mt-2 left-0 bg-white border rounded-md shadow-lg p-2 min-w-[200px] max-w-[300px]">
-                      <div className="text-xs font-semibold text-gray-700 mb-2">Customers using this phone:</div>
+                    <div className="absolute z-50 mt-2 left-0 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg p-2 min-w-[200px] max-w-[300px]">
+                      <div className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Customers using this phone:</div>
                       <div className="space-y-2 max-h-60 overflow-auto">
                         {phoneCustomers.map((customer) => (
                           <div key={customer.id} className="flex items-center gap-2">
@@ -427,9 +427,9 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                                 unoptimized
                               />
                             ) : (
-                              <UserCircleIcon className="h-6 w-6 text-gray-400" />
+                              <UserCircleIcon className="h-6 w-6 text-gray-400 dark:text-gray-500" />
                             )}
-                            <span className="text-xs text-gray-700">{customer.name}</span>
+                            <span className="text-xs text-gray-700 dark:text-gray-300">{customer.name}</span>
                           </div>
                         ))}
                       </div>
@@ -442,7 +442,7 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
         </div>
 
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Image</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image</label>
         </div>
         {/* Pic Preview | Upload input */}
         <div className="col-span-2 flex items-center gap-6">
@@ -464,15 +464,15 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
                     setImageFile(null);
                     setRemoveImage(true);
                   }}
-                  className="absolute -top-2 -right-2 bg-white rounded-full p-1 shadow hover:bg-red-100"
+                  className="absolute -top-2 -right-2 bg-white dark:bg-gray-700 rounded-full p-1 shadow hover:bg-red-100 dark:hover:bg-red-900/30"
                   title="Remove image"
                 >
-                  <TrashIcon className="h-4 w-4 text-red-600" />
+                  <TrashIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
                 </button>
               </>
             ) : (
-              <div className="h-16 w-16 flex items-center justify-center rounded-full bg-gray-200 border">
-                <UserCircleIcon className="h-8 w-8 text-gray-500" />
+              <div className="h-16 w-16 flex items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700 border dark:border-gray-600">
+                <UserCircleIcon className="h-8 w-8 text-gray-500 dark:text-gray-400" />
               </div>
             )}
           </div>
@@ -482,19 +482,19 @@ export function CustomerForm({ existing, onSaved, title }: CustomerFormProps) {
             name="picture"
             accept="image/*"
             onChange={handleImageChange}
-            className="block text-sm text-gray-500
+            className="block text-sm text-gray-500 dark:text-gray-400
               file:mr-2 file:py-1 file:px-2
               file:rounded file:border-0
               file:text-sm file:font-semibold
-              file:bg-blue-50 file:text-blue-700
-              hover:file:bg-blue-100"
+              file:bg-blue-50 dark:file:bg-blue-900/30 file:text-blue-700 dark:file:text-blue-400
+              hover:file:bg-blue-100 dark:hover:file:bg-blue-900/50"
           />
         </div>
         <div className="col-span-2 flex justify-center mt-2">
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 dark:bg-white hover:bg-blue-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 dark:disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update" : "Add"}
           </button>

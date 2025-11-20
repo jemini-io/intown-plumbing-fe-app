@@ -95,13 +95,13 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center">
+      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
         {existing ? "Edit Service" : "Add New Service"}
       </h2>
       {message && (
         <div
           className={`mb-4 text-center text-base font-medium transition-all ${
-            message.type === "success" ? "text-green-600" : "text-red-600"
+            message.type === "success" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
           }`}
         >
           {message.text}
@@ -114,48 +114,48 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
       >
         {/* Display Name */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Display Name</label>
           <input
             type="text"
             name="displayName"
             defaultValue={existing?.displayName ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
             placeholder="e.g. Plumbing"
           />
         </div>
         {/* ServiceTitan ID */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">ServiceTitan ID</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ServiceTitan ID</label>
           <input
             type="text"
             name="serviceTitanId"
             defaultValue={existing?.serviceTitanId ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
             placeholder="e.g. 78123456"
           />
         </div>
         {/* ServiceTitan Name */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">ServiceTitan Name</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">ServiceTitan Name</label>
           <input
             type="text"
             name="serviceTitanName"
             defaultValue={existing?.serviceTitanName ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
             placeholder="e.g. Plumbing Service Call"
           />
         </div>
         {/* Emoji */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Emoji</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emoji</label>
           <input
             type="text"
             name="emoji"
             defaultValue={existing?.emoji ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             maxLength={2}
             required
             placeholder="e.g. 🔧"
@@ -163,30 +163,30 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
         </div>
         {/* Icon */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Icon</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Icon</label>
           <input
             type="text"
             name="icon"
             defaultValue={existing?.icon ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             required
             placeholder="e.g. wrench"
           />
         </div>
         {/* Enabled pill toggle */}
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-gray-700">Enabled</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Enabled</span>
           <button
             type="button"
             role="switch"
             aria-checked={enabled}
             onClick={() => setEnabled(v => !v)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${
-              enabled ? "bg-green-500" : "bg-gray-300"
+              enabled ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
             }`}
           >
             <span
-              className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${
+              className={`inline-block h-5 w-5 transform rounded-full bg-white dark:bg-gray-200 shadow transition ${
                 enabled ? "translate-x-5" : "translate-x-1"
               }`}
             />
@@ -194,11 +194,11 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
         </div>
         {/* Description */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
           <textarea
             name="description"
             defaultValue={existing?.description ?? ""}
-            className="w-full border rounded p-2"
+            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
             rows={5}
             required
             placeholder="e.g. Get your plumbing issues fixed with our expert services."
@@ -207,12 +207,12 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
 
         {/* Associated Skills */}
         <div className="col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Associated Skills</label>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Associated Skills</label>
 
           {allSkills.length === 0 ? (
-            <div className="text-sm text-gray-500">Loading skills...</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400">Loading skills...</div>
           ) : (
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border rounded p-2">
+            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-auto border dark:border-gray-600 dark:bg-gray-700 rounded p-2">
               {allSkills.map(skill => (
                 <label key={skill.id} className="flex items-center gap-2">
                   <input
@@ -220,9 +220,9 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
                     value={skill.id}
                     checked={selectedSkillIds.includes(skill.id)}
                     onChange={() => toggleSkillSelection(skill.id)}
-                    className="h-4 w-4 rounded"
+                    className="h-4 w-4 rounded dark:bg-gray-600 dark:border-gray-500"
                   />
-                  <span className="text-sm">{skill.name}</span>
+                  <span className="text-sm dark:text-white">{skill.name}</span>
                 </label>
               ))}
             </div>
@@ -235,7 +235,7 @@ export function ServiceToJobTypesForm({ existing, onSaved }: ServiceFormProps) {
           <button
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 disabled:cursor-not-allowed"
+            className="w-full bg-blue-600 dark:bg-white hover:bg-blue-700 dark:hover:bg-gray-200 text-white dark:text-gray-900 py-2 rounded-md font-medium shadow-md transition disabled:bg-blue-300 dark:disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
             {isPending ? "Saving..." : existing ? "Update service" : "Add service"}
           </button>

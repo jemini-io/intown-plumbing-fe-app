@@ -26,15 +26,15 @@ function BookingsPageContent() {
     <DashboardLayout>
       <div className="min-h-screen p-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">Bookings</h1>
+          <h1 className="text-3xl font-bold dark:text-white">Bookings</h1>
           <button
             onClick={openModal}
-            className="bg-blue-600 text-white px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 transition flex items-center gap-2"
+            className="bg-blue-600 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 dark:hover:bg-gray-200 transition flex items-center gap-2"
           >
             Add Booking
           </button>
         </div>
-        <div className="bg-white rounded-lg shadow p-6">
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6">
           <BookingsListView 
             showHeader={false}
             canEdit={isAdmin} 
@@ -44,10 +44,10 @@ function BookingsPageContent() {
         </div>
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-            <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+            <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
               <button
                 onClick={closeModal}
-                className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+                className="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl font-bold"
               >
                 ×
               </button>

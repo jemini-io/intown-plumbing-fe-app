@@ -5,7 +5,7 @@ import React from "react";
 export function SpinnerOverlay({ message }: { message: string }) {
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 dark:bg-black dark:bg-opacity-60"
       role="status"
       aria-live="polite"
     >

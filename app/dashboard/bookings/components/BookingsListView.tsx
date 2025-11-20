@@ -10,15 +10,15 @@ import Image from "next/image";
 function statusColor(status: BookingStatus) {
   switch (status) {
     case "SCHEDULED":
-      return "bg-blue-100 text-blue-700";
+      return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
     case "PENDING":
-      return "bg-yellow-100 text-yellow-700";
+      return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300";
     case "CANCELED":
-      return "bg-red-100 text-red-700";
+      return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
     case "COMPLETED":
-      return "bg-green-100 text-green-700";
+      return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
   }
 }
 
@@ -238,9 +238,9 @@ export function BookingsListView({
     <>
       {showHeader && (
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl font-semibold">Bookings</h2>
+          <h2 className="text-xl font-semibold dark:text-white">Bookings</h2>
           <button
-            className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition"
+            className="p-2 rounded-full bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition"
             title="Add new booking"
             onClick={handleAdd}
           >
@@ -249,19 +249,19 @@ export function BookingsListView({
         </div>
       )}
       <div className="overflow-x-auto">
-        <table className="min-w-full table-auto rounded-lg bg-white">
+        <table className="min-w-full table-auto rounded-lg bg-white dark:bg-gray-800">
           <thead>
             <tr>
               {/* Image */}
-              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b"></th>
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700"></th>
               {/* Customer */}
-              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   Customer
                   <Combobox value={customerFilter} onChange={setCustomerFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
-                        className="border rounded text-xs ml-2"
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                         placeholder="Customer"
                         onChange={e => setCustomerQuery(e.target.value)}
                         displayValue={(val: string) => (!val ? "All" : val)}
@@ -269,7 +269,7 @@ export function BookingsListView({
                         onFocus={() => setCustomerQuery("")}
                       />
                       {customerQuery !== undefined && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                           <Combobox.Option value="">
                             All
                           </Combobox.Option>
@@ -277,7 +277,7 @@ export function BookingsListView({
                             <Combobox.Option key={cust} value={cust} as={Fragment}>
                               {({ active, selected }) => (
                                 <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {cust}
                                 </li>
@@ -291,13 +291,13 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Job ID */}
-              {showJobId && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+              {showJobId && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   JobID
                   <Combobox value={jobFilter} onChange={setJobFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
-                        className="border rounded text-xs ml-2"
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                         placeholder="Job"
                         onChange={e => setJobQuery(e.target.value)}
                         displayValue={(val: string) => (!val ? "All" : val)}
@@ -306,7 +306,7 @@ export function BookingsListView({
                         onBlur={() => setTimeout(() => setOpenJob(false), 100)}
                       />
                       {openJob && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                           <Combobox.Option value="">
                             All
                           </Combobox.Option>
@@ -314,7 +314,7 @@ export function BookingsListView({
                             <Combobox.Option key={job} value={job} as={Fragment}>
                               {({ active, selected }) => (
                                 <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {job}
                                 </li>
@@ -328,13 +328,13 @@ export function BookingsListView({
                 </span>
               </th> )}
               {/* Service */}
-              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   Service
                   <Combobox value={serviceFilter} onChange={setServiceFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
-                        className="border rounded text-xs ml-2"
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                         placeholder="Job"
                         onChange={e => setServiceQuery(e.target.value)}
                         displayValue={(val: string) => (!val ? "All" : val)}
@@ -343,7 +343,7 @@ export function BookingsListView({
                         onBlur={() => setTimeout(() => setOpenService(false), 100)}
                       />
                       {openService && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                           <Combobox.Option value="">
                             All
                           </Combobox.Option>
@@ -351,7 +351,7 @@ export function BookingsListView({
                             <Combobox.Option key={service} value={service} as={Fragment}>
                               {({ active, selected }) => (
                                 <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {service}
                                 </li>
@@ -365,13 +365,13 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Technician */}
-              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   Technician
                   <Combobox value={technicianFilter} onChange={setTechnicianFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
-                        className="border rounded text-xs ml-2"
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                         placeholder="Technician"
                         onChange={e => setTechnicianQuery(e.target.value)}
                         displayValue={(val: string) => (!val ? "All" : val)}
@@ -380,7 +380,7 @@ export function BookingsListView({
                         onBlur={() => setTimeout(() => setOpenTechnician(false), 100)}
                       />
                       {openTechnician && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                           <Combobox.Option value="">
                             All
                           </Combobox.Option>
@@ -388,7 +388,7 @@ export function BookingsListView({
                             <Combobox.Option key={tech} value={tech} as={Fragment}>
                               {({ active, selected }) => (
                                 <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {tech}
                                 </li>
@@ -402,7 +402,7 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Date & Time */}
-              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   <span
                     className="flex items-center gap-1 cursor-pointer select-none"
@@ -413,13 +413,13 @@ export function BookingsListView({
                   >
                     Date & Time
                     <span className="inline-block align-middle">
-                      <span className={"text-lg " + (sortBy === "scheduledFor" && sortDir === "asc" ? "text-blue-600" : "text-gray-300")}>▲</span>
-                      <span className={"text-lg ml-0.5 " + (sortBy === "scheduledFor" && sortDir === "desc" ? "text-blue-600" : "text-gray-300")}>▼</span>
+                      <span className={"text-lg " + (sortBy === "scheduledFor" && sortDir === "asc" ? "text-blue-600 dark:text-blue-400" : "text-gray-300 dark:text-gray-600")}>▲</span>
+                      <span className={"text-lg ml-0.5 " + (sortBy === "scheduledFor" && sortDir === "desc" ? "text-blue-600 dark:text-blue-400" : "text-gray-300 dark:text-gray-600")}>▼</span>
                     </span>
                   </span>
                   <input
                     type="datetime-local"
-                    className="border rounded text-xs"
+                    className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs"
                     value={dateFilter}
                     onChange={e => setDateFilter(e.target.value)}
                     style={{ minWidth: 0, width: "110px" }}
@@ -427,11 +427,11 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Status */}
-              {showStatus && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">
+              {showStatus && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   Status
                   <select
-                    className="border rounded text-xs ml-2"
+                    className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                     value={statusFilter}
                     onChange={e => setStatusFilter(e.target.value as BookingStatus | "")}
                     style={{ minWidth: 0, width: "110px" }}
@@ -445,17 +445,17 @@ export function BookingsListView({
                 </span>
               </th> )}
               {/* Notes */}
-              {showNotes && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">Notes</th> )}
+              {showNotes && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">Notes</th> )}
               {/* Revenue */}
-              {showRevenue && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">Revenue</th> )}
+              {showRevenue && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">Revenue</th> )}
               {showActions && (
-                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 border-b">Actions</th>
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">Actions</th>
               )}
             </tr>
           </thead>
           <tbody>
             {bookingsToRender.map((booking) => (
-              <tr key={booking.id} className="hover:bg-blue-50">
+              <tr key={booking.id} className="hover:bg-blue-50 dark:hover:bg-gray-700">
                 <td className="pl-2 pr-1 py-2 w-12">
                   {booking.customer?.image?.url ? (
                     <Image
@@ -468,14 +468,14 @@ export function BookingsListView({
                     />
                   ) : (
                     <div className="h-10 w-10 rounded-full flex items-center justify-center">
-                      <UserCircleIcon className="text-gray-700 h-7 w-7" />
+                      <UserCircleIcon className="text-gray-700 dark:text-gray-400 h-7 w-7" />
                     </div>
                   )}
                 </td>
-                <td className="px-4 py-2 text-center">{booking.customer?.name || "-"}</td>
-                {showJobId && ( <td className="px-4 py-2 text-left">{booking.jobId || "-"}</td> )}
-                <td className="px-4 py-2 text-letf">{booking.service?.displayName || "-"}</td>
-                <td className="px-4 py-2 text-left">{booking.technician?.technicianName || "-"}</td>
+                <td className="px-4 py-2 text-center dark:text-white">{booking.customer?.name || "-"}</td>
+                {showJobId && ( <td className="px-4 py-2 text-left dark:text-white">{booking.jobId || "-"}</td> )}
+                <td className="px-4 py-2 text-letf dark:text-white">{booking.service?.displayName || "-"}</td>
+                <td className="px-4 py-2 text-left dark:text-white">{booking.technician?.technicianName || "-"}</td>
                 <td className="px-4 py-2 text-right">
                   {(() => {
                     const start = new Date(booking.scheduledFor as unknown as string);
@@ -489,8 +489,8 @@ export function BookingsListView({
                     const timeLine = `${timeFmt.format(start)} - ${timeFmt.format(end)}`;
                     return (
                       <div className="text-right">
-                        <div>{dateLine}</div>
-                        <div className="text-sm text-gray-500">{timeLine}</div>
+                        <div className="dark:text-white">{dateLine}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{timeLine}</div>
                       </div>
                     );
                   })()}
@@ -500,25 +500,25 @@ export function BookingsListView({
                     {booking.status}
                   </span>
                 </td> )}
-                {showNotes && ( <td className="px-4 py-2">{booking.notes || "-"}</td> )}
-                {showRevenue && ( <td className="px-4 py-2 text-right">$ {Number(booking.revenue).toFixed(2)}</td> )}
+                {showNotes && ( <td className="px-4 py-2 dark:text-white">{booking.notes || "-"}</td> )}
+                {showRevenue && ( <td className="px-4 py-2 text-right dark:text-white">$ {Number(booking.revenue).toFixed(2)}</td> )}
                 {showActions && (canEdit || canDelete) && (
                   <td className="px-4 py-2 h-full">
                     <div className="flex gap-2 items-center h-full">
                       {canEdit && (
                         <button
-                          className="text-blue-500 font-medium px-1"
+                          className="text-blue-500 dark:text-blue-400 font-medium px-1"
                           onClick={() => handleEdit(booking)}
                         >
-                          <span className="text-xs font-semibold text-blue-600">EDIT</span>
+                          <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">EDIT</span>
                         </button>
                       )}
                       {canDelete && (
                         <button
-                          className="text-red-500 font-medium px-1"
+                          className="text-red-500 dark:text-red-400 font-medium px-1"
                           onClick={() => handleDeleteBooking(booking)}
                         >
-                          <span className="text-xs font-semibold text-red-600 hover:text-red-800">REMOVE</span>
+                          <span className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">REMOVE</span>
                         </button>
                       )}
                     </div>
@@ -528,13 +528,13 @@ export function BookingsListView({
             ))}
           </tbody>
           <tfoot>
-            <tr className="bg-gray-100">
+            <tr className="bg-gray-100 dark:bg-gray-700">
               {/* empty cells for alignment */}
               {columns.map((_, idx) => (
                 <td key={idx}></td>
               ))}
               {/* Revenue total */}
-              <td className="px-4 py-2 font-bold text-right" colSpan={2}>
+              <td className="px-4 py-2 font-bold text-right dark:text-white" colSpan={2}>
                 ${revenueTotal.toFixed(2)}
               </td>
               {(canEdit || canDelete) && <td></td>}
@@ -544,10 +544,10 @@ export function BookingsListView({
       </div>
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+              className="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl font-bold"
             >
               ×
             </button>

@@ -31,28 +31,28 @@ export function DeleteConfirmModal({
   if (!open || !mounted) return null;
   
   return createPortal(
-    <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-30 flex items-center justify-center" style={{ zIndex: 9999 }}>
-      <div className="bg-white rounded-xl shadow-lg p-8 w-[400px] text-center relative">
+    <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-30 dark:bg-black dark:bg-opacity-60 flex items-center justify-center" style={{ zIndex: 9999 }}>
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[400px] text-center relative">
         <button
           onClick={onCancel}
-          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+          className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 dark:text-gray-500 dark:hover:text-gray-300 text-xl font-bold"
           disabled={loading}
         >
           ×
         </button>
-        <h3 className="text-lg font-semibold mb-4">{title}</h3>
-        <p className="text-sm text-gray-500 mb-6">{message}</p>
+        <h3 className="text-lg font-semibold mb-4 dark:text-white">{title}</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">{message}</p>
         <div className="flex justify-center gap-4">
           <button
             onClick={onCancel}
-            className="px-4 py-2 rounded-md bg-gray-100 hover:bg-gray-200 transition text-gray-700"
+            className="px-4 py-2 rounded-md bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 transition text-gray-700 dark:text-gray-300"
             disabled={loading}
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
-            className="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 transition text-white flex items-center justify-center"
+            className="px-4 py-2 rounded-md bg-red-600 dark:bg-red-700 hover:bg-red-700 dark:hover:bg-red-600 transition text-white flex items-center justify-center"
             disabled={loading}
           >
             {loading && (

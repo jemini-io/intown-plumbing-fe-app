@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import JSONEditor, { JSONEditorOptions } from "jsoneditor";
 import "jsoneditor/dist/jsoneditor.css";
+import { useTheme } from "../contexts/ThemeContext";
 
 /**
  * Recursively restore readonly field values and readonly objects from original to updated object
@@ -125,6 +126,7 @@ export function JsonTreeEditor({
   readonlyFields = [],
   readonlyObjects = []
 }: JsonTreeEditorProps) {
+  const { theme } = useTheme();
   const readonlySignature = readonlyFields.join("|");
   const readonlyObjectsSignature = readonlyObjects.join("|");
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -293,7 +295,14 @@ export function JsonTreeEditor({
     if (readonlyFields.length === 0 && readonlyObjects.length === 0) return;
     
     const styleId = 'jsoneditor-readonly-tooltip-style';
-    if (document.getElementById(styleId)) return;
+    const existingStyle = document.getElementById(styleId);
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    const isDark = theme === 'dark';
+    const tooltipBg = isDark ? '#1f2937' : '#333';
+    const tooltipText = isDark ? '#f3f4f6' : '#fff';
     
     const style = document.createElement('style');
     style.id = styleId;
@@ -314,8 +323,8 @@ export function JsonTreeEditor({
       .jsoneditor-readonly-tooltip {
         content: "Edit on its own json";
         position: absolute;
-        background: #333;
-        color: #fff;
+        background: ${tooltipBg};
+        color: ${tooltipText};
         padding: 4px 8px;
         border-radius: 4px;
         font-size: 12px;
@@ -337,7 +346,7 @@ export function JsonTreeEditor({
         left: 50%;
         transform: translateX(-50%);
         border: 4px solid transparent;
-        border-top-color: #333;
+        border-top-color: ${tooltipBg};
       }
     `;
     document.head.appendChild(style);
@@ -348,7 +357,499 @@ export function JsonTreeEditor({
         existingStyle.remove();
       }
     };
-  }, [readonlyFields.length, readonlyObjects.length]);
+  }, [readonlyFields.length, readonlyObjects.length, theme]);
+
+  // Add CSS to adapt jsoneditor to dark/light theme
+  useEffect(() => {
+    const styleId = 'jsoneditor-theme-style';
+    const existingStyle = document.getElementById(styleId);
+    if (existingStyle) {
+      existingStyle.remove();
+    }
+    
+    const isDark = theme === 'dark';
+    
+    const style = document.createElement('style');
+    style.id = styleId;
+    style.textContent = `
+      ${isDark ? `
+        .jsoneditor {
+          background: #1e1e1e !important;
+          border: 1px solid #4b5563 !important;
+        }
+        .jsoneditor > div {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor-menu {
+          background: #374151 !important;
+          border-bottom: 1px solid #4b5563 !important;
+        }
+        .jsoneditor table {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor tbody {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor thead {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor tr {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor td {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor .jsoneditor-tree {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor .jsoneditor-tree > div {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor .jsoneditor-tree table {
+          background: #1e1e1e !important;
+        }
+        .jsoneditor-field {
+          color: #e5e7eb !important;
+        }
+        .jsoneditor-field:hover {
+          background: #374151 !important;
+        }
+        .jsoneditor-row:hover .jsoneditor-field {
+          background: #374151 !important;
+        }
+        .jsoneditor-value {
+          color: #f3f4f6 !important;
+        }
+        .jsoneditor-value-string {
+          color: #60a5fa !important;
+        }
+        .jsoneditor-value-number {
+          color: #34d399 !important;
+        }
+        .jsoneditor-value-boolean {
+          color: #fbbf24 !important;
+        }
+        .jsoneditor-value-null {
+          color: #f87171 !important;
+        }
+        .jsoneditor-array {
+          color: #e5e7eb !important;
+        }
+        .jsoneditor-object {
+          color: #e5e7eb !important;
+        }
+        .jsoneditor th {
+          background: #374151 !important;
+          color: #e5e7eb !important;
+        }
+        .jsoneditor input[type="text"],
+        .jsoneditor textarea {
+          background: #374151 !important;
+          color: #f3f4f6 !important;
+          border: 1px solid #4b5563 !important;
+        }
+        .jsoneditor input[type="text"]:focus,
+        .jsoneditor textarea:focus {
+          background: #4b5563 !important;
+          border-color: #60a5fa !important;
+        }
+        .jsoneditor-value-edit input[type="text"],
+        .jsoneditor-value-edit textarea {
+          background: #4b5563 !important;
+          color: #f3f4f6 !important;
+        }
+        .jsoneditor-value-edit input[type="text"]:focus,
+        .jsoneditor-value-edit textarea:focus {
+          background: #4b5563 !important;
+        }
+        .jsoneditor-value-edit {
+          background: #4b5563 !important;
+        }
+        .jsoneditor tr.jsoneditor-selected,
+        .jsoneditor tr.jsoneditor-selected td {
+          background: #374151 !important;
+        }
+        .jsoneditor td.jsoneditor-selected,
+        .jsoneditor td.jsoneditor-selected input,
+        .jsoneditor td.jsoneditor-selected textarea {
+          background: #4b5563 !important;
+        }
+        .jsoneditor [style*="background"] input[type="text"],
+        .jsoneditor [style*="background"] textarea {
+          background: #4b5563 !important;
+        }
+        .jsoneditor input[style*="background"] {
+          background: #4b5563 !important;
+        }
+        .jsoneditor textarea[style*="background"] {
+          background: #4b5563 !important;
+        }
+        .jsoneditor-actions {
+          background: #374151 !important;
+        }
+        .jsoneditor-contextmenu {
+          background: #374151 !important;
+          border: 1px solid #4b5563 !important;
+        }
+        .jsoneditor-contextmenu .jsoneditor-menu {
+          background: #374151 !important;
+        }
+        .jsoneditor-contextmenu li {
+          color: #e5e7eb !important;
+        }
+        .jsoneditor-contextmenu li:hover {
+          background: #4b5563 !important;
+        }
+      ` : `
+        .jsoneditor {
+          background: #ffffff !important;
+          border: 1px solid #d1d5db !important;
+        }
+        .jsoneditor-menu {
+          background: #f9fafb !important;
+          border-bottom: 1px solid #d1d5db !important;
+        }
+        .jsoneditor table {
+          background: #ffffff !important;
+        }
+        .jsoneditor tr {
+          background: #ffffff !important;
+        }
+        .jsoneditor td {
+          background: #ffffff !important;
+        }
+        .jsoneditor-field {
+          color: #111827 !important;
+        }
+        .jsoneditor-value {
+          color: #1f2937 !important;
+        }
+        .jsoneditor-value-string {
+          color: #2563eb !important;
+        }
+        .jsoneditor-value-number {
+          color: #059669 !important;
+        }
+        .jsoneditor-value-boolean {
+          color: #d97706 !important;
+        }
+        .jsoneditor-value-null {
+          color: #dc2626 !important;
+        }
+        .jsoneditor-array {
+          color: #111827 !important;
+        }
+        .jsoneditor-object {
+          color: #111827 !important;
+        }
+        .jsoneditor th {
+          background: #f9fafb !important;
+          color: #111827 !important;
+        }
+        .jsoneditor input[type="text"],
+        .jsoneditor textarea {
+          background: #ffffff !important;
+          color: #1f2937 !important;
+          border: 1px solid #d1d5db !important;
+        }
+        .jsoneditor input[type="text"]:focus,
+        .jsoneditor textarea:focus {
+          border-color: #2563eb !important;
+        }
+        .jsoneditor-actions {
+          background: #f9fafb !important;
+        }
+        .jsoneditor-contextmenu {
+          background: #ffffff !important;
+          border: 1px solid #d1d5db !important;
+        }
+        .jsoneditor-contextmenu .jsoneditor-menu {
+          background: #ffffff !important;
+        }
+        .jsoneditor-contextmenu li {
+          color: #111827 !important;
+        }
+        .jsoneditor-contextmenu li:hover {
+          background: #f3f4f6 !important;
+        }
+      `}
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      const existingStyle = document.getElementById(styleId);
+      if (existingStyle) {
+        existingStyle.remove();
+      }
+    };
+  }, [theme]);
+
+  // Fix yellow background on input fields when editing in dark mode
+  useEffect(() => {
+    if (!containerRef.current) return;
+    
+    const isDark = theme === 'dark';
+    if (!isDark) return;
+    
+    const fixInputStyles = () => {
+      if (!containerRef.current) return;
+      
+      // Find all inputs and textareas within the jsoneditor
+      const inputs = containerRef.current.querySelectorAll('input[type="text"], textarea');
+      
+      inputs.forEach((input) => {
+        const htmlInput = input as HTMLInputElement | HTMLTextAreaElement;
+        
+        // Force dark mode styles on all inputs in dark mode
+        // Check if input is visible and editable
+        if (htmlInput.offsetParent !== null) {
+          const style = window.getComputedStyle(htmlInput);
+          const bgColor = style.backgroundColor;
+          const isFocused = document.activeElement === htmlInput;
+          
+          // Check if background is yellow-ish or light colored
+          const rgbMatch = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+          let isLightColor = false;
+          
+          if (rgbMatch) {
+            const r = parseInt(rgbMatch[1]);
+            const g = parseInt(rgbMatch[2]);
+            const b = parseInt(rgbMatch[3]);
+            
+            // Check if it's a yellow-ish or light color (high values)
+            if (r > 200 && g > 200 && b > 150) {
+              isLightColor = true;
+            }
+          }
+          
+          // Also check inline styles directly
+          const inlineBg = htmlInput.style.backgroundColor?.toLowerCase() || '';
+          if (inlineBg.includes('yellow') || 
+              inlineBg.includes('rgb(255') || 
+              inlineBg.includes('#ffff') ||
+              inlineBg.includes('#fff')) {
+            isLightColor = true;
+          }
+          
+          // If it's a light color, fix it
+          if (isLightColor) {
+            // If focused, use darker gray, otherwise use transparent/background color
+            if (isFocused) {
+              htmlInput.style.setProperty('background-color', '#4b5563', 'important');
+            } else {
+              htmlInput.style.setProperty('background-color', 'transparent', 'important');
+            }
+            htmlInput.style.setProperty('color', '#f3f4f6', 'important');
+            htmlInput.style.setProperty('border-color', '#6b7280', 'important');
+          } else if (!isFocused && bgColor && (bgColor.includes('75') || bgColor.includes('91'))) {
+            // If not focused and has gray background (from hover), clear it
+            htmlInput.style.setProperty('background-color', 'transparent', 'important');
+          }
+        }
+      });
+      
+      // Also fix parent cells/rows that might have yellow or light background
+      const cells = containerRef.current.querySelectorAll('td, .jsoneditor-value');
+      cells.forEach((cell) => {
+        const htmlCell = cell as HTMLElement;
+        const style = window.getComputedStyle(htmlCell);
+        const bgColor = style.backgroundColor;
+        
+        const rgbMatch = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          const r = parseInt(rgbMatch[1]);
+          const g = parseInt(rgbMatch[2]);
+          const b = parseInt(rgbMatch[3]);
+          
+          // Fix yellow/light backgrounds
+          if (r > 200 && g > 200 && b > 150) {
+            htmlCell.style.setProperty('background-color', 'transparent', 'important');
+          }
+          // Clear gray hover backgrounds (but not if it's the base dark color)
+          else if (r > 70 && r < 100 && g > 70 && g < 100 && b > 70 && b < 100) {
+            // This is likely a hover gray, clear it
+            htmlCell.style.setProperty('background-color', 'transparent', 'important');
+          }
+        }
+      });
+      
+      // Fix field (key) hover styles
+      const fields = containerRef.current.querySelectorAll('.jsoneditor-field');
+      fields.forEach((field) => {
+        const htmlField = field as HTMLElement;
+        const style = window.getComputedStyle(htmlField);
+        const bgColor = style.backgroundColor;
+        
+        // Check if the field is being hovered
+        const row = htmlField.closest('.jsoneditor-row') as HTMLElement;
+        const isHovered = row && row.matches(':hover');
+        
+        // Check if it has a light/yellow background
+        const rgbMatch = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          const r = parseInt(rgbMatch[1]);
+          const g = parseInt(rgbMatch[2]);
+          const b = parseInt(rgbMatch[3]);
+          
+          // Fix yellow/light backgrounds on hover
+          if (r > 200 && g > 200 && b > 150) {
+            if (isHovered) {
+              htmlField.style.setProperty('background-color', '#374151', 'important');
+            } else {
+              htmlField.style.setProperty('background-color', 'transparent', 'important');
+            }
+          }
+          // Clear gray background if not hovered
+          else if (!isHovered && (r > 50 && r < 60 && g > 50 && g < 60 && b > 50 && b < 60)) {
+            // This is the gray hover color (#374151 = rgb(55, 65, 81))
+            htmlField.style.setProperty('background-color', 'transparent', 'important');
+          }
+        }
+        
+        // Also check inline styles
+        const inlineBg = htmlField.style.backgroundColor?.toLowerCase() || '';
+        if (inlineBg.includes('yellow') || 
+            inlineBg.includes('rgb(255') || 
+            inlineBg.includes('#ffff') ||
+            inlineBg.includes('#fff')) {
+          if (isHovered) {
+            htmlField.style.setProperty('background-color', '#374151', 'important');
+          } else {
+            htmlField.style.setProperty('background-color', 'transparent', 'important');
+          }
+        } else if (!isHovered && (inlineBg.includes('374151') || inlineBg.includes('rgb(55'))) {
+          // Clear gray hover background when not hovered
+          htmlField.style.setProperty('background-color', 'transparent', 'important');
+        }
+      });
+      
+      // Force dark background on all divs and containers to prevent white background when collapsed
+      const allDivs = containerRef.current.querySelectorAll('.jsoneditor div');
+      allDivs.forEach((div) => {
+        const htmlDiv = div as HTMLElement;
+        const style = window.getComputedStyle(htmlDiv);
+        const bgColor = style.backgroundColor;
+        
+        // Skip if it's an input container or has specific classes that need different backgrounds
+        if (htmlDiv.closest('input, textarea, .jsoneditor-value-edit')) {
+          return;
+        }
+        
+        // Check if it has a white or light background
+        const rgbMatch = bgColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+        if (rgbMatch) {
+          const r = parseInt(rgbMatch[1]);
+          const g = parseInt(rgbMatch[2]);
+          const b = parseInt(rgbMatch[3]);
+          
+          // If it's white or very light, force dark background
+          if (r > 240 && g > 240 && b > 240) {
+            htmlDiv.style.setProperty('background-color', '#1e1e1e', 'important');
+          }
+        }
+        
+        // Also check inline styles
+        const inlineBg = htmlDiv.style.backgroundColor?.toLowerCase() || '';
+        if (inlineBg.includes('white') || 
+            inlineBg.includes('rgb(255') || 
+            inlineBg.includes('#fff') ||
+            (inlineBg.includes('rgb') && !inlineBg.includes('31') && !inlineBg.includes('55'))) {
+          htmlDiv.style.setProperty('background-color', '#1e1e1e', 'important');
+        }
+      });
+    };
+    
+    // Use MutationObserver to watch for DOM changes
+    const observer = new MutationObserver(() => {
+      fixInputStyles();
+    });
+    
+    observer.observe(containerRef.current, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['style', 'class']
+    });
+    
+    // Also listen for focus events on inputs
+    const handleFocus = () => {
+      fixInputStyles();
+    };
+    
+    const handleBlur = () => {
+      // Fix styles immediately when field loses focus
+      setTimeout(fixInputStyles, 10);
+      setTimeout(fixInputStyles, 50);
+      setTimeout(fixInputStyles, 100);
+    };
+    
+    const handleInput = () => {
+      fixInputStyles();
+    };
+    
+    const handleMouseLeave = (e: Event) => {
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+        fixInputStyles();
+      }
+    };
+    
+    const handleMouseEnter = () => {
+      fixInputStyles();
+    };
+    
+    let mouseMoveTimeout: NodeJS.Timeout | null = null;
+    const handleMouseMove = () => {
+      // Debounce mouse move to avoid performance issues
+      if (mouseMoveTimeout) {
+        clearTimeout(mouseMoveTimeout);
+      }
+      mouseMoveTimeout = setTimeout(() => {
+        fixInputStyles();
+      }, 50);
+    };
+    
+    const container = containerRef.current;
+    if (container) {
+      container.addEventListener('focusin', handleFocus, true);
+      container.addEventListener('focusout', handleBlur, true);
+      container.addEventListener('blur', handleBlur, true);
+      container.addEventListener('click', handleFocus, true);
+      container.addEventListener('input', handleInput, true);
+      container.addEventListener('mouseleave', handleMouseLeave, true);
+      container.addEventListener('mouseenter', handleMouseEnter, true);
+      container.addEventListener('mousemove', handleMouseMove, true);
+    }
+    
+    // Use interval to constantly fix styles (more aggressive approach)
+    const intervalId = setInterval(fixInputStyles, 100);
+    
+    // Initial fix
+    const timeoutId1 = setTimeout(fixInputStyles, 50);
+    const timeoutId2 = setTimeout(fixInputStyles, 200);
+    const timeoutId3 = setTimeout(fixInputStyles, 500);
+    
+    return () => {
+      clearInterval(intervalId);
+      observer.disconnect();
+      if (mouseMoveTimeout) {
+        clearTimeout(mouseMoveTimeout);
+      }
+      if (container) {
+        container.removeEventListener('focusin', handleFocus, true);
+        container.removeEventListener('focusout', handleBlur, true);
+        container.removeEventListener('blur', handleBlur, true);
+        container.removeEventListener('click', handleFocus, true);
+        container.removeEventListener('input', handleInput, true);
+        container.removeEventListener('mouseleave', handleMouseLeave, true);
+        container.removeEventListener('mouseenter', handleMouseEnter, true);
+        container.removeEventListener('mousemove', handleMouseMove, true);
+      }
+      clearTimeout(timeoutId1);
+      clearTimeout(timeoutId2);
+      clearTimeout(timeoutId3);
+    };
+  }, [theme]);
 
   // Add event listeners to mark readonly fields with CSS class and tooltip
   useEffect(() => {
@@ -485,6 +986,8 @@ export function JsonTreeEditor({
     };
   }, [readonlyFields, readonlyObjects]);
 
+  const isDark = theme === 'dark';
+  
   return (
     <div
       ref={containerRef}
@@ -492,10 +995,10 @@ export function JsonTreeEditor({
         height,
         minHeight: "400px",
         maxHeight: "600px",
-        border: "1px solid #444",
+        border: isDark ? "1px solid #4b5563" : "1px solid #d1d5db",
         borderRadius: 6,
         overflow: "hidden",
-        background: "#1e1e1e"
+        background: isDark ? "#1e1e1e" : "#ffffff"
       }}
     />
   );

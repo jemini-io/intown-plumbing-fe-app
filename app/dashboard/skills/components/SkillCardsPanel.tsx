@@ -129,10 +129,10 @@ export function SkillCardsPanel(props: SkillCardsPanelProps) {
       </div>
       {formModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
             <button
               onClick={() => setFormModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+              className="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl font-bold"
             >
               ×
             </button>

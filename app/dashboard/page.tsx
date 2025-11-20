@@ -113,7 +113,7 @@ export default function DashboardPage() {
     <DashboardProvider refresh={refresh}>
       <BookingsFormDataProvider>
       <DashboardLayout>
-        <div className="bg-gray-100 min-h-screen p-8 space-y-8 rounded-lg">
+        <div className="bg-gray-100 dark:bg-gray-900 min-h-screen p-8 space-y-8 rounded-lg">
           {/* Dashboard Header Row */}
           <DashboardHeaderTop />
 
