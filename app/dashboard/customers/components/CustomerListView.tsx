@@ -191,7 +191,7 @@ export function CustomerListView({
           title="Add new customer"
           onClick={handleAdd}
         >
-          <UserPlusIcon className="h-6 w-6" />
+          <UserPlusIcon className="h-6 w-6 dark:text-white" />
         </button>
       </div>
 

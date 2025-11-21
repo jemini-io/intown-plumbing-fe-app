@@ -155,15 +155,18 @@ export function JsonTreeEditor({
     if (!containerRef.current || editorRef.current) return;
 
     // Function to determine if a field should be editable
+    // Keys (field names) are never editable, only values can be edited
     const isEditable = (node: { path: (string | number)[]; field?: string | number; value?: unknown }) => {
       if (!Array.isArray(node.path) || node.path.length === 0) {
-        return true;
+        // Root level - allow editing values but not field names
+        return { field: false, value: true };
       }
       
       // Check if the field name itself is readonly
       const fieldName = typeof node.field === 'string' ? node.field : (typeof node.path[node.path.length - 1] === 'string' ? node.path[node.path.length - 1] as string : null);
       
       if (fieldName && readonlyFieldsRef.current.includes(fieldName)) {
+        // Field is readonly - neither key nor value can be edited
         return false;
       }
       
@@ -172,9 +175,8 @@ export function JsonTreeEditor({
         // Check if we're at the array level itself (path ends with readonly object name)
         const lastPathSegment = node.path[node.path.length - 1];
         if (typeof lastPathSegment === 'string' && readonlyObjectsRef.current.includes(lastPathSegment)) {
-          // This is the array itself (e.g., ['skills']) - allow all operations
-          // We want to allow adding/removing items from the array
-          return true;
+          // This is the array itself (e.g., ['skills']) - allow adding/removing items but not renaming
+          return { field: false, value: true };
         }
         
         // Check if we're inside an array item
@@ -186,10 +188,8 @@ export function JsonTreeEditor({
               // We're inside a readonly object array
               // Check if this is the array item itself (path length is i+2: ['skills', 0])
               if (node.path.length === i + 2) {
-                // This is the array item itself - allow delete operations
-                // Return object to allow field operations (delete) but prevent value editing
-                // For array items, 'field' controls the ability to delete the item
-                return { field: true, value: true };
+                // This is the array item itself - allow delete operations but not renaming
+                return { field: true, value: false };
               } else {
                 // We're inside an array item (e.g., ['skills', 0, 'id'])
                 // Make fields inside readonly
@@ -200,7 +200,8 @@ export function JsonTreeEditor({
         }
       }
       
-      return true;
+      // Default: keys are never editable, values are editable
+      return { field: false, value: true };
     };
 
     const options: JSONEditorOptionsWithValidate = {
@@ -224,7 +225,7 @@ export function JsonTreeEditor({
         lastSerializedRef.current = JSON.stringify(restored);
         onChangeRef.current(lastValueRef.current);
       },
-      onEditable: (readonlyFieldsRef.current.length > 0 || readonlyObjectsRef.current.length > 0) ? isEditable : undefined,
+      onEditable: isEditable,
       validate: () => [],
       onError: (err: unknown) => {
         // eslint-disable-next-line no-console
@@ -374,42 +375,42 @@ export function JsonTreeEditor({
     style.textContent = `
       ${isDark ? `
         .jsoneditor {
-          background: #1e1e1e !important;
+          background: #374151 !important;
           border: 1px solid #4b5563 !important;
         }
         .jsoneditor > div {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor-menu {
           background: #374151 !important;
           border-bottom: 1px solid #4b5563 !important;
         }
         .jsoneditor table {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor tbody {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor thead {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor tr {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor td {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor .jsoneditor-tree {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor .jsoneditor-tree > div {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor .jsoneditor-tree table {
-          background: #1e1e1e !important;
+          background: #374151 !important;
         }
         .jsoneditor-field {
-          color: #e5e7eb !important;
+          color: #9ca3af !important;
         }
         .jsoneditor-field:hover {
           background: #374151 !important;
@@ -519,7 +520,7 @@ export function JsonTreeEditor({
           background: #ffffff !important;
         }
         .jsoneditor-field {
-          color: #111827 !important;
+          color: #6b7280 !important;
         }
         .jsoneditor-value {
           color: #1f2937 !important;
@@ -744,7 +745,7 @@ export function JsonTreeEditor({
           
           // If it's white or very light, force dark background
           if (r > 240 && g > 240 && b > 240) {
-            htmlDiv.style.setProperty('background-color', '#1e1e1e', 'important');
+            htmlDiv.style.setProperty('background-color', '#374151', 'important');
           }
         }
         
@@ -754,7 +755,7 @@ export function JsonTreeEditor({
             inlineBg.includes('rgb(255') || 
             inlineBg.includes('#fff') ||
             (inlineBg.includes('rgb') && !inlineBg.includes('31') && !inlineBg.includes('55'))) {
-          htmlDiv.style.setProperty('background-color', '#1e1e1e', 'important');
+          htmlDiv.style.setProperty('background-color', '#374151', 'important');
         }
       });
     };
@@ -998,7 +999,7 @@ export function JsonTreeEditor({
         border: isDark ? "1px solid #4b5563" : "1px solid #d1d5db",
         borderRadius: 6,
         overflow: "hidden",
-        background: isDark ? "#1e1e1e" : "#ffffff"
+        background: isDark ? "#374151" : "#f3f4f6"
       }}
     />
   );

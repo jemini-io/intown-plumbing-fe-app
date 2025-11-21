@@ -124,7 +124,7 @@ export function ServiceToJobTypesListView(props: ServiceToJobTypesListViewProps)
           title="Add new service"
           onClick={handleAdd}
         >
-          <PlusIcon className="h-6 w-6" />
+          <PlusIcon className="h-6 w-6 dark:text-white" />
         </button>
       </div>
       {/* Header */}

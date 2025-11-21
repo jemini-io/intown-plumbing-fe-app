@@ -244,7 +244,7 @@ export function BookingsListView({
             title="Add new booking"
             onClick={handleAdd}
           >
-            <PlusIcon className="h-6 w-6" />
+            <PlusIcon className="h-6 w-6 dark:text-white" />
           </button>
         </div>
       )}

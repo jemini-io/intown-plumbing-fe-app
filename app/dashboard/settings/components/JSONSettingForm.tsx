@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition, useState, useRef } from "react";
+import { useTransition, useState, useRef, useEffect } from "react";
 import { createAppSetting, updateAppSetting } from "../actions";
 import { isJson } from "@/lib/utils/isJson";
 import { JsonTreeEditor } from "@/app/dashboard/components/JsonTreeEditor";
@@ -17,9 +17,10 @@ type Setting = {
 type JSONSettingFormProps = {
   existing?: Setting;
   onSaved: () => void;
+  allowEditJSONAsRawText?: boolean;
 };
 
-export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
+export function JSONSettingForm({ existing, onSaved, allowEditJSONAsRawText = false }: JSONSettingFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -72,9 +73,19 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
   }
 
   const jsonObj = parsedValue();
+  const canEditRawText = allowEditJSONAsRawText; // Allow/disallow raw text editing based on prop (default: false to prevent key changes that could break the code)
+  
+  // Force JSON editor mode if raw text editing is disabled
+  useEffect(() => {
+    if (!allowEditJSONAsRawText && isRawEditing) {
+      setIsRawEditing(false);
+    }
+  }, [allowEditJSONAsRawText, isRawEditing]);
+  
   const showJsonEditor = jsonObj && !isRawEditing;
 
   function toggleMode() {
+    if (!canEditRawText) return; // Prevent toggling if raw text editing is disabled
     setIsRawEditing(prev => {
       const next = !prev;
       if (next && jsonObj) {
@@ -121,7 +132,7 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
         <div className="col-span-2">
           <div className="flex items-center justify-between mb-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Value</label>
-            {showJsonEditor && (
+            {canEditRawText && showJsonEditor && (
               <button
                 type="button"
                 onClick={toggleMode}
@@ -130,7 +141,7 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
                 Edit as raw text
               </button>
             )}
-            {isRawEditing && jsonObj && (
+            {canEditRawText && isRawEditing && jsonObj && (
               <button
                 type="button"
                 onClick={toggleMode}
@@ -171,7 +182,7 @@ export function JSONSettingForm({ existing, onSaved }: JSONSettingFormProps) {
               name="value"
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              className="w-full border rounded p-2 font-mono text-xs leading-5 bg-neutral-900 dark:bg-gray-800 text-neutral-100 dark:text-gray-100 border-gray-700 dark:border-gray-600"
+              className="w-full border rounded p-2 font-mono text-xs leading-5 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600"
               style={{ resize: "none", minHeight: 400, maxHeight: 600, height: "60vh" }}
               spellCheck={false}
               required

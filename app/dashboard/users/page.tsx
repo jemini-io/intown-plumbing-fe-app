@@ -5,7 +5,6 @@ import DashboardLayout from "../components/DashboardLayout";
 import { getUsers, deleteUser } from "./actions";
 import { User } from "./types";
 import {  UserCircleIcon } from "@heroicons/react/24/outline";
-import { UserPlusIcon } from "@heroicons/react/24/solid";
 import Image from "next/image";
 import { SpinnerOverlay } from "@/app/dashboard/components/Spinner";
 import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";
@@ -157,11 +156,11 @@ export default function UsersPage() {
            <h3 className="text-3xl font-bold dark:text-white">Users</h3>
            <button
              onClick={handleAddNew}
-             className="p-2 rounded-full bg-blue-50 hover:bg-blue-100 dark:bg-blue-900 dark:hover:bg-blue-800 text-blue-600 dark:text-blue-300 transition"
+             className="bg-blue-600 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 dark:hover:bg-gray-200 transition flex items-center gap-2"
              title="Add new user"
              disabled={Boolean(updatingId)}
            >
-             <UserPlusIcon className="h-6 w-6" />
+             Add User
            </button>
          </div>
 
