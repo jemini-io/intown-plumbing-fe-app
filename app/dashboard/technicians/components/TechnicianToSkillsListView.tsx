@@ -124,20 +124,19 @@ export function TechnicianToSkillsListView({
     }
   }
 
-  // Configuración de columnas
   const columnsConfig = [
-    showImage ? "48px" : null,                // IMAGE ancho fijo
-    "1fr",                                   // NAME flexible
-    showStatus ? "minmax(80px, max-content)" : null, // STATUS mínimo
-    showSkills ? "0.35fr" : null,                // SKILLS flexible
-    showEnabled ? "minmax(50px, max-content)" : null, // ENABLED mínimo
-    showActions ? "100px" : null,             // ACTIONS ancho fijo
+    showImage ? "48px" : null,                        // IMAGE fixed width
+    "1fr",                                            // NAME flexible width
+    showStatus ? "minmax(80px, max-content)" : null,  // STATUS minimum width
+    showSkills ? "0.35fr" : null,                     // SKILLS flexible width
+    showEnabled ? "minmax(50px, max-content)" : null, // ENABLED minimum width
+    showActions ? "100px" : null,                     // ACTIONS fixed width
   ].filter(Boolean);
 
   const gridStyle = {
     display: "grid",
     gridTemplateColumns: columnsConfig.join(" "),
-    gap: "2.5rem", // más espacio entre columnas
+    gap: "2.5rem", // more space between columns
     alignItems: "center",
   };
 

@@ -7,10 +7,10 @@ import { ChevronRightIcon } from "@heroicons/react/24/outline";
 
 type IconType = React.ComponentType<{ className?: string }>;
 
-type CustomNavLinkProps = {
+type CustomNavOptionProps = {
   href: string;
   label: string;
-  title?: string;
+  description?: string;
   icon: IconType;
   collapsed: boolean;
   external?: boolean;
@@ -18,7 +18,7 @@ type CustomNavLinkProps = {
   fullWidth?: boolean;
 };
 
-export function CustomNavLink({ href, label, title, icon: Icon, collapsed, external, onClick, fullWidth }: CustomNavLinkProps) {
+export function CustomNavOption({ href, label, description = label, icon: Icon, collapsed, external, onClick, fullWidth }: CustomNavOptionProps) {
   const pathname = usePathname();
   const baseClasses = `group flex items-center ${collapsed ? "justify-center" : "gap-4 px-5"} py-3 rounded transition ${fullWidth ? "w-full" : ""}`;
   const colorClasses = "hover:bg-[#3d5a73] dark:hover:bg-gray-700";
@@ -33,7 +33,7 @@ export function CustomNavLink({ href, label, title, icon: Icon, collapsed, exter
         href={href}
         target="_blank"
         rel="noopener noreferrer"
-        title={title || label}
+        title={collapsed ? description : undefined}
         className={`${baseClasses} ${colorClasses}`}
       >
         <Icon className="h-6 w-6 text-white" />
@@ -53,7 +53,7 @@ export function CustomNavLink({ href, label, title, icon: Icon, collapsed, exter
       <button
         type="button"
         onClick={onClick}
-        title={title || label}
+        title={collapsed ? description : undefined}
         className={`${baseClasses} ${colorClasses}`}
       >
         <Icon className="h-6 w-6 text-white" />
@@ -69,7 +69,7 @@ export function CustomNavLink({ href, label, title, icon: Icon, collapsed, exter
   }
 
   return (
-    <Link href={href} title={title || label} className={`${baseClasses} ${colorClasses}`}>
+    <Link href={href} title={collapsed ? description : undefined} className={`${baseClasses} ${colorClasses}`}>
       <Icon className="h-6 w-6 text-white" />
       {!collapsed && (
         <>

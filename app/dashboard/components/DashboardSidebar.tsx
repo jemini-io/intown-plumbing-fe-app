@@ -4,7 +4,7 @@ import { useSession } from "next-auth/react";
 import Image from "next/image";
 import { UserCircleIcon, ArrowRightOnRectangleIcon } from "@heroicons/react/24/solid";
 import { logoutAction } from "@/app/actions/logout";
-import { CustomNavLink } from "./CustomNavLink";
+import { CustomNavOption } from "./CustomNavOption";
 import { Dispatch, SetStateAction } from "react";
 import { navItemsData } from "./navItemsData";
 import { UserRole } from "@/app/dashboard/users/types";
@@ -70,10 +70,11 @@ export default function DashboardSidebar({
         {navItemsData
           .filter(item => (role === "ADMIN" ? true : !item.requireAdmin))
           .map(item => (
-            <CustomNavLink
+            <CustomNavOption
               key={item.href}
               href={item.href}
               label={item.label}
+              description={item.description || item.label}
               icon={item.icon}
               collapsed={collapsed}
               external={item.external}
@@ -103,10 +104,10 @@ export default function DashboardSidebar({
             )
           );
           return (
-            <CustomNavLink
+            <CustomNavOption
               href="/dashboard/profile"
               label={userName}
-              title={userName}
+              description={`${userName}'s profile`}
               icon={ProfileIcon}
               collapsed={collapsed}
               fullWidth
@@ -114,10 +115,9 @@ export default function DashboardSidebar({
           );
         })()}
 
-        <CustomNavLink
+        <CustomNavOption
           href="#logout"
           label="Logout"
-          title="Logout"
           icon={ArrowRightOnRectangleIcon}
           collapsed={collapsed}
           onClick={handleLogout}
