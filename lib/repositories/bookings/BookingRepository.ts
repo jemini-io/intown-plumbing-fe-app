@@ -32,7 +32,11 @@ export class BookingRepository {
       orderBy: { scheduledFor: "desc" },
       include: {
         service: true,
-        technician: true,
+        technician: {
+          include: {
+            image: true,
+          },
+        },
         customer: {
           include: {
             emailAddress: true,
@@ -70,7 +74,11 @@ export class BookingRepository {
       where: { id },
       include: {
         service: true,
-        technician: true,
+        technician: {
+          include: {
+            image: true,
+          },
+        },
         customer: {
           include: {
             emailAddress: true,
@@ -123,7 +131,11 @@ export class BookingRepository {
       },
       include: {
         service: true,
-        technician: true,
+        technician: {
+          include: {
+            image: true,
+          },
+        },
         customer: {
           include: {
             emailAddress: true,
@@ -172,7 +184,11 @@ export class BookingRepository {
       },
       include: {
         service: true,
-        technician: true,
+        technician: {
+          include: {
+            image: true,
+          },
+        },
         customer: {
           include: {
             emailAddress: true,
