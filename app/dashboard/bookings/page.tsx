@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import DashboardLayout from "../components/DashboardLayout";
 import { BookingsListView } from "./components/BookingsListView";
 import { BookingsCalendarView } from "./components/BookingsCalendarView";
+import { TechniciansCalendarView } from "./components/TechniciansCalendarView";
 import { BookingsForm } from "./components/BookingsForm";
 import { BookingsFormDataProvider, useBookingsFormData } from "./contexts/BookingsFormDataContext";
 import { Booking } from "@/lib/types/booking";
@@ -18,18 +19,21 @@ function BookingsPageContent() {
   const [showModal, setShowModal] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | undefined>(undefined);
   const [initialScheduledFor, setInitialScheduledFor] = useState<Date | undefined>(undefined);
+  const [initialTechnicianId, setInitialTechnicianId] = useState<string | undefined>(undefined);
   const [activeView, setActiveView] = useState<ViewType>("calendar");
   const formData = useBookingsFormData();
 
   const openModal = useCallback(() => {
     setSelectedBooking(undefined);
     setInitialScheduledFor(undefined);
+    setInitialTechnicianId(undefined);
     setShowModal(true);
   }, []);
   const closeModal = useCallback(() => {
     setShowModal(false);
     setSelectedBooking(undefined);
     setInitialScheduledFor(undefined);
+    setInitialTechnicianId(undefined);
   }, []);
 
   useEffect(() => {
@@ -42,10 +46,11 @@ function BookingsPageContent() {
     setShowModal(true);
   }, []);
 
-  const handleAddBooking = useCallback((date: Date, timeSlot: string) => {
-    // Set the initial date/time without creating a booking object
+  const handleAddBooking = useCallback((date: Date, timeSlot: string, technicianId?: string) => {
+    // Set the initial date/time and technician without creating a booking object
     setSelectedBooking(undefined);
     setInitialScheduledFor(date);
+    setInitialTechnicianId(technicianId);
     setShowModal(true);
   }, []);
 
@@ -80,7 +85,7 @@ function BookingsPageContent() {
                 : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
             }`}
           >
-            All Technicians
+            Technicians
           </button>
           <button
             onClick={() => setActiveView("calendar")}
@@ -121,9 +126,10 @@ function BookingsPageContent() {
             />
           )}
           {activeView === "technicians" && (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              Technicians view coming soon...
-            </div>
+            <TechniciansCalendarView 
+              onBookingClick={handleBookingClick}
+              onAddBooking={handleAddBooking}
+            />
           )}
         </div>
         {showModal && (
@@ -138,6 +144,7 @@ function BookingsPageContent() {
               <BookingsForm
                 existing={selectedBooking}
                 initialScheduledFor={initialScheduledFor}
+                initialTechnicianId={initialTechnicianId}
                 onSaved={() => {
                   closeModal();
                   window.location.reload();

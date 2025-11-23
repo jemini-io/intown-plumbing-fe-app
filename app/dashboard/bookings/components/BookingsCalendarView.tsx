@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useEffect, useState, useMemo } from "react";
+import Image from "next/image";
 import { Booking, BookingStatus } from "@/lib/types/booking";
 import { getAllBookings } from "../actions";
-import { PlusIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 
 interface BookingsCalendarViewProps {
   onBookingClick?: (booking: Booking) => void;
@@ -33,10 +34,6 @@ function generateTimeSlots(): string[] {
   return slots;
 }
 
-// Get day name for a given date
-function getDayName(date: Date): string {
-  return new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(date);
-}
 
 // Get date for a specific day of a given week (Monday = 0, Tuesday = 1, etc.)
 function getDateForDay(dayIndex: number, weekOffset: number = 0): Date {
@@ -99,80 +96,9 @@ function getBookingsForDay(bookings: Booking[], dayDate: Date): Booking[] {
   });
 }
 
-// Check if a booking is active during a specific time range
-function isBookingActiveInRange(
-  booking: Booking,
-  rangeStartMinutes: number,
-  rangeEndMinutes: number
-): boolean {
-  const bookingDate = booking.scheduledFor instanceof Date 
-    ? booking.scheduledFor 
-    : new Date(booking.scheduledFor as string);
-  
-  const bookingStartMinutes = bookingDate.getHours() * 60 + bookingDate.getMinutes();
-  const durationMinutes = calculateBookingDuration(booking, []);
-  const bookingEndMinutes = bookingStartMinutes + durationMinutes;
-  
-  // Booking is active if it overlaps with the range
-  return bookingStartMinutes < rangeEndMinutes && bookingEndMinutes > rangeStartMinutes;
-}
-
-// Get all bookings active during a slot
-function getBookingsForSlot(
-  dayBookings: Booking[],
-  slotStartMinutes: number,
-  slotEndMinutes: number
-): Booking[] {
-  return dayBookings.filter(booking => 
-    isBookingActiveInRange(booking, slotStartMinutes, slotEndMinutes)
-  );
-}
-
-// Get the first booking that starts in or before this slot (to avoid duplicates)
-function getPrimaryBookingForSlot(
-  dayBookings: Booking[],
-  slotStartMinutes: number
-): Booking | null {
-  // Find bookings that start at or before this slot
-  const candidates = dayBookings.filter(booking => {
-    const bookingDate = booking.scheduledFor instanceof Date 
-      ? booking.scheduledFor 
-      : new Date(booking.scheduledFor as string);
-    const bookingStartMinutes = bookingDate.getHours() * 60 + bookingDate.getMinutes();
-    return bookingStartMinutes <= slotStartMinutes;
-  });
-
-  if (candidates.length === 0) return null;
-
-  // Sort by start time (most recent first)
-  candidates.sort((a, b) => {
-    const aDate = a.scheduledFor instanceof Date ? a.scheduledFor : new Date(a.scheduledFor as string);
-    const bDate = b.scheduledFor instanceof Date ? b.scheduledFor : new Date(b.scheduledFor as string);
-    const aStart = aDate.getHours() * 60 + aDate.getMinutes();
-    const bStart = bDate.getHours() * 60 + bDate.getMinutes();
-    return bStart - aStart;
-  });
-
-  // Find the booking that's still active at this slot
-  for (const booking of candidates) {
-    const bookingDate = booking.scheduledFor instanceof Date 
-      ? booking.scheduledFor 
-      : new Date(booking.scheduledFor as string);
-    const bookingStartMinutes = bookingDate.getHours() * 60 + bookingDate.getMinutes();
-    const durationMinutes = calculateBookingDuration(booking, dayBookings);
-    const bookingEndMinutes = bookingStartMinutes + durationMinutes;
-    
-    // Check if this booking is still active at this slot
-    if (bookingStartMinutes <= slotStartMinutes && bookingEndMinutes > slotStartMinutes) {
-      return booking;
-    }
-  }
-
-  return null;
-}
 
 // Calculate booking duration in minutes (default 30, but can be longer if there's a pattern)
-function calculateBookingDuration(booking: Booking, allDayBookings: Booking[]): number {
+function calculateBookingDuration(booking: Booking): number {
   const serviceName = booking.service?.displayName?.toLowerCase() || "";
   
   // Some services might have different default durations
@@ -187,29 +113,6 @@ function calculateBookingDuration(booking: Booking, allDayBookings: Booking[]): 
   }
 
   return 30; // Default 30 minutes
-}
-
-// Calculate the position and height of a booking block in pixels
-function calculateBookingPosition(
-  booking: Booking,
-  firstSlotMinutes: number,
-  slotHeight: number = 35
-): { top: number; height: number } {
-  const bookingDate = booking.scheduledFor instanceof Date 
-    ? booking.scheduledFor 
-    : new Date(booking.scheduledFor as string);
-  
-  // Get the exact time in minutes since midnight
-  const bookingStartMinutes = bookingDate.getHours() * 60 + bookingDate.getMinutes();
-  const durationMinutes = calculateBookingDuration(booking, []);
-  
-  // Calculate position relative to the first slot (15-minute intervals)
-  // Each slot represents 15 minutes, and slotHeight is the height of one 15-minute slot
-  const minutesFromFirstSlot = bookingStartMinutes - firstSlotMinutes;
-  const top = (minutesFromFirstSlot / 15) * slotHeight;
-  const height = (durationMinutes / 15) * slotHeight;
-  
-  return { top, height };
 }
 
 export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsCalendarViewProps) {
@@ -450,15 +353,15 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
           {/* Calendar Body - Using absolute positioning for bookings */}
           <div 
             className="relative"
-            style={{ height: `${timeSlots.length * 35}px` }}
+            style={{ height: `${timeSlots.length * 48}px` }}
           >
             {/* Time Slots Rows - Grid structure */}
-            <div className="divide-y divide-gray-200 dark:divide-gray-700" style={{ height: `${timeSlots.length * 35}px` }}>
+            <div className="divide-y divide-gray-200 dark:divide-gray-700" style={{ height: `${timeSlots.length * 48}px` }}>
               {timeSlots.map((slot) => {
                 return (
                   <div
                     key={slot}
-                    className="grid grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] h-[35px] hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="grid grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] h-[48px] hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                   >
                     {/* Time Column - Sticky when scrolling */}
                     <div className="p-2 text-sm text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 flex items-center bg-white dark:bg-gray-800">
@@ -486,7 +389,7 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                         <div
                           key={`${day.name}-${slot}`}
                           className="border-r border-gray-200 dark:border-gray-700 last:border-r-0 relative group"
-                          style={{ height: '35px' }}
+                          style={{ height: '48px' }}
                           onMouseEnter={() => setHoveredCell(cellKey)}
                           onMouseLeave={() => setHoveredCell(null)}
                         >
@@ -511,7 +414,7 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
             {weekDays.map((day, dayIndex) => {
               const dayBookings = bookingsByDay[day.date.toDateString()] || [];
               const firstSlotMinutes = timeToMinutes(timeSlots[0]);
-              const slotHeight = 35; // Height of each 15-minute slot in pixels
+              const slotHeight = 48; // Height of each 15-minute slot in pixels (increased from 35px)
               const totalHeight = timeSlots.length * slotHeight;
 
               // Get unique bookings (avoid duplicates by ID)
@@ -559,13 +462,13 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                       return null;
                     }
                     
-                    // Calculate top position: each 15 minutes = 35px
+                    // Calculate top position: each 15 minutes = 48px
                     // The top position should align with the slot that contains this booking's start time
                     const top = (minutesFromFirstSlot / 15) * slotHeight;
                     
                     // Calculate height based on duration
-                    const durationMinutes = calculateBookingDuration(booking, dayBookings);
-                    const height = Math.max((durationMinutes / 15) * slotHeight, 35); // Minimum 35px height
+                    const durationMinutes = calculateBookingDuration(booking);
+                    const height = Math.max((durationMinutes / 15) * slotHeight, 55); // Minimum 55px height
                     
                     const serviceName = booking.service?.displayName || "Service";
                     const technicianName = booking.technician?.technicianName || "Unassigned";
@@ -588,16 +491,44 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                           top: `${top}px`,
                           left: '4px',
                           right: '4px',
-                          height: `${Math.max(height, 40)}px`,
-                          minHeight: '40px',
+                          height: `${Math.max(height, 55)}px`,
+                          minHeight: '55px',
                           zIndex: 10,
                         }}
                         title={`${serviceName} - Customer: ${customerName} - Technician: ${technicianName} - ${displayTime} (${durationMinutes} min)`}
                       >
                         <div className="font-semibold truncate">{displayTime}</div>
-                        <div className="font-semibold truncate">{serviceName}</div>
-                        <div className="text-xs opacity-90 truncate">Customer: {customerName}</div>
-                        <div className="text-xs opacity-75 truncate">Technician: {technicianName}</div>
+                        <div className="font-semibold truncate mb-1">{serviceName}</div>
+                        <div className="flex items-center gap-1.5 text-xs opacity-90 truncate mb-0.5">
+                          {booking.customer?.image?.url ? (
+                            <Image
+                              src={booking.customer.image.url}
+                              alt={customerName}
+                              width={16}
+                              height={16}
+                              className="rounded-full object-cover flex-shrink-0"
+                              unoptimized
+                            />
+                          ) : (
+                            <UserCircleIcon className="h-4 w-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                          )}
+                          <span>{customerName} (customer)</span>
+                        </div>
+                        <div className="flex items-center gap-1.5 text-xs opacity-75 truncate">
+                          {booking.technician?.image?.url ? (
+                            <Image
+                              src={booking.technician.image.url}
+                              alt={technicianName}
+                              width={16}
+                              height={16}
+                              className="rounded-full object-cover flex-shrink-0"
+                              unoptimized
+                            />
+                          ) : (
+                            <UserCircleIcon className="h-4 w-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                          )}
+                          <span>{technicianName} (technician)</span>
+                        </div>
                       </div>
                     );
                   })}
