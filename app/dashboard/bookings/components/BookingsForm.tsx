@@ -10,9 +10,10 @@ import { BookingStatus } from "@/lib/types/booking";
 
 type BookingFormProps = FormComponentProps & {
   existing?: Booking;
+  initialScheduledFor?: Date;
 };
 
-export function BookingsForm({ existing, onSaved }: BookingFormProps) {
+export function BookingsForm({ existing, initialScheduledFor, onSaved }: BookingFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
@@ -86,6 +87,8 @@ export function BookingsForm({ existing, onSaved }: BookingFormProps) {
             defaultValue={
               existing?.scheduledFor
                 ? toDatetimeLocalValue(existing.scheduledFor)
+                : initialScheduledFor
+                ? toDatetimeLocalValue(initialScheduledFor)
                 : ""
             }
             className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
