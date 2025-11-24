@@ -23,12 +23,6 @@ function BookingsPageContent() {
   const [activeView, setActiveView] = useState<ViewType>("calendar");
   const formData = useBookingsFormData();
 
-  const openModal = useCallback(() => {
-    setSelectedBooking(undefined);
-    setInitialScheduledFor(undefined);
-    setInitialTechnicianId(undefined);
-    setShowModal(true);
-  }, []);
   const closeModal = useCallback(() => {
     setShowModal(false);
     setSelectedBooking(undefined);
@@ -54,9 +48,13 @@ function BookingsPageContent() {
     setShowModal(true);
   }, []);
 
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  
   const handleBookingUpdate = useCallback(() => {
-    // The calendar views handle their own data refresh, so we don't need to reload the page
-    // This allows the undo toast to persist
+    // Trigger a refresh of the calendar views by updating the refresh trigger
+    // This will cause the useEffect hooks in the calendar components to re-run
+    // without losing the current view state (weekOffset, dayOffset, etc.)
+    setRefreshTrigger(prev => prev + 1);
   }, []);
 
   return (
@@ -72,52 +70,46 @@ function BookingsPageContent() {
               SHOW ALL
             </Link>
           </div>
-          <button
-            onClick={openModal}
-            className="bg-blue-600 dark:bg-white text-white dark:text-gray-900 px-4 py-2 rounded font-semibold shadow hover:bg-blue-700 dark:hover:bg-gray-200 transition flex items-center gap-2"
-          >
-            Add Booking
-          </button>
-        </div>
-
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6">
-          <button
-            onClick={() => setActiveView("technicians")}
-            className={`px-4 py-2 rounded-md font-medium transition ${
-              activeView === "technicians"
-                ? "bg-gray-800 dark:bg-gray-700 text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            Technicians
-          </button>
-          <button
-            onClick={() => setActiveView("calendar")}
-            className={`px-4 py-2 rounded-md font-medium transition ${
-              activeView === "calendar"
-                ? "bg-gray-800 dark:bg-gray-700 text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            Calendar
-          </button>
-          <button
-            onClick={() => setActiveView("table")}
-            className={`px-4 py-2 rounded-md font-medium transition ${
-              activeView === "table"
-                ? "bg-gray-800 dark:bg-gray-700 text-white"
-                : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
-            }`}
-          >
-            Table
-          </button>
+          {/* Tabs */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => setActiveView("technicians")}
+              className={`px-4 py-2 rounded-md font-medium transition ${
+                activeView === "technicians"
+                  ? "bg-gray-800 dark:bg-gray-700 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              Technicians
+            </button>
+            <button
+              onClick={() => setActiveView("calendar")}
+              className={`px-4 py-2 rounded-md font-medium transition ${
+                activeView === "calendar"
+                  ? "bg-gray-800 dark:bg-gray-700 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              Calendar
+            </button>
+            <button
+              onClick={() => setActiveView("table")}
+              className={`px-4 py-2 rounded-md font-medium transition ${
+                activeView === "table"
+                  ? "bg-gray-800 dark:bg-gray-700 text-white"
+                  : "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700"
+              }`}
+            >
+              Table
+            </button>
+          </div>
         </div>
 
         {/* Content Area */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-700/50 p-6">
           {activeView === "calendar" && (
             <BookingsCalendarView 
+              refreshTrigger={refreshTrigger}
               onBookingClick={handleBookingClick}
               onAddBooking={handleAddBooking}
               onBookingUpdate={handleBookingUpdate}
@@ -133,6 +125,7 @@ function BookingsPageContent() {
           )}
           {activeView === "technicians" && (
             <TechniciansCalendarView 
+              refreshTrigger={refreshTrigger}
               onBookingClick={handleBookingClick}
               onAddBooking={handleAddBooking}
               onBookingUpdate={handleBookingUpdate}
@@ -154,7 +147,9 @@ function BookingsPageContent() {
                 initialTechnicianId={initialTechnicianId}
                 onSaved={() => {
                   closeModal();
-                  window.location.reload();
+                  // Trigger refresh of calendar views without reloading the page
+                  // This preserves the current view and date selection
+                  handleBookingUpdate();
                 }}
               />
             </div>

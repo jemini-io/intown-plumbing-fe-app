@@ -20,6 +20,7 @@ type BookingFormProps = FormComponentProps & {
 export function BookingsForm({ existing, initialScheduledFor, initialTechnicianId, onSaved }: BookingFormProps) {
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+  const [timeError, setTimeError] = useState<string | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   // Load dropdown data via hooks
   const { data: allCustomers, isLoading: loadingCustomers } = useCustomersDropdown();
@@ -176,6 +177,25 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    
+    // Validate time before submitting
+    const scheduledForInput = e.currentTarget.querySelector<HTMLInputElement>('input[name="scheduledFor"]');
+    if (scheduledForInput?.value) {
+      const selectedDateTime = new Date(scheduledForInput.value);
+      const hours = selectedDateTime.getHours();
+      const minutes = selectedDateTime.getMinutes();
+      const totalMinutes = hours * 60 + minutes;
+      
+      const minMinutes = 7 * 60 + 30; // 7:30 AM
+      const maxMinutes = 23 * 60 + 30; // 11:30 PM
+      
+      if (totalMinutes < minMinutes || totalMinutes > maxMinutes) {
+        setMessage({ type: "error", text: "Time must be between 7:30 AM and 11:30 PM" });
+        setTimeError("Time must be between 7:30 AM and 11:30 PM");
+        return;
+      }
+    }
+    
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
 
@@ -201,6 +221,7 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
         }
 
         setMessage(null);
+        setTimeError(null);
         onSaved();
       } catch (err) {
         console.error(err);
@@ -259,9 +280,30 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
                 ? toDatetimeLocalValue(initialScheduledFor)
                 : ""
             }
-            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
+            onChange={(e) => {
+              const selectedDateTime = new Date(e.target.value);
+              const hours = selectedDateTime.getHours();
+              const minutes = selectedDateTime.getMinutes();
+              const totalMinutes = hours * 60 + minutes;
+              
+              // Check if time is between 7:30 AM (450 minutes) and 11:30 PM (1410 minutes)
+              const minMinutes = 7 * 60 + 30; // 7:30 AM
+              const maxMinutes = 23 * 60 + 30; // 11:30 PM
+              
+              if (totalMinutes < minMinutes || totalMinutes > maxMinutes) {
+                setTimeError("Time must be between 7:30 AM and 11:30 PM");
+              } else {
+                setTimeError(null);
+              }
+            }}
+            className={`w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2 ${
+              timeError ? "border-red-500 dark:border-red-500" : ""
+            }`}
             required
           />
+          {timeError && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">{timeError}</p>
+          )}
         </div>
         {/* Customer */}
         <div>

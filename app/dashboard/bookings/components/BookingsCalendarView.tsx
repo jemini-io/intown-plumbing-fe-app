@@ -8,6 +8,7 @@ import { PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
 import { SpinnerOverlay } from "@/app/dashboard/components/Spinner";
 
 interface BookingsCalendarViewProps {
+  refreshTrigger?: number;
   onBookingClick?: (booking: Booking) => void;
   onAddBooking?: (date: Date, timeSlot: string) => void;
   onBookingUpdate?: () => void;
@@ -134,7 +135,7 @@ function calculateBookingDuration(booking: Booking): number {
   return 30; // Default 30 minutes
 }
 
-export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsCalendarViewProps) {
+export function BookingsCalendarView({ refreshTrigger, onBookingClick, onAddBooking }: BookingsCalendarViewProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, 1 = next week, -1 = previous week
@@ -220,7 +221,7 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
       }
     }
     loadBookings();
-  }, []);
+  }, [refreshTrigger]);
 
   // Handle booking drag and drop
   const handleDragStart = (e: React.DragEvent, booking: Booking) => {
@@ -450,12 +451,65 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
     );
   }
 
+  // Count bookings for the week and by status
+  const weekBookingsCount = weekDays.reduce((count, day) => {
+    const dayBookings = bookingsByDay[day.date.toDateString()] || [];
+    return count + dayBookings.length;
+  }, 0);
+  
+  // Count bookings by status for the week
+  const weekStatusCounts = weekDays.reduce((counts, day) => {
+    const statusCounts = bookingsByStatusByDay[day.date.toDateString()] || {
+      PENDING: 0,
+      SCHEDULED: 0,
+      CANCELED: 0,
+      COMPLETED: 0,
+    };
+    counts.PENDING += statusCounts.PENDING;
+    counts.SCHEDULED += statusCounts.SCHEDULED;
+    counts.CANCELED += statusCounts.CANCELED;
+    counts.COMPLETED += statusCounts.COMPLETED;
+    return counts;
+  }, {
+    PENDING: 0,
+    SCHEDULED: 0,
+    CANCELED: 0,
+    COMPLETED: 0,
+  });
+
   return (
     <div className="w-full relative">
       {/* Week Navigation */}
       <div className="flex items-center justify-between mb-4">
-        {/* Empty space on left to center the navigation group */}
-        <div className="flex-1"></div>
+        {/* Bookings summary on left */}
+        <div className="flex-1 flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Bookings for the week:
+          </span>
+          <span className="text-3xl font-bold text-gray-900 dark:text-white">
+            {weekBookingsCount}
+          </span>
+          {weekStatusCounts.SCHEDULED > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-900 text-xs font-semibold" title={`${weekStatusCounts.SCHEDULED} scheduled`}>
+              {weekStatusCounts.SCHEDULED}
+            </span>
+          )}
+          {weekStatusCounts.PENDING > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-200 text-yellow-900 text-xs font-semibold" title={`${weekStatusCounts.PENDING} pending`}>
+              {weekStatusCounts.PENDING}
+            </span>
+          )}
+          {weekStatusCounts.CANCELED > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-200 text-red-900 text-xs font-semibold" title={`${weekStatusCounts.CANCELED} canceled`}>
+              {weekStatusCounts.CANCELED}
+            </span>
+          )}
+          {weekStatusCounts.COMPLETED > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-200 text-green-900 text-xs font-semibold" title={`${weekStatusCounts.COMPLETED} completed`}>
+              {weekStatusCounts.COMPLETED}
+            </span>
+          )}
+        </div>
         
         {/* Week Navigation with Previous/Next buttons around week range - Centered */}
         <div className="flex items-center gap-3">
@@ -504,7 +558,7 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
             onClick={goToCurrentWeek}
             className="text-xs px-3 py-1 rounded-md bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 hover:bg-blue-200 dark:hover:bg-blue-900/50 transition"
           >
-            Today
+            Current week
           </button>
         </div>
       </div>

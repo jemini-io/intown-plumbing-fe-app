@@ -6,7 +6,7 @@ import { Booking, BookingStatus } from "@/lib/types/booking";
 import { TechnicianToSkills } from "@/lib/types/technicianToSkills";
 import { getAllBookings, updateBooking } from "../actions";
 import { getAllTechnicians } from "@/app/dashboard/technicians/actions";
-import { PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { PlusIcon, UserCircleIcon, NoSymbolIcon } from "@heroicons/react/24/outline";
 import { SpinnerOverlay } from "@/app/dashboard/components/Spinner";
 
 // CSS to hide scrollbars
@@ -21,6 +21,7 @@ const hideScrollbarStyle = `
 `;
 
 interface TechniciansCalendarViewProps {
+  refreshTrigger?: number;
   onBookingClick?: (booking: Booking) => void;
   onAddBooking?: (date: Date, timeSlot: string, technicianId: string) => void;
   onBookingUpdate?: () => void;
@@ -154,7 +155,7 @@ function calculateBookingDuration(booking: Booking): number {
   return 30; // Default 30 minutes
 }
 
-export function TechniciansCalendarView({ onBookingClick, onAddBooking }: TechniciansCalendarViewProps) {
+export function TechniciansCalendarView({ refreshTrigger, onBookingClick, onAddBooking }: TechniciansCalendarViewProps) {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [technicians, setTechnicians] = useState<TechnicianToSkills[]>([]);
   const [loading, setLoading] = useState(true);
@@ -264,7 +265,7 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
       }
     }
     loadData();
-  }, []);
+  }, [refreshTrigger]);
 
   // Handle booking drag and drop
   const handleDragStart = (e: React.DragEvent, booking: Booking) => {
@@ -399,14 +400,18 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
     }
     
     // Calculate which time slot is being hovered based on Y position
-    if (scrollContainerRef.current && draggedBooking) {
-      const scrollContainerRect = scrollContainerRef.current.getBoundingClientRect();
-      // Calculate Y position relative to scroll container (header is outside, so no need to account for it)
-      const dragY = e.clientY - scrollContainerRect.top + scrollContainerRef.current.scrollTop;
+    if (scrollContainerRef.current && draggedBooking && calendarBodyRef.current) {
+      const calendarBodyRect = calendarBodyRef.current.getBoundingClientRect();
+      // Calculate Y position relative to the calendar body (which contains the time slots)
+      // The calendar body starts after the header, so we use its position directly
+      const dragY = e.clientY - calendarBodyRect.top;
       const slotHeight = 64;
+      // Calculate slot index based on the mouse position
+      // Use Math.floor to get the slot that contains the mouse position
       const slotIndex = Math.max(0, Math.floor(dragY / slotHeight));
       const actualSlotIndex = Math.min(slotIndex, timeSlots.length - 1);
-      const targetSlot = timeSlots[actualSlotIndex].time;
+      const targetSlotData = timeSlots[actualSlotIndex];
+      const targetSlot = targetSlotData.time;
       setHighlightedTimeSlot(targetSlot);
       
       // Calculate the exact date and time for the hovered cell
@@ -415,6 +420,17 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
       const slotMin = slotMinutes % 60;
       const hoverDate = new Date(selectedDate);
       hoverDate.setHours(slotHour, slotMin, 0, 0);
+      
+      // Check if the target slot is after 11:30 PM (23:30) or is non-working hours
+      const isAfter1130PM = (slotHour === 23 && slotMin > 30) || slotHour >= 24;
+      const isInvalidSlot = targetSlotData.isNonWorkingHours || isAfter1130PM;
+      
+      // Change drop effect to "none" if invalid slot to show prohibited sign
+      if (isInvalidSlot) {
+        e.dataTransfer.dropEffect = "none";
+      } else {
+        e.dataTransfer.dropEffect = "move";
+      }
       
       // Get technician info
       const targetTechnician = technicians.find(t => t.id === technicianId);
@@ -466,11 +482,29 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
     
     // Ensure we don't go beyond available slots
     const actualSlotIndex = Math.min(slotIndex, timeSlots.length - 1);
-    const targetSlot = timeSlots[actualSlotIndex].time;
+    const targetSlotData = timeSlots[actualSlotIndex];
+    const targetSlot = targetSlotData.time;
     
     const slotMinutes = timeToMinutes(targetSlot);
     const slotHour = Math.floor(slotMinutes / 60);
     const slotMin = slotMinutes % 60;
+
+    // Check if the target slot is after 11:30 PM (23:30) or is non-working hours
+    const isAfter1130PM = (slotHour === 23 && slotMin > 30) || slotHour >= 24;
+    const isInvalidSlot = targetSlotData.isNonWorkingHours || isAfter1130PM;
+    
+    // If dropped on invalid slot, just clean up the state and return (don't update)
+    if (isInvalidSlot) {
+      setDraggedBooking(null);
+      setDragOverCell(null);
+      setHighlightedTimeSlot(null);
+      setHighlightedTechnicianId(null);
+      setHoveredDateTime(null);
+      setIsUpdating(false);
+      setTargetDateTime(null);
+      setTargetTechnicianId(null);
+      return;
+    }
 
     // Create new date with the selected day and time
     const newDate = new Date(selectedDate);
@@ -696,14 +730,57 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
   const slotHeight = 64; // Height of each 5-minute slot in pixels
   const totalHeight = timeSlots.length * slotHeight;
 
+  // Count bookings for the selected day (using existing dayBookings from useMemo)
+  const bookingsCount = dayBookings.length;
+  
+  // Count bookings by status for the day
+  const dayStatusCounts = dayBookings.reduce((counts, booking) => {
+    if (counts[booking.status] !== undefined) {
+      counts[booking.status]++;
+    }
+    return counts;
+  }, {
+    PENDING: 0,
+    SCHEDULED: 0,
+    CANCELED: 0,
+    COMPLETED: 0,
+  } as Record<string, number>);
+
   return (
     <>
       <style>{hideScrollbarStyle}</style>
       <div className="w-full relative">
       {/* Day Navigation */}
       <div className="flex items-center justify-between mb-4">
-        {/* Empty space on left to center the navigation group */}
-        <div className="flex-1"></div>
+        {/* Bookings summary on left */}
+        <div className="flex-1 flex items-center gap-2">
+          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Bookings for the day:
+          </span>
+          <span className="text-3xl font-bold text-gray-900 dark:text-white">
+            {bookingsCount}
+          </span>
+          {dayStatusCounts.SCHEDULED > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-blue-200 text-blue-900 text-xs font-semibold" title={`${dayStatusCounts.SCHEDULED} scheduled`}>
+              {dayStatusCounts.SCHEDULED}
+            </span>
+          )}
+          {dayStatusCounts.PENDING > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-yellow-200 text-yellow-900 text-xs font-semibold" title={`${dayStatusCounts.PENDING} pending`}>
+              {dayStatusCounts.PENDING}
+            </span>
+          )}
+          {dayStatusCounts.CANCELED > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-200 text-red-900 text-xs font-semibold" title={`${dayStatusCounts.CANCELED} canceled`}>
+              {dayStatusCounts.CANCELED}
+            </span>
+          )}
+          {dayStatusCounts.COMPLETED > 0 && (
+            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-200 text-green-900 text-xs font-semibold" title={`${dayStatusCounts.COMPLETED} completed`}>
+              {dayStatusCounts.COMPLETED}
+            </span>
+          )}
+        </div>
         
         {/* Day Navigation with Previous/Next buttons around day - Centered */}
         <div className="flex items-center gap-3">
@@ -812,7 +889,7 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
         <div 
           ref={scrollContainerRef} 
           className="overflow-x-auto overflow-y-auto hide-scrollbar"
-          style={{ maxHeight: 'calc(100vh - 300px)' }}
+          style={{ maxHeight: 'calc(100vh - 200px)' }}
         >
           <div className="min-w-max relative">
             {/* Header Row - Sticky at top, moves horizontally with scroll */}
@@ -939,6 +1016,10 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
                         const slotHour = Math.floor(slotMinutes / 60);
                         const slotMin = slotMinutes % 60;
                         
+                        // Check if slot is after 11:30 PM (23:30) or is non-working hours
+                        const isAfter1130PM = (slotHour === 23 && slotMin > 30) || slotHour >= 24;
+                        const isInvalidSlot = isNonWorking || isAfter1130PM;
+                        
                         // Create date for this slot
                         const slotDate = new Date(selectedDate);
                         slotDate.setHours(slotHour, slotMin, 0, 0);
@@ -954,9 +1035,9 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
                           <div
                             key={`${technician.id}-${slot}`}
                             className={`border-r border-gray-200 dark:border-gray-700 last:border-r-0 relative group h-full transition-colors ${
-                              isDragOver 
+                              isDragOver && !isInvalidSlot
                                 ? "bg-blue-100 dark:bg-blue-900/30" 
-                                : isHovered 
+                                : isHovered && !isInvalidSlot
                                   ? "bg-gray-50 dark:bg-gray-700" 
                                   : ""
                             }`}
@@ -974,7 +1055,8 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
                             onDragLeave={handleDragLeave}
                             onDrop={(e) => handleDrop(e, technician.id)}
                           >
-                            {isHovered && onAddBooking && !draggedBooking && !isNonWorking && (
+                            {/* Show PlusIcon when hovering valid slot without drag */}
+                            {isHovered && !draggedBooking && !isInvalidSlot && onAddBooking && (
                               <button
                                 onClick={handleAddClick}
                                 className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 z-20"
@@ -982,6 +1064,15 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
                               >
                                 <PlusIcon className="h-4 w-4 text-gray-500 dark:text-gray-300" />
                               </button>
+                            )}
+                            {/* Show BlockedIcon when hovering or dragging over invalid slot */}
+                            {(isHovered || (draggedBooking && isDragOver)) && isInvalidSlot && (
+                              <div
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity bg-red-100 dark:bg-red-900/30 rounded-full p-1.5 shadow-md z-20"
+                                title={`Time slot not available (after 11:30 PM or non-working hours)`}
+                              >
+                                <NoSymbolIcon className="h-4 w-4 text-red-600 dark:text-red-400" />
+                              </div>
                             )}
                           </div>
                         );
@@ -1164,19 +1255,32 @@ export function TechniciansCalendarView({ onBookingClick, onAddBooking }: Techni
           } 
         />
       )}
-      {/* Time/Technician tooltip during drag */}
-      {draggedBooking && hoveredDateTime && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gray-900 dark:bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg border border-gray-700">
-          <div className="text-sm font-semibold">
-            {hoveredDateTime.time}
-          </div>
-          {hoveredDateTime.technicianName && (
-            <div className="text-xs text-gray-300 mt-1">
-              Technician {hoveredDateTime.technicianName}
+      {/* Time/Technician tooltip during drag - only show for valid slots */}
+      {draggedBooking && hoveredDateTime && (() => {
+        // Check if the hovered slot is invalid
+        const slotMinutes = timeToMinutes(hoveredDateTime.time);
+        const slotHour = Math.floor(slotMinutes / 60);
+        const slotMin = slotMinutes % 60;
+        const isAfter1130PM = (slotHour === 23 && slotMin > 30) || slotHour >= 24;
+        const slotData = timeSlots.find(s => s.time === hoveredDateTime.time);
+        const isInvalidSlot = slotData?.isNonWorkingHours || isAfter1130PM;
+        
+        // Don't show tooltip for invalid slots
+        if (isInvalidSlot) return null;
+        
+        return (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gray-900 dark:bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg border border-gray-700">
+            <div className="text-sm font-semibold">
+              {hoveredDateTime.time}
             </div>
-          )}
-        </div>
-      )}
+            {hoveredDateTime.technicianName && (
+              <div className="text-xs text-gray-300 mt-1">
+                Technician {hoveredDateTime.technicianName}
+              </div>
+            )}
+          </div>
+        );
+      })()}
     </>
   );
 }
