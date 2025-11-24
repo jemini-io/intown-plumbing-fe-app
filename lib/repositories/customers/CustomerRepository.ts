@@ -25,6 +25,11 @@ export class CustomerRepository {
         bookings: {
           include: {
             service: true,
+            technician: {
+              include: {
+                image: true,
+              },
+            },
           },
         },
         image: true,
@@ -49,6 +54,11 @@ export class CustomerRepository {
       select: {
         id: true,
         name: true,
+        image: {
+          select: {
+            url: true,
+          },
+        },
       },
     });
   }
@@ -68,6 +78,11 @@ export class CustomerRepository {
         bookings: {
           include: {
             service: true,
+            technician: {
+              include: {
+                image: true,
+              },
+            },
           },
         },
         image: true,

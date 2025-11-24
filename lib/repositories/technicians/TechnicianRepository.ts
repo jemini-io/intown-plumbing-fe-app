@@ -77,6 +77,11 @@ export class TechnicianRepository {
         id: true,
         technicianName: true,
         enabled: true,
+        image: {
+          select: {
+            url: true,
+          },
+        },
       },
     });
   }

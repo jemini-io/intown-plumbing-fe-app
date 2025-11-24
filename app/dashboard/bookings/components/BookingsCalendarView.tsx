@@ -1,24 +1,26 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import Image from "next/image";
 import { Booking, BookingStatus } from "@/lib/types/booking";
-import { getAllBookings } from "../actions";
+import { getAllBookings, updateBooking } from "../actions";
 import { PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import { SpinnerOverlay } from "@/app/dashboard/components/Spinner";
 
 interface BookingsCalendarViewProps {
   onBookingClick?: (booking: Booking) => void;
   onAddBooking?: (date: Date, timeSlot: string) => void;
+  onBookingUpdate?: () => void;
 }
 
-// Generate time slots from 7:30 AM to 7:30 PM in 15-minute intervals
+// Generate time slots from 7:30 AM to 11:30 PM in 15-minute intervals
 function generateTimeSlots(): string[] {
   const slots: string[] = [];
   let hour = 7;
   let minute = 30;
 
-  // Continue until 7:30 PM (19:30)
-  while (hour < 19 || (hour === 19 && minute <= 30)) {
+  // Continue until 11:30 PM (23:30)
+  while (hour < 23 || (hour === 23 && minute <= 30)) {
     const period = hour >= 12 ? "PM" : "AM";
     const displayHour = hour > 12 ? hour - 12 : hour === 0 ? 12 : hour;
     const timeStr = `${displayHour}:${minute.toString().padStart(2, "0")} ${period}`;
@@ -81,6 +83,23 @@ function getBookingColor(booking: Booking): string {
   }
 }
 
+// Get status badge color classes
+// Text color matches the booking box text color for contrast
+function getStatusBadgeColor(status: BookingStatus): string {
+  switch (status) {
+    case "COMPLETED":
+      return "bg-green-100 dark:bg-green-900/30 text-green-900";
+    case "SCHEDULED":
+      return "bg-blue-100 dark:bg-blue-900/30 text-blue-900";
+    case "PENDING":
+      return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-900";
+    case "CANCELED":
+      return "bg-red-100 dark:bg-red-900/30 text-red-900";
+    default:
+      return "bg-gray-100 dark:bg-gray-700 text-gray-900";
+  }
+}
+
 // Get bookings for a specific day
 function getBookingsForDay(bookings: Booking[], dayDate: Date): Booking[] {
   const dayStr = dayDate.toDateString();
@@ -120,6 +139,16 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
   const [loading, setLoading] = useState(true);
   const [weekOffset, setWeekOffset] = useState(0); // 0 = current week, 1 = next week, -1 = previous week
   const [hoveredCell, setHoveredCell] = useState<string | null>(null); // Track which cell is hovered (format: "day-slot")
+  const [draggedBooking, setDraggedBooking] = useState<Booking | null>(null);
+  const [dragOverCell, setDragOverCell] = useState<string | null>(null);
+  const [lastBookingState, setLastBookingState] = useState<{ bookingId: string; previousScheduledFor: Date } | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isUndoing, setIsUndoing] = useState(false);
+  const calendarBodyRef = useRef<HTMLDivElement>(null);
+  const [highlightedTimeSlot, setHighlightedTimeSlot] = useState<string | null>(null);
+  const [highlightedDayDate, setHighlightedDayDate] = useState<Date | null>(null);
+  const [hoveredDateTime, setHoveredDateTime] = useState<{ date: Date; time: string } | null>(null);
+  const [targetDateTime, setTargetDateTime] = useState<Date | null>(null);
 
   const timeSlots = useMemo(() => generateTimeSlots(), []);
   const weekDays = useMemo(() => {
@@ -193,6 +222,195 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
     loadBookings();
   }, []);
 
+  // Handle booking drag and drop
+  const handleDragStart = (e: React.DragEvent, booking: Booking) => {
+    setDraggedBooking(booking);
+    setHighlightedTimeSlot(null);
+    setHighlightedDayDate(null);
+    setHoveredDateTime(null);
+    e.dataTransfer.effectAllowed = "move";
+    e.dataTransfer.setData("text/plain", booking.id);
+  };
+
+  const handleDragEnd = () => {
+    // Clean up drag state if drop didn't happen or was cancelled
+    // Only clean up if we're not currently updating (which means drop was successful)
+    if (!isUpdating) {
+      setDraggedBooking(null);
+      setDragOverCell(null);
+      setHighlightedTimeSlot(null);
+      setHighlightedDayDate(null);
+      setHoveredDateTime(null);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent, dayDate: Date, slot: string) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+    const cellKey = `${dayDate.toDateString()}-${slot}`;
+    setDragOverCell(cellKey);
+    
+    // Calculate which time slot is being hovered based on Y position
+    if (calendarBodyRef.current && draggedBooking) {
+      const calendarBodyRect = calendarBodyRef.current.getBoundingClientRect();
+      const dragY = e.clientY - calendarBodyRect.top;
+      const slotHeight = 48;
+      const slotIndex = Math.max(0, Math.floor(dragY / slotHeight));
+      const actualSlotIndex = Math.min(slotIndex, timeSlots.length - 1);
+      const targetSlot = timeSlots[actualSlotIndex];
+      setHighlightedTimeSlot(targetSlot);
+      
+      // Calculate the exact date and time for the hovered cell
+      const slotMinutes = timeToMinutes(targetSlot);
+      const slotHour = Math.floor(slotMinutes / 60);
+      const slotMin = slotMinutes % 60;
+      const hoverDate = new Date(dayDate);
+      hoverDate.setHours(slotHour, slotMin, 0, 0);
+      
+      setHighlightedDayDate(dayDate);
+      setHoveredDateTime({
+        date: hoverDate,
+        time: targetSlot,
+      });
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverCell(null);
+    setHighlightedTimeSlot(null);
+    setHighlightedDayDate(null);
+    setHoveredDateTime(null);
+  };
+
+  const handleDrop = async (e: React.DragEvent, dayDate: Date) => {
+    e.preventDefault();
+    setDragOverCell(null);
+    setHighlightedTimeSlot(null);
+    setHighlightedDayDate(null);
+    setHoveredDateTime(null);
+    
+    if (!draggedBooking || !calendarBodyRef.current) return;
+
+    // Calculate the Y position relative to the calendar body
+    const calendarBodyRect = calendarBodyRef.current.getBoundingClientRect();
+    const dropY = e.clientY - calendarBodyRect.top;
+    
+    // Calculate which slot corresponds to this Y position
+    // Each slot is 48px high, and slots start at 0
+    const slotHeight = 48;
+    const slotIndex = Math.max(0, Math.floor(dropY / slotHeight));
+    
+    // Ensure we don't go beyond available slots
+    const actualSlotIndex = Math.min(slotIndex, timeSlots.length - 1);
+    const targetSlot = timeSlots[actualSlotIndex];
+    
+    const slotMinutes = timeToMinutes(targetSlot);
+    const slotHour = Math.floor(slotMinutes / 60);
+    const slotMin = slotMinutes % 60;
+
+    // Create new date with the dropped day and time
+    const newDate = new Date(dayDate);
+    newDate.setHours(slotHour, slotMin, 0, 0);
+
+    // Save the previous state for undo
+    let previousScheduledFor: Date;
+    if (draggedBooking.scheduledFor instanceof Date) {
+      previousScheduledFor = new Date(draggedBooking.scheduledFor);
+    } else {
+      previousScheduledFor = new Date(draggedBooking.scheduledFor as string);
+    }
+
+    // Check if the booking was dropped in the exact same spot
+    const isSameTime = newDate.getTime() === previousScheduledFor.getTime();
+
+    if (isSameTime) {
+      // If dropped in the same spot, just clean up drag state and return
+      setDraggedBooking(null);
+      setDragOverCell(null);
+      setHighlightedTimeSlot(null);
+      setHighlightedDayDate(null);
+      setHoveredDateTime(null);
+      setIsUpdating(false);
+      setTargetDateTime(null);
+      return;
+    }
+
+    // Save target date/time for spinner message
+    setTargetDateTime(newDate);
+    setIsUpdating(true);
+    setIsUndoing(false);
+    try {
+      // Update the booking with new scheduledFor
+      await updateBooking(draggedBooking.id, {
+        customerId: draggedBooking.customerId,
+        jobId: draggedBooking.jobId,
+        serviceId: draggedBooking.serviceId,
+        technicianId: draggedBooking.technicianId,
+        scheduledFor: newDate,
+        status: draggedBooking.status,
+        revenue: draggedBooking.revenue || 0,
+        notes: draggedBooking.notes || "",
+      });
+
+      // Reload bookings first
+      const allBookings = await getAllBookings();
+      setBookings(allBookings);
+
+      // Save state for undo AFTER the booking has been moved and reloaded
+      setLastBookingState({
+        bookingId: draggedBooking.id,
+        previousScheduledFor,
+      });
+
+      // Auto-clear undo state after 15 seconds
+      setTimeout(() => {
+        setLastBookingState(null);
+      }, 15000);
+
+      // Don't call onBookingUpdate to avoid page reload that would reset the undo toast
+    } catch (error) {
+      console.error("Error updating booking:", error);
+    } finally {
+      setDraggedBooking(null);
+      setIsUpdating(false);
+      setTargetDateTime(null);
+    }
+  };
+
+  const handleUndo = async (booking: Booking) => {
+    if (!lastBookingState || lastBookingState.bookingId !== booking.id) return;
+
+    // Save target date/time for spinner message (the previous position)
+    setTargetDateTime(lastBookingState.previousScheduledFor);
+    setIsUpdating(true);
+    setIsUndoing(true);
+    try {
+      // Revert to previous scheduledFor
+      await updateBooking(booking.id, {
+        customerId: booking.customerId,
+        jobId: booking.jobId,
+        serviceId: booking.serviceId,
+        technicianId: booking.technicianId,
+        scheduledFor: lastBookingState.previousScheduledFor,
+        status: booking.status,
+        revenue: booking.revenue || 0,
+        notes: booking.notes || "",
+      });
+
+      // Reload bookings
+      const allBookings = await getAllBookings();
+      setBookings(allBookings);
+      // Don't call onBookingUpdate to avoid page reload that would reset the undo toast
+    } catch (error) {
+      console.error("Error reverting booking:", error);
+    } finally {
+      setLastBookingState(null);
+      setIsUpdating(false);
+      setIsUndoing(false);
+      setTargetDateTime(null);
+    }
+  };
+
   // Group bookings by day
   const bookingsByDay = useMemo(() => {
     const grouped: Record<string, Booking[]> = {};
@@ -233,7 +451,7 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
   }
 
   return (
-    <div className="w-full">
+    <div className="w-full relative">
       {/* Week Navigation */}
       <div className="flex items-center justify-between mb-4">
         {/* Empty space on left to center the navigation group */}
@@ -309,10 +527,16 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                 COMPLETED: 0,
               };
               
+              const isHighlighted = highlightedDayDate && day.date.toDateString() === highlightedDayDate.toDateString() && (draggedBooking || hoveredCell?.includes(day.date.toDateString()));
+              
               return (
                 <div
                   key={day.name}
-                  className="p-2 font-semibold text-gray-700 dark:text-gray-200 border-r border-gray-200 dark:border-gray-600 last:border-r-0 text-center"
+                  className={`p-2 font-semibold border-r border-gray-200 dark:border-gray-600 last:border-r-0 text-center transition-colors ${
+                    isHighlighted
+                      ? "bg-white dark:bg-gray-600/50 text-gray-900 dark:text-gray-100"
+                      : "text-gray-700 dark:text-gray-200"
+                  }`}
                 >
                   {/* Day name and badges on same line */}
                   <div className="flex items-center justify-center gap-2">
@@ -352,6 +576,7 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
 
           {/* Calendar Body - Using absolute positioning for bookings */}
           <div 
+            ref={calendarBodyRef}
             className="relative"
             style={{ height: `${timeSlots.length * 48}px` }}
           >
@@ -361,10 +586,14 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                 return (
                   <div
                     key={slot}
-                    className="grid grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] h-[48px] hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    className="grid grid-cols-[80px_1fr_1fr_1fr_1fr_1fr] h-[48px] transition-colors"
                   >
                     {/* Time Column - Sticky when scrolling */}
-                    <div className="p-2 text-sm text-gray-600 dark:text-gray-400 border-r border-gray-200 dark:border-gray-700 flex items-center bg-white dark:bg-gray-800">
+                    <div className={`p-2 text-sm border-r border-gray-200 dark:border-gray-700 flex items-center transition-colors ${
+                      highlightedTimeSlot === slot && (draggedBooking || hoveredCell?.includes(slot))
+                        ? "bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-gray-100 font-semibold"
+                        : "text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800"
+                    }`}>
                       {slot}
                     </div>
 
@@ -385,15 +614,36 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                         onAddBooking?.(slotDate, slot);
                       };
                       
+                      const isDragOver = dragOverCell === cellKey;
+                      
                       return (
                         <div
                           key={`${day.name}-${slot}`}
-                          className="border-r border-gray-200 dark:border-gray-700 last:border-r-0 relative group"
+                          className={`border-r border-gray-200 dark:border-gray-700 last:border-r-0 relative group transition-colors ${
+                            isDragOver 
+                              ? "bg-blue-100 dark:bg-blue-900/30" 
+                              : isHovered 
+                                ? "bg-gray-50 dark:bg-gray-700" 
+                                : ""
+                          }`}
                           style={{ height: '48px' }}
-                          onMouseEnter={() => setHoveredCell(cellKey)}
-                          onMouseLeave={() => setHoveredCell(null)}
+                          onMouseEnter={() => {
+                            setHoveredCell(cellKey);
+                            setHighlightedTimeSlot(slot);
+                            setHighlightedDayDate(day.date);
+                          }}
+                          onMouseLeave={() => {
+                            setHoveredCell(null);
+                            if (!draggedBooking) {
+                              setHighlightedTimeSlot(null);
+                              setHighlightedDayDate(null);
+                            }
+                          }}
+                          onDragOver={(e) => handleDragOver(e, day.date, slot)}
+                          onDragLeave={handleDragLeave}
+                          onDrop={(e) => handleDrop(e, day.date)}
                         >
-                          {isHovered && onAddBooking && (
+                          {isHovered && onAddBooking && !draggedBooking && (
                             <button
                               onClick={handleAddClick}
                               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 transition-opacity bg-white dark:bg-gray-700 rounded-full p-1.5 shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 z-20"
@@ -484,8 +734,11 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                     return (
                       <div
                         key={booking.id}
+                        draggable
+                        onDragStart={(e) => handleDragStart(e, booking)}
+                        onDragEnd={handleDragEnd}
                         onClick={() => onBookingClick?.(booking)}
-                        className={`${getBookingColor(booking)} rounded p-2 text-xs cursor-pointer hover:opacity-80 transition-opacity pointer-events-auto`}
+                        className={`${getBookingColor(booking)} rounded p-2 text-xs cursor-move hover:opacity-80 transition-opacity pointer-events-auto relative ${draggedBooking?.id === booking.id ? "opacity-50" : ""}`}
                         style={{
                           position: 'absolute',
                           top: `${top}px`,
@@ -495,9 +748,20 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                           minHeight: '55px',
                           zIndex: 10,
                         }}
-                        title={`${serviceName} - Customer: ${customerName} - Technician: ${technicianName} - ${displayTime} (${durationMinutes} min)`}
+                        title={`${serviceName} - Customer: ${customerName} - Technician: ${technicianName} - ${displayTime} (${durationMinutes} min). Drag to move.`}
                       >
-                        <div className="font-semibold truncate">{displayTime}</div>
+                        {/* Status badge and revenue in top right corner */}
+                        <div className="absolute top-1 right-1 flex flex-col items-end gap-0.5">
+                          <div className={`px-1.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeColor(booking.status)}`}>
+                            {booking.status}
+                          </div>
+                          {booking.revenue > 0 && (
+                            <div className="text-xs font-medium opacity-75">
+                              ${booking.revenue.toFixed(2)}
+                            </div>
+                          )}
+                        </div>
+                        <div className="font-semibold truncate pr-12">{displayTime}</div>
                         <div className="font-semibold truncate mb-1">{serviceName}</div>
                         <div className="flex items-center gap-1.5 text-xs opacity-90 truncate mb-0.5">
                           {booking.customer?.image?.url ? (
@@ -529,6 +793,21 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
                           )}
                           <span>{technicianName} (technician)</span>
                         </div>
+                        {/* Undo button in bottom right corner if this booking was just moved */}
+                        {lastBookingState && lastBookingState.bookingId === booking.id && (
+                          <div className="absolute bottom-1 right-1 z-20">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleUndo(booking);
+                              }}
+                              className="bg-gray-700 dark:bg-gray-600 text-white text-xs font-semibold px-2 py-1 rounded shadow-md hover:bg-gray-800 dark:hover:bg-gray-700 transition-colors"
+                              title="Undo move"
+                            >
+                              Undo
+                            </button>
+                          </div>
+                        )}
                       </div>
                     );
                   })}
@@ -539,6 +818,35 @@ export function BookingsCalendarView({ onBookingClick, onAddBooking }: BookingsC
           </div>
         </div>
       </div>
+      {isUpdating && (
+        <SpinnerOverlay 
+          message={
+            isUndoing && targetDateTime
+              ? `Returning booking to ${targetDateTime.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })} at ${targetDateTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`
+              : targetDateTime
+              ? `Moving booking to ${targetDateTime.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })} at ${targetDateTime.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true })}`
+              : isUndoing
+              ? "Undoing movement of booking..."
+              : "Moving booking..."
+          } 
+        />
+      )}
+      {/* Date/Time tooltip during drag */}
+      {draggedBooking && hoveredDateTime && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 bg-gray-900 dark:bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg border border-gray-700">
+          <div className="text-sm font-semibold">
+            {hoveredDateTime.date.toLocaleDateString("en-US", { 
+              weekday: "long", 
+              month: "long", 
+              day: "numeric", 
+              year: "numeric" 
+            })}
+          </div>
+          <div className="text-xs text-gray-300 mt-1">
+            {hoveredDateTime.time}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

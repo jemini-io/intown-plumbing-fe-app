@@ -438,10 +438,19 @@ export function CustomerListView({
                 }}
               >
                 <div className="text-xs font-semibold text-gray-700 dark:text-white mb-2">Bookings for {customer.name}:</div>
-                <div className="space-y-2 max-h-60 overflow-auto">
+                <div className="space-y-2">
                   {customer.bookings.map((booking) => (
-                    <div key={booking.id} className="text-xs text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 last:border-b-0 pb-2 last:pb-0">
-                      <div className="font-medium dark:text-white">{booking.service?.displayName || "N/A"}</div>
+                    <div key={booking.id} className="text-xs text-gray-700 dark:text-gray-300 border-b dark:border-gray-700 last:border-b-0 pb-2 last:pb-0 relative">
+                      {/* Status badge in top right corner */}
+                      <div className={`absolute top-0 right-0 px-1.5 py-0.5 rounded text-xs font-semibold ${
+                        booking.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
+                        booking.status === 'SCHEDULED' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
+                        booking.status === 'PENDING' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
+                        'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+                      }`}>
+                        {booking.status}
+                      </div>
+                      <div className="font-medium dark:text-white pr-20">{booking.service?.displayName || "N/A"}</div>
                       <div className="text-gray-500 dark:text-gray-400">
                         {booking.scheduledFor ? new Date(booking.scheduledFor).toLocaleDateString('en-US', { 
                           month: 'short', 
@@ -451,17 +460,27 @@ export function CustomerListView({
                           minute: '2-digit'
                         }) : "N/A"}
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className={`px-1.5 py-0.5 rounded text-xs ${
-                          booking.status === 'COMPLETED' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
-                          booking.status === 'SCHEDULED' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' :
-                          booking.status === 'PENDING' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300' :
-                          'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-                        }`}>
-                          {booking.status}
-                        </span>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {booking.revenue > 0 && (
                           <span className="text-gray-600 dark:text-gray-400">${booking.revenue.toFixed(2)}</span>
+                        )}
+                        {booking.technician && (
+                          <div className="flex items-center gap-1.5 text-gray-600 dark:text-gray-400">
+                            <span>Tech:</span>
+                            {booking.technician.image?.url ? (
+                              <Image
+                                src={booking.technician.image.url}
+                                alt={booking.technician.technicianName}
+                                width={16}
+                                height={16}
+                                className="rounded-full object-cover flex-shrink-0"
+                                unoptimized
+                              />
+                            ) : (
+                              <UserCircleIcon className="h-4 w-4 text-gray-600 dark:text-gray-400 flex-shrink-0" />
+                            )}
+                            <span>{booking.technician.technicianName}</span>
+                          </div>
                         )}
                       </div>
                     </div>

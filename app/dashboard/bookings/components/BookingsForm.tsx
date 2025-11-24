@@ -1,12 +1,15 @@
 "use client";
 
-import { useState, useRef, useTransition } from "react";
+import { useState, useRef, useTransition, useEffect } from "react";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { addBooking, updateBooking } from "../actions";
 import { Booking } from "@/lib/types/booking";
 import { useCustomersDropdown, useServicesDropdown, useTechniciansDropdown } from "../hooks/useDropdownData";
 import { toDatetimeLocalValue } from "@/lib/utils/datetime";
 import { BookingStatus } from "@/lib/types/booking";
+import { ChevronDownIcon } from "@heroicons/react/24/outline";
+import { UserCircleIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
 type BookingFormProps = FormComponentProps & {
   existing?: Booking;
@@ -23,20 +26,168 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
   const { data: allServices, isLoading: loadingServices } = useServicesDropdown();
   const { data: allTechnicians, isLoading: loadingTechnicians } = useTechniciansDropdown();
 
+  // Types
+  type CustomerWithImage = { id: string; name: string; image?: { url: string } | null };
+  type TechnicianWithImage = { id: string; technicianName: string; image?: { url: string } | null };
+  type ServiceWithEmoji = { id: string; displayName: string; emoji?: string };
+  
+  // States for dropdown selections
+  const [selectedCustomer, setSelectedCustomer] = useState<CustomerWithImage | null>(
+    existing?.customerId ? (allCustomers.find(c => c.id === existing.customerId) as CustomerWithImage | undefined) || null : null
+  );
+  const [selectedService, setSelectedService] = useState<ServiceWithEmoji | null>(
+    existing?.serviceId ? (allServices.find(s => s.id === existing.serviceId) as ServiceWithEmoji | undefined) || null : null
+  );
+  const [selectedTechnician, setSelectedTechnician] = useState<TechnicianWithImage | null>(
+    existing?.technicianId ? (allTechnicians.find(t => t.id === existing.technicianId) as TechnicianWithImage | undefined) || null :
+    initialTechnicianId ? (allTechnicians.find(t => t.id === initialTechnicianId) as TechnicianWithImage | undefined) || null : null
+  );
+
+  // Dropdown open states
+  const [customerDropdownOpen, setCustomerDropdownOpen] = useState(false);
+  const [serviceDropdownOpen, setServiceDropdownOpen] = useState(false);
+  const [technicianDropdownOpen, setTechnicianDropdownOpen] = useState(false);
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+
+  // Selected status state
+  const [selectedStatus, setSelectedStatus] = useState<BookingStatus>(
+    existing?.status || initialScheduledFor ? "SCHEDULED" : "PENDING"
+  );
+
+  // Search queries
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [serviceQuery, setServiceQuery] = useState("");
+  const [technicianQuery, setTechnicianQuery] = useState("");
+
+  // Refs for click outside detection
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
+  const serviceDropdownRef = useRef<HTMLDivElement>(null);
+  const technicianDropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const customerSearchRef = useRef<HTMLInputElement>(null);
+  const serviceSearchRef = useRef<HTMLInputElement>(null);
+  const technicianSearchRef = useRef<HTMLInputElement>(null);
+
+  // Filtered options based on query
+  const filteredCustomers = customerQuery === ""
+    ? allCustomers
+    : allCustomers.filter((customer) =>
+        customer.name.toLowerCase().includes(customerQuery.toLowerCase())
+      );
+
+  const filteredServices = serviceQuery === ""
+    ? allServices
+    : allServices.filter((service) =>
+        service.displayName.toLowerCase().includes(serviceQuery.toLowerCase())
+      );
+
+  const filteredTechnicians = technicianQuery === ""
+    ? allTechnicians
+    : allTechnicians.filter((technician) =>
+        technician.technicianName.toLowerCase().includes(technicianQuery.toLowerCase())
+      );
+
+  // Update selected status when existing booking changes
+  useEffect(() => {
+    if (existing?.status) {
+      setSelectedStatus(existing.status);
+    }
+  }, [existing]);
+
+  // Update selected values when data loads or existing booking changes
+  useEffect(() => {
+    if (existing && allCustomers.length > 0 && !selectedCustomer) {
+      const customer = allCustomers.find(c => c.id === existing.customerId);
+      if (customer) setSelectedCustomer(customer as CustomerWithImage);
+    }
+  }, [existing, allCustomers, selectedCustomer]);
+
+  useEffect(() => {
+    if (existing && allServices.length > 0 && !selectedService) {
+      const service = allServices.find(s => s.id === existing.serviceId);
+      if (service) setSelectedService(service as ServiceWithEmoji);
+    }
+  }, [existing, allServices, selectedService]);
+
+  useEffect(() => {
+    if (existing && allTechnicians.length > 0 && !selectedTechnician) {
+      const technician = allTechnicians.find(t => t.id === existing.technicianId);
+      if (technician) setSelectedTechnician(technician as TechnicianWithImage);
+    } else if (initialTechnicianId && allTechnicians.length > 0 && !selectedTechnician) {
+      const technician = allTechnicians.find(t => t.id === initialTechnicianId);
+      if (technician) setSelectedTechnician(technician as TechnicianWithImage);
+    }
+  }, [existing, initialTechnicianId, allTechnicians, selectedTechnician]);
+
+  // Handle click outside for customer dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
+        setCustomerDropdownOpen(false);
+      }
+    }
+    if (customerDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      setTimeout(() => customerSearchRef.current?.focus(), 0);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [customerDropdownOpen]);
+
+  // Handle click outside for service dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (serviceDropdownRef.current && !serviceDropdownRef.current.contains(event.target as Node)) {
+        setServiceDropdownOpen(false);
+      }
+    }
+    if (serviceDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      setTimeout(() => serviceSearchRef.current?.focus(), 0);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [serviceDropdownOpen]);
+
+  // Handle click outside for technician dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (technicianDropdownRef.current && !technicianDropdownRef.current.contains(event.target as Node)) {
+        setTechnicianDropdownOpen(false);
+      }
+    }
+    if (technicianDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      setTimeout(() => technicianSearchRef.current?.focus(), 0);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [technicianDropdownOpen]);
+
+  // Handle click outside for status dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setStatusDropdownOpen(false);
+      }
+    }
+    if (statusDropdownOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [statusDropdownOpen]);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     startTransition(async () => {
       const formData = new FormData(formRef.current!);
 
       const bookingData = {
-        customerId: formData.get("customerId") as string,
+        customerId: selectedCustomer?.id || existing?.customerId || (formData.get("customerId") as string),
         jobId: existing?.jobId || (formData.get("jobId") as string),
-        serviceId: formData.get("serviceId") as string,
-        technicianId: formData.get("technicianId") as string,
+        serviceId: selectedService?.id || existing?.serviceId || (formData.get("serviceId") as string),
+        technicianId: selectedTechnician?.id || existing?.technicianId || initialTechnicianId || (formData.get("technicianId") as string),
         scheduledFor: new Date(formData.get("scheduledFor") as string),
-        status: formData.get("status") as BookingStatus,
-        revenue: Number(formData.get("revenue") || 0),
-        notes: formData.get("notes") as string,
+        status: selectedStatus || (formData.get("status") as BookingStatus) || existing?.status || "PENDING",
+        revenue: Number(formData.get("revenue") || existing?.revenue || 0),
+        notes: (formData.get("notes") as string) || existing?.notes || "",
       };
 
       try {
@@ -59,6 +210,22 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
   }
 
   const statusOptions: BookingStatus[] = ["PENDING", "SCHEDULED", "CANCELED", "COMPLETED"];
+
+  // Get status badge color classes (same as calendar)
+  function getStatusBadgeColor(status: BookingStatus): string {
+    switch (status) {
+      case "COMPLETED":
+        return "bg-green-100 dark:bg-green-100 text-green-900";
+      case "SCHEDULED":
+        return "bg-blue-100 dark:bg-blue-100 text-blue-900";
+      case "PENDING":
+        return "bg-yellow-100 dark:bg-yellow-100 text-yellow-900";
+      case "CANCELED":
+        return "bg-red-100 dark:bg-red-100 text-red-900";
+      default:
+        return "bg-gray-100 dark:bg-gray-100 text-gray-900";
+    }
+  }
 
   return (
     <div>
@@ -102,19 +269,89 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
           {loadingCustomers ? (
             <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Loading customers...</div>
           ) : (
-            <select
-              name="customerId"
-              defaultValue={existing?.customerId ?? ""}
-              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
-              required
-            >
-              <option value="">Select a customer</option>
-              {allCustomers.map(customer => (
-                <option key={customer.id} value={customer.id}>
-                  {customer.name}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={customerDropdownRef}>
+              <input type="hidden" name="customerId" value={selectedCustomer?.id || existing?.customerId || ""} />
+              <button
+                type="button"
+                onClick={() => setCustomerDropdownOpen(!customerDropdownOpen)}
+                className="w-full flex items-center justify-between border dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {selectedCustomer ? (
+                    <>
+                      {selectedCustomer.image?.url ? (
+                        <Image
+                          src={selectedCustomer.image.url}
+                          alt={selectedCustomer.name}
+                          width={20}
+                          height={20}
+                          className="rounded-full object-cover flex-shrink-0"
+                          unoptimized
+                        />
+                      ) : (
+                        <UserCircleIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                      )}
+                      <span className="truncate dark:text-white">{selectedCustomer.name}</span>
+                    </>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400">Select a customer</span>
+                  )}
+                </div>
+                <ChevronDownIcon
+                  className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0 ${customerDropdownOpen ? "transform rotate-180" : ""}`}
+                />
+              </button>
+              {customerDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg">
+                  <div className="p-2 border-b dark:border-gray-700">
+                    <input
+                      ref={customerSearchRef}
+                      type="text"
+                      value={customerQuery}
+                      onChange={(e) => setCustomerQuery(e.target.value)}
+                      placeholder="Search customers..."
+                      className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="max-h-60 overflow-auto">
+                    {filteredCustomers.length > 0 ? (
+                      filteredCustomers.map((customer) => (
+                        <button
+                          key={customer.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedCustomer(customer as CustomerWithImage);
+                            setCustomerDropdownOpen(false);
+                            setCustomerQuery("");
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors ${
+                            selectedCustomer?.id === customer.id ? "bg-blue-100 dark:bg-gray-700" : ""
+                          }`}
+                        >
+                          {(customer as CustomerWithImage).image?.url ? (
+                            <Image
+                              src={(customer as CustomerWithImage).image!.url!}
+                              alt={customer.name}
+                              width={20}
+                              height={20}
+                              className="rounded-full object-cover flex-shrink-0"
+                              unoptimized
+                            />
+                          ) : (
+                            <UserCircleIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          )}
+                          <span className="text-sm font-medium dark:text-white">{customer.name}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                        No customers found
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
         {/* Job ID */}
@@ -136,19 +373,71 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
           {loadingServices ? (
             <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Loading services...</div>
           ) : (
-            <select
-              name="serviceId"
-              defaultValue={existing?.serviceId ?? ""}
-              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
-              required
-            >
-              <option value="">Select a service</option>
-              {allServices.map(service => (
-                <option key={service.id} value={service.id}>
-                  {service.displayName}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={serviceDropdownRef}>
+              <input type="hidden" name="serviceId" value={selectedService?.id || existing?.serviceId || ""} />
+              <button
+                type="button"
+                onClick={() => setServiceDropdownOpen(!serviceDropdownOpen)}
+                className="w-full flex items-center justify-between border dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {selectedService ? (
+                    <>
+                      {selectedService.emoji && (
+                        <span className="text-lg flex-shrink-0">{selectedService.emoji}</span>
+                      )}
+                      <span className="truncate dark:text-white">{selectedService.displayName}</span>
+                    </>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400">Select a service</span>
+                  )}
+                </div>
+                <ChevronDownIcon
+                  className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0 ${serviceDropdownOpen ? "transform rotate-180" : ""}`}
+                />
+              </button>
+              {serviceDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg">
+                  <div className="p-2 border-b dark:border-gray-700">
+                    <input
+                      ref={serviceSearchRef}
+                      type="text"
+                      value={serviceQuery}
+                      onChange={(e) => setServiceQuery(e.target.value)}
+                      placeholder="Search services..."
+                      className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="max-h-60 overflow-auto">
+                    {filteredServices.length > 0 ? (
+                      filteredServices.map((service) => (
+                        <button
+                          key={service.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedService(service as ServiceWithEmoji);
+                            setServiceDropdownOpen(false);
+                            setServiceQuery("");
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors ${
+                            selectedService?.id === service.id ? "bg-blue-100 dark:bg-gray-700" : ""
+                          }`}
+                        >
+                          {(service as ServiceWithEmoji).emoji && (
+                            <span className="text-lg flex-shrink-0">{(service as ServiceWithEmoji).emoji}</span>
+                          )}
+                          <span className="text-sm font-medium dark:text-white">{service.displayName}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                        No services found
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
         {/* Technician */}
@@ -157,34 +446,132 @@ export function BookingsForm({ existing, initialScheduledFor, initialTechnicianI
           {loadingTechnicians ? (
             <div className="text-sm text-gray-500 dark:text-gray-400 py-2">Loading technicians...</div>
           ) : (
-            <select
-              name="technicianId"
-              defaultValue={existing?.technicianId ?? initialTechnicianId ?? ""}
-              className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
-              required
-            >
-              <option value="">Select a technician</option>
-              {allTechnicians.map(technician => (
-                <option key={technician.id} value={technician.id}>
-                  {technician.technicianName}
-                </option>
-              ))}
-            </select>
+            <div className="relative" ref={technicianDropdownRef}>
+              <input type="hidden" name="technicianId" value={selectedTechnician?.id || existing?.technicianId || initialTechnicianId || ""} />
+              <button
+                type="button"
+                onClick={() => setTechnicianDropdownOpen(!technicianDropdownOpen)}
+                className="w-full flex items-center justify-between border dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              >
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  {selectedTechnician ? (
+                    <>
+                      {selectedTechnician.image?.url ? (
+                        <Image
+                          src={selectedTechnician.image.url}
+                          alt={selectedTechnician.technicianName}
+                          width={20}
+                          height={20}
+                          className="rounded-full object-cover flex-shrink-0"
+                          unoptimized
+                        />
+                      ) : (
+                        <UserCircleIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                      )}
+                      <span className="truncate dark:text-white">{selectedTechnician.technicianName}</span>
+                    </>
+                  ) : (
+                    <span className="text-gray-500 dark:text-gray-400">Select a technician</span>
+                  )}
+                </div>
+                <ChevronDownIcon
+                  className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0 ${technicianDropdownOpen ? "transform rotate-180" : ""}`}
+                />
+              </button>
+              {technicianDropdownOpen && (
+                <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg">
+                  <div className="p-2 border-b dark:border-gray-700">
+                    <input
+                      ref={technicianSearchRef}
+                      type="text"
+                      value={technicianQuery}
+                      onChange={(e) => setTechnicianQuery(e.target.value)}
+                      placeholder="Search technicians..."
+                      className="w-full px-3 py-2 border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    />
+                  </div>
+                  <div className="max-h-60 overflow-auto">
+                    {filteredTechnicians.length > 0 ? (
+                      filteredTechnicians.map((technician) => (
+                        <button
+                          key={technician.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedTechnician(technician as TechnicianWithImage);
+                            setTechnicianDropdownOpen(false);
+                            setTechnicianQuery("");
+                          }}
+                          className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors ${
+                            selectedTechnician?.id === technician.id ? "bg-blue-100 dark:bg-gray-700" : ""
+                          }`}
+                        >
+                          {(technician as TechnicianWithImage).image?.url ? (
+                            <Image
+                              src={(technician as TechnicianWithImage).image!.url!}
+                              alt={technician.technicianName}
+                              width={20}
+                              height={20}
+                              className="rounded-full object-cover flex-shrink-0"
+                              unoptimized
+                            />
+                          ) : (
+                            <UserCircleIcon className="h-5 w-5 text-gray-400 dark:text-gray-500 flex-shrink-0" />
+                          )}
+                          <span className="text-sm font-medium dark:text-white">{technician.technicianName}</span>
+                        </button>
+                      ))
+                    ) : (
+                      <div className="px-3 py-2 text-sm text-gray-500 dark:text-gray-400 text-center">
+                        No technicians found
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
           )}
         </div>
         {/* Status */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
-          <select
-            name="status"
-            defaultValue={existing?.status ?? "PENDING"}
-            className="w-full border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded p-2"
-            required
-          >
-            {statusOptions.map(status => (
-              <option key={status} value={status}>{status}</option>
-            ))}
-          </select>
+          <div className="relative" ref={statusDropdownRef}>
+            <input type="hidden" name="status" value={selectedStatus} />
+            <button
+              type="button"
+              onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
+              className="w-full flex items-center justify-between border dark:border-gray-600 rounded p-2 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            >
+              <div className={`px-1.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeColor(selectedStatus)}`}>
+                {selectedStatus}
+              </div>
+              <ChevronDownIcon
+                className={`h-4 w-4 text-gray-500 dark:text-gray-400 transition-transform flex-shrink-0 ${statusDropdownOpen ? "transform rotate-180" : ""}`}
+              />
+            </button>
+            {statusDropdownOpen && (
+              <div className="absolute z-50 mt-1 w-full bg-white dark:bg-gray-800 border dark:border-gray-700 rounded-md shadow-lg">
+                <div className="max-h-60 overflow-auto">
+                  {statusOptions.map((status) => (
+                    <button
+                      key={status}
+                      type="button"
+                      onClick={() => {
+                        setSelectedStatus(status);
+                        setStatusDropdownOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors ${
+                        selectedStatus === status ? "bg-blue-100 dark:bg-gray-700" : ""
+                      }`}
+                    >
+                      <div className={`px-1.5 py-0.5 rounded text-xs font-semibold ${getStatusBadgeColor(status)}`}>
+                        {status}
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
         {/* Revenue */}
         <div>

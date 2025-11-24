@@ -136,6 +136,7 @@ export class ServiceRepository {
         id: true,
         displayName: true,
         enabled: true,
+        emoji: true,
       },
     });
   }

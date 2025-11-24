@@ -72,26 +72,26 @@ function useDropdown<TServer, TView>(
   return state;
 }
 
-export function useCustomersDropdown(): AsyncState<{ id: string; name: string }[]> {
+export function useCustomersDropdown(): AsyncState<{ id: string; name: string; image?: { url: string } | null }[]> {
   return useDropdown(
     "customers",
     () => getCustomersForDropdown(),
-    (c: { id: string; name: string }) => ({ id: c.id, name: c.name })
+    (c: { id: string; name: string; image?: { url: string } | null }) => ({ id: c.id, name: c.name, image: c.image })
   );
 }
 
-export function useServicesDropdown(): AsyncState<{ id: string; displayName: string }[]> {
+export function useServicesDropdown(): AsyncState<{ id: string; displayName: string; emoji?: string }[]> {
   return useDropdown(
     "services",
     () => getServicesForDropdown(),
-    (s: { id: string; displayName: string }) => ({ id: s.id, displayName: s.displayName })
+    (s: { id: string; displayName: string; emoji?: string }) => ({ id: s.id, displayName: s.displayName, emoji: s.emoji })
   );
 }
 
-export function useTechniciansDropdown(): AsyncState<{ id: string; technicianName: string }[]> {
+export function useTechniciansDropdown(): AsyncState<{ id: string; technicianName: string; image?: { url: string } | null }[]> {
   return useDropdown(
     "technicians",
     () => getTechniciansForDropdown(),
-    (t: { id: string; technicianName: string }) => ({ id: t.id, technicianName: t.technicianName })
+    (t: { id: string; technicianName: string; image?: { url: string } | null }) => ({ id: t.id, technicianName: t.technicianName, image: t.image })
   );
 }

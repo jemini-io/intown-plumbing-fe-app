@@ -54,6 +54,11 @@ function BookingsPageContent() {
     setShowModal(true);
   }, []);
 
+  const handleBookingUpdate = useCallback(() => {
+    // The calendar views handle their own data refresh, so we don't need to reload the page
+    // This allows the undo toast to persist
+  }, []);
+
   return (
     <DashboardLayout>
       <div className="min-h-screen p-8">
@@ -115,6 +120,7 @@ function BookingsPageContent() {
             <BookingsCalendarView 
               onBookingClick={handleBookingClick}
               onAddBooking={handleAddBooking}
+              onBookingUpdate={handleBookingUpdate}
             />
           )}
           {activeView === "table" && (
@@ -129,6 +135,7 @@ function BookingsPageContent() {
             <TechniciansCalendarView 
               onBookingClick={handleBookingClick}
               onAddBooking={handleAddBooking}
+              onBookingUpdate={handleBookingUpdate}
             />
           )}
         </div>
