@@ -407,6 +407,7 @@ export default function SettingsPage() {
                     refresh();
                     handleModalClose();
                   }}
+                  allowEditJSONAsRawText={true}
                 />
               )}
             </div>

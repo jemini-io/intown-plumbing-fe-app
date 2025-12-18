@@ -289,3 +289,88 @@ export async function getAdminAuditPhoneNumber(): Promise<string | null> {
   
   return data.phone.number;
 }
+
+// Promo Code Types
+export type PromoCodeType = 'percent' | 'amount';
+
+export type PromoCode = {
+  name: string;
+  type: PromoCodeType;
+  value: number;
+};
+
+export type PromoCodeValidationResult = {
+  valid: boolean;
+  promoCode?: PromoCode;
+  discountAmount?: number;
+  finalPrice?: number;
+  error?: string;
+};
+
+export async function getPromoCodes(): Promise<PromoCode[]> {
+  const prompt = 'getPromoCodes function says:';
+  logger.info(`${prompt} Starting...`);
+  
+  try {
+    logger.info(`${prompt} Invoking AppSettingRepository.findByKey with key: 'promoCodes'...`);
+    const promoCodesSetting = await AppSettingRepository.findByKey('promoCodes');
+    
+    if (!promoCodesSetting || !promoCodesSetting.value) {
+      logger.info(`${prompt} promoCodes setting not found. Returning empty array.`);
+      return [];
+    }
+    
+    const promoCodes = JSON.parse(promoCodesSetting.value) as PromoCode[];
+    logger.info(`${prompt} Found ${promoCodes.length} promo codes.`);
+    return promoCodes;
+  } catch (error) {
+    logger.error({ err: error }, `${prompt} Failed to parse promoCodes. Returning empty array.`);
+    return [];
+  }
+}
+
+export async function validatePromoCode(
+  code: string,
+  originalPrice: number
+): Promise<PromoCodeValidationResult> {
+  const prompt = 'validatePromoCode function says:';
+  logger.info(`${prompt} Starting validation for code: ${code}...`);
+  
+  const promoCodes = await getPromoCodes();
+  const normalizedCode = code.trim().toUpperCase();
+  
+  const promoCode = promoCodes.find(
+    (pc) => pc.name.toUpperCase() === normalizedCode
+  );
+  
+  if (!promoCode) {
+    logger.info(`${prompt} Promo code "${code}" not found.`);
+    return {
+      valid: false,
+      error: 'Invalid promo code',
+    };
+  }
+  
+  let discountAmount: number;
+  let finalPrice: number;
+  
+  if (promoCode.type === 'percent') {
+    // For percent type: value of 0.0 means 100% off, 0.5 means 50% off
+    // So discount = originalPrice * (1 - value)
+    discountAmount = originalPrice * (1 - promoCode.value);
+    finalPrice = Math.max(0, originalPrice - discountAmount);
+  } else {
+    // For amount type: value is in cents (e.g., 500 = $5.00)
+    discountAmount = promoCode.value / 100;
+    finalPrice = Math.max(0, originalPrice - discountAmount);
+  }
+  
+  logger.info(`${prompt} Promo code "${code}" is valid. Discount: $${discountAmount.toFixed(2)}, Final price: $${finalPrice.toFixed(2)}`);
+  
+  return {
+    valid: true,
+    promoCode,
+    discountAmount,
+    finalPrice,
+  };
+}
