@@ -40,6 +40,8 @@ export interface CreateJobData {
   billToZip?: string;
   billToCountry?: string;
   billToSameAsService?: boolean;
+  // Promo code discount
+  finalPrice?: number; // Final price after promo code discount
 }
 
 export interface CreateJobActionResult {
@@ -150,6 +152,7 @@ export async function createJob(
       billToZip: data.billToZip,
       billToSameAsService: data.billToSameAsService,
     },
+    finalPrice: data.finalPrice,
   });
 
   logger.info(

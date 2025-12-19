@@ -4,9 +4,10 @@ import { useTransition, useState, useRef, useEffect } from "react";
 import { createAppSetting, updateAppSetting } from "../actions";
 import { isJson } from "@/lib/utils/isJson";
 import { JsonTreeEditor } from "@/app/dashboard/components/JsonTreeEditor";
+import { ExclamationTriangleIcon } from "@heroicons/react/24/solid";
 
 // Virtual setting keys that should have readonly 'id' fields
-const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills'] as const;
+const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills', 'promoCodes'] as const;
 
 type Setting = {
   id?: number;
@@ -27,6 +28,7 @@ export function JSONSettingForm({ existing, onSaved, allowEditJSONAsRawText = fa
   const [value, setValue] = useState(existing?.value ?? "[]");
   const [key, setKey] = useState(existing?.key ?? "");
   const [isRawEditing, setIsRawEditing] = useState(false);
+  const [showWarningTooltip, setShowWarningTooltip] = useState(false);
 
   type JSONValue =
     | string
@@ -81,8 +83,25 @@ export function JSONSettingForm({ existing, onSaved, allowEditJSONAsRawText = fa
       setIsRawEditing(false);
     }
   }, [allowEditJSONAsRawText, isRawEditing]);
+
+  // Close tooltip when clicking outside
+  useEffect(() => {
+    if (!showWarningTooltip) return;
+    
+    function handleClickOutside(event: MouseEvent) {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.warning-tooltip-container')) {
+        setShowWarningTooltip(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [showWarningTooltip]);
   
   const showJsonEditor = jsonObj && !isRawEditing;
+  const isVirtualSetting = existing?.key && VIRTUAL_SETTING_KEYS.includes(existing.key as typeof VIRTUAL_SETTING_KEYS[number]);
+  const showWarning = isVirtualSetting && isRawEditing;
 
   function toggleMode() {
     if (!canEditRawText) return; // Prevent toggling if raw text editing is disabled
@@ -94,6 +113,13 @@ export function JSONSettingForm({ existing, onSaved, allowEditJSONAsRawText = fa
         } catch {
           /* ignore */
         }
+        // Show warning tooltip automatically when entering raw text mode for virtual settings
+        if (isVirtualSetting) {
+          setShowWarningTooltip(true);
+        }
+      } else {
+        // Hide warning tooltip when leaving raw text mode
+        setShowWarningTooltip(false);
       }
       return next;
     });
@@ -101,9 +127,30 @@ export function JSONSettingForm({ existing, onSaved, allowEditJSONAsRawText = fa
 
   return (
     <div>
-      <h2 className="text-xl font-semibold mb-4 text-center dark:text-white">
-        {existing ? "Edit Setting" : "Add New Setting (JSON)"}
-      </h2>
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold mb-4 text-center dark:text-white flex items-center justify-center gap-2">
+          {existing ? "Edit Setting" : "Add New Setting (JSON)"}
+          {showWarning && (
+            <div className="warning-tooltip-container relative">
+              <button
+                type="button"
+                onClick={() => setShowWarningTooltip(!showWarningTooltip)}
+                className="focus:outline-none"
+                title="Show warning"
+              >
+                <ExclamationTriangleIcon className="h-7 w-7 text-yellow-500 dark:text-yellow-400 hover:text-yellow-600 dark:hover:text-yellow-300 transition-colors" />
+              </button>
+              {showWarningTooltip && (
+                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-80 px-3 py-2 bg-yellow-50 dark:bg-yellow-900/80 border border-yellow-200 dark:border-yellow-700 rounded-lg shadow-lg z-50">
+                  <p className="text-sm text-yellow-800 dark:text-yellow-200 text-center">
+                    <strong>⚠️ Warning:</strong> This is a virtual setting. Do not alter the keys in this JSON. Only modify the values. The keys must match the database table columns.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
+        </h2>
+      </div>
 
       {message && (
         <div
@@ -170,7 +217,7 @@ export function JSONSettingForm({ existing, onSaved, allowEditJSONAsRawText = fa
                 }}
                 readonlyFields={
                   VIRTUAL_SETTING_KEYS.includes(existing?.key as typeof VIRTUAL_SETTING_KEYS[number])
-                    ? ['id', 'serviceTitanId', 'technicianId']
+                    ? ['id', 'serviceTitanId', 'technicianId'] // IDs are readonly (primary keys), serviceTitanId and technicianId are also readonly
                     : []
                 }
                 readonlyObjects={VIRTUAL_SETTING_KEYS.includes(existing?.key as typeof VIRTUAL_SETTING_KEYS[number]) ? ['skills', 'serviceToJobTypes', 'technicians'] : []}

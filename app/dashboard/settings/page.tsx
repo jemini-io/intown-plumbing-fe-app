@@ -177,12 +177,13 @@ function ValueCell({ value }: { value: string }) {
   );
 }
 
-const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills'] as const;
+const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills', 'promoCodes'] as const;
 
 const VIRTUAL_SETTING_TABLE_NAMES: Record<typeof VIRTUAL_SETTING_KEYS[number], string> = {
   serviceToJobTypes: 'ServiceToJobType',
   quoteSkills: 'Skill',
   technicianToSkills: 'Technician',
+  promoCodes: 'PromoCode',
 };
 
 function KeyCell({ settingKey }: { settingKey: string }) {
@@ -407,6 +408,7 @@ export default function SettingsPage() {
                     refresh();
                     handleModalClose();
                   }}
+                  allowEditJSONAsRawText={true}
                 />
               )}
             </div>
