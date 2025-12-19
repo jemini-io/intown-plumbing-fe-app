@@ -30,7 +30,27 @@ type PromoCodeResult = {
   };
 };
 
-function PaymentForm({ price, finalPrice }: { price: number; finalPrice: number }) {
+function PaymentForm({ 
+  price, 
+  finalPrice,
+  promoCode,
+  setPromoCode,
+  promoResult,
+  promoError,
+  isValidatingPromo,
+  handleApplyPromoCode,
+  handleRemovePromoCode,
+}: { 
+  price: number; 
+  finalPrice: number;
+  promoCode: string;
+  setPromoCode: (code: string) => void;
+  promoResult: PromoCodeResult | null;
+  promoError: string | null;
+  isValidatingPromo: boolean;
+  handleApplyPromoCode: () => void;
+  handleRemovePromoCode: () => void;
+}) {
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
@@ -110,6 +130,74 @@ function PaymentForm({ price, finalPrice }: { price: number; finalPrice: number 
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
       {error && <div className="bg-red-50 border border-red-200 rounded-lg p-4"><p className="text-sm text-red-700">{error}</p></div>}
+      
+      {/* Promo Code Section */}
+      <div className="p-4 bg-white rounded-lg border border-gray-200 relative overflow-hidden">
+        {promoResult?.valid ? (
+          <div>
+            <div className="flex flex-col items-center gap-1">
+              {promoResult.promoCode?.description && (
+                <p className="text-xl font-bold text-gray-800 text-center">{promoResult.promoCode.description}</p>
+              )}
+              <p className="text-sm">
+                <span className="font-bold text-green-600">APPLIED!</span>
+                {promoResult.discountAmount && (
+                  <span className="text-green-600 ml-2">
+                    You save {promoResult.discountAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                  </span>
+                )}
+              </p>
+            </div>
+            <div className="flex justify-end mt-1">
+              <button
+                type="button"
+                onClick={handleRemovePromoCode}
+                className="text-xs text-red-600 hover:text-red-700 font-medium"
+              >
+                Remove
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Enter Promo Code
+            </label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={promoCode}
+                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                placeholder="Enter code"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
+                disabled={isValidatingPromo}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleApplyPromoCode();
+                  }
+                }}
+              />
+              <button
+                type="button"
+                onClick={handleApplyPromoCode}
+                disabled={isValidatingPromo || !promoCode.trim()}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                  promoCode.trim() && !isValidatingPromo
+                    ? 'bg-red-600 text-white hover:bg-red-700'
+                    : 'bg-red-400 text-white cursor-not-allowed opacity-60'
+                }`}
+              >
+                {isValidatingPromo ? 'Checking...' : 'Apply'}
+              </button>
+            </div>
+            {promoError && (
+              <p className="mt-2 text-sm text-red-600">{promoError}</p>
+            )}
+          </>
+        )}
+      </div>
+
       <button type="submit" disabled={!stripe || isProcessing} className="next-button w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium">
         {isProcessing ? 'Processing...' : `Pay Now ${price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`}
       </button>
@@ -340,72 +428,19 @@ export default function StripeElementsStep() {
         <FreeBookingForm onSuccess={() => {}} />
       ) : (
         <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <PaymentForm price={finalPrice} finalPrice={finalPrice} />
+          <PaymentForm 
+            price={finalPrice} 
+            finalPrice={finalPrice}
+            promoCode={promoCode}
+            setPromoCode={setPromoCode}
+            promoResult={promoResult}
+            promoError={promoError}
+            isValidatingPromo={isValidatingPromo}
+            handleApplyPromoCode={handleApplyPromoCode}
+            handleRemovePromoCode={handleRemovePromoCode}
+          />
         </Elements>
       )}
-
-      {/* Promo Code Section */}
-      <div className="mt-6 mb-6 p-4 bg-white rounded-lg border border-gray-200 relative overflow-hidden">
-        {promoResult?.valid ? (
-          <div>
-            <div className="flex flex-col items-center gap-1">
-              {promoResult.promoCode?.description && (
-                <p className="text-xl font-bold text-gray-800 text-center">{promoResult.promoCode.description}</p>
-              )}
-              <p className="text-sm">
-                <span className="font-bold text-green-600">APPLIED!</span>
-                {promoResult.discountAmount && (
-                  <span className="text-green-600 ml-2">
-                    You save {promoResult.discountAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                  </span>
-                )}
-              </p>
-            </div>
-            <div className="flex justify-end mt-1">
-              <button
-                type="button"
-                onClick={handleRemovePromoCode}
-                className="text-xs text-red-600 hover:text-red-700 font-medium"
-              >
-                Remove
-              </button>
-            </div>
-          </div>
-        ) : (
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Enter Promo Code
-          </label>
-        )}
-        {!promoResult?.valid && (
-          <>
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
-                placeholder="Enter code"
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 uppercase"
-                disabled={isValidatingPromo}
-              />
-              <button
-                type="button"
-                onClick={handleApplyPromoCode}
-                disabled={isValidatingPromo || !promoCode.trim()}
-                className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  promoCode.trim() && !isValidatingPromo
-                    ? 'bg-red-600 text-white hover:bg-red-700'
-                    : 'bg-red-400 text-white cursor-not-allowed opacity-60'
-                }`}
-              >
-                {isValidatingPromo ? 'Checking...' : 'Apply'}
-              </button>
-            </div>
-          </>
-        )}
-        {promoError && !promoResult?.valid && (
-          <p className="mt-2 text-sm text-red-600">{promoError}</p>
-        )}
-      </div>
     </FormLayout>
   );
 }
