@@ -1,6 +1,6 @@
 import { NextResponse, NextRequest } from "next/server";
 import { handleApiError } from "@/lib/utils/api-error-handler";
-import { validatePromoCode } from "@/lib/repositories/appSettings/getConfig";
+import { PromoCodeRepository } from "@/lib/repositories";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
 import { getStripeConfig } from "@/lib/repositories/appSettings/getConfig";
 import pino from "pino";
@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
 
     logger.info({ code, originalPrice }, "Validating promo code");
 
-    const result = await validatePromoCode(code, originalPrice);
+    // Use PromoCodeRepository instead of AppSettings
+    const result = await PromoCodeRepository.validateAndCalculate(code, originalPrice);
 
     logger.info({ result }, "Promo code validation result");
 

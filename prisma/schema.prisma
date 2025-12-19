@@ -40,6 +40,7 @@ model Image {
   user       User?       @relation
   technician Technician? @relation
   customer   Customer?   @relation
+  promoCode  PromoCode?  @relation
 }
 
 model Skill {
@@ -175,6 +176,30 @@ enum BookingStatus {
   SCHEDULED
   CANCELED
   COMPLETED
+}
+
+enum PromoCodeType {
+  PERCENT
+  AMOUNT
+}
+
+model PromoCode {
+  id           String        @id @default(cuid())
+  code         String        @unique
+  type         PromoCodeType
+  value        Decimal
+  description  String?
+  imageId      String?       @unique
+  image        Image?        @relation(fields: [imageId], references: [id])
+  usageLimit   Int?
+  usageCount   Int           @default(0)
+  minPurchase  Decimal?
+  maxDiscount  Decimal?
+  startsAt     DateTime?
+  expiresAt    DateTime?
+  enabled      Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
 }
 
 model Booking {

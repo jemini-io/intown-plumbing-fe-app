@@ -8,13 +8,14 @@ import { Setting } from "@/lib/types/setting";
 import { ServiceRepository } from "../services/ServiceRepository";
 import { SkillRepository } from "../skills/SkillRepository";
 import { TechnicianRepository } from "../technicians/TechnicianRepository";
+import { PromoCodeRepository } from "../promoCodes/PromoCodeRepository";
 import { deleteFromCloudinary } from "@/lib/cloudinary/delete";
 import pino from "pino";
 
 const logger = pino({ name: 'AppSettingRepository' });
 
 // Keys that are managed from database tables instead of AppSetting.value
-const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills'] as const;
+const VIRTUAL_SETTING_KEYS = ['serviceToJobTypes', 'quoteSkills', 'technicianToSkills', 'promoCodes'] as const;
 type VirtualSettingKey = typeof VIRTUAL_SETTING_KEYS[number];
 
 export type SettingData = {
@@ -34,7 +35,7 @@ export class AppSettingRepository {
     logger.info(`${prompt} Found ${services.length} services.`);
     
     const jsonData = services.map(service => ({
-      id: service.id, // Use the actual string ID from the database
+      id: service.id, // Keep ID for database operations, but mark as readonly in editor
       displayName: service.displayName,
       serviceTitanId: service.serviceTitanId,
       serviceTitanName: service.serviceTitanName,
@@ -120,6 +121,42 @@ export class AppSettingRepository {
   }
 
   /**
+   * Generate promoCodes JSON from PromoCode table
+   */
+  private static async generatePromoCodesJSON(): Promise<string> {
+    const prompt = 'AppSettingRepository.generatePromoCodesJSON function says:';
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking PromoCodeRepository.findAll...`);
+    const promoCodes = await PromoCodeRepository.findAll();
+    logger.info(`${prompt} Found ${promoCodes.length} promo codes.`);
+    
+    const jsonData = promoCodes.map(promoCode => ({
+      id: promoCode.id, // Keep ID for database operations, but mark as readonly in editor
+      code: promoCode.code,
+      type: promoCode.type,
+      value: promoCode.value,
+      description: promoCode.description || null,
+      imageId: promoCode.imageId || null,
+      image: promoCode.image ? {
+        id: promoCode.image.id,
+        url: promoCode.image.url,
+        publicId: promoCode.image.publicId,
+      } : null,
+      usageLimit: promoCode.usageLimit || null,
+      usageCount: promoCode.usageCount,
+      minPurchase: promoCode.minPurchase || null,
+      maxDiscount: promoCode.maxDiscount || null,
+      startsAt: promoCode.startsAt ? promoCode.startsAt.toISOString() : null,
+      expiresAt: promoCode.expiresAt ? promoCode.expiresAt.toISOString() : null,
+      enabled: promoCode.enabled,
+    }));
+    
+    const jsonString = JSON.stringify(jsonData, null, 2);
+    logger.info(`${prompt} Generated JSON string with length: ${jsonString.length}`);
+    return jsonString;
+  }
+
+  /**
    * Get virtual setting value by key
    */
   private static async getVirtualSettingValue(key: VirtualSettingKey): Promise<string> {
@@ -133,6 +170,8 @@ export class AppSettingRepository {
         return await this.generateQuoteSkillsJSON();
       case 'technicianToSkills':
         return await this.generateTechnicianToSkillsJSON();
+      case 'promoCodes':
+        return await this.generatePromoCodesJSON();
       default:
         logger.error(`${prompt} Unknown virtual setting key: ${key}`);
         return '[]';
@@ -141,7 +180,7 @@ export class AppSettingRepository {
 
   /**
    * Get all app settings
-   * Includes virtual settings (serviceToJobTypes, quoteSkills, technicianToSkills) 
+   * Includes virtual settings (serviceToJobTypes, quoteSkills, technicianToSkills, promoCodes) 
    * that are generated from database tables
    */
   static async findAll(): Promise<Setting[]> {
@@ -314,7 +353,7 @@ export class AppSettingRepository {
         enabled: boolean;
       }>;
       
-      // Create maps for easier lookup
+      // Create maps for easier lookup (using id as key)
       const originalMap = new Map(original.map(s => [s.id, s]));
       const updatedMap = new Map(updated.map(s => [s.id, s]));
       
@@ -677,6 +716,133 @@ export class AppSettingRepository {
   }
 
   /**
+   * Update promoCodes from JSON
+   * Compares original and new JSON to detect changes and updates database accordingly
+   */
+  private static async updatePromoCodes(originalJson: string, newJson: string): Promise<void> {
+    const prompt = 'AppSettingRepository.updatePromoCodes function says:';
+    logger.info(`${prompt} Starting...`);
+    
+    try {
+      const original = JSON.parse(originalJson) as Array<{
+        id: string;
+        code: string;
+        type: 'PERCENT' | 'AMOUNT';
+        value: number;
+        description: string | null;
+        imageId: string | null;
+        image: { id: string; url: string; publicId: string } | null;
+        usageLimit: number | null;
+        usageCount: number;
+        minPurchase: number | null;
+        maxDiscount: number | null;
+        startsAt: string | null;
+        expiresAt: string | null;
+        enabled: boolean;
+      }>;
+      
+      const updated = JSON.parse(newJson) as Array<{
+        id: string;
+        code: string;
+        type: 'PERCENT' | 'AMOUNT';
+        value: number;
+        description: string | null;
+        imageId: string | null;
+        image: { id: string; url: string; publicId: string } | null;
+        usageLimit: number | null;
+        usageCount: number;
+        minPurchase: number | null;
+        maxDiscount: number | null;
+        startsAt: string | null;
+        expiresAt: string | null;
+        enabled: boolean;
+      }>;
+      
+      // Create maps for easier lookup (using id as key)
+      const originalMap = new Map(original.map(p => [p.id, p]));
+      const updatedMap = new Map(updated.map(p => [p.id, p]));
+      
+      // Process each promo code in the updated JSON
+      for (const updatedPromo of updated) {
+        const originalPromo = originalMap.get(updatedPromo.id);
+        
+        if (originalPromo) {
+          // Promo code exists - check if it needs updating
+          const needsUpdate = 
+            originalPromo.code !== updatedPromo.code ||
+            originalPromo.type !== updatedPromo.type ||
+            originalPromo.value !== updatedPromo.value ||
+            originalPromo.description !== updatedPromo.description ||
+            originalPromo.imageId !== updatedPromo.imageId ||
+            originalPromo.usageLimit !== updatedPromo.usageLimit ||
+            originalPromo.minPurchase !== updatedPromo.minPurchase ||
+            originalPromo.maxDiscount !== updatedPromo.maxDiscount ||
+            originalPromo.startsAt !== updatedPromo.startsAt ||
+            originalPromo.expiresAt !== updatedPromo.expiresAt ||
+            originalPromo.enabled !== updatedPromo.enabled;
+          
+          if (needsUpdate) {
+            logger.info(`${prompt} Updating promo code with ID: ${updatedPromo.id}...`);
+            await PromoCodeRepository.update(updatedPromo.id, {
+              code: updatedPromo.code,
+              type: updatedPromo.type,
+              value: updatedPromo.value,
+              description: updatedPromo.description || undefined,
+              imageId: updatedPromo.imageId || undefined,
+              usageLimit: updatedPromo.usageLimit || undefined,
+              minPurchase: updatedPromo.minPurchase || undefined,
+              maxDiscount: updatedPromo.maxDiscount || undefined,
+              startsAt: updatedPromo.startsAt ? new Date(updatedPromo.startsAt) : undefined,
+              expiresAt: updatedPromo.expiresAt ? new Date(updatedPromo.expiresAt) : undefined,
+              enabled: updatedPromo.enabled,
+            });
+          }
+        } else {
+          // New promo code - create it
+          logger.info(`${prompt} Creating new promo code with ID: ${updatedPromo.id}...`);
+          await PromoCodeRepository.create({
+            code: updatedPromo.code,
+            type: updatedPromo.type,
+            value: updatedPromo.value,
+            description: updatedPromo.description || undefined,
+            imageId: updatedPromo.imageId || undefined,
+            usageLimit: updatedPromo.usageLimit || undefined,
+            minPurchase: updatedPromo.minPurchase || undefined,
+            maxDiscount: updatedPromo.maxDiscount || undefined,
+            startsAt: updatedPromo.startsAt ? new Date(updatedPromo.startsAt) : undefined,
+            expiresAt: updatedPromo.expiresAt ? new Date(updatedPromo.expiresAt) : undefined,
+            enabled: updatedPromo.enabled,
+          });
+        }
+      }
+      
+      // Check for deleted promo codes (in original but not in updated)
+      for (const originalPromo of original) {
+        if (!updatedMap.has(originalPromo.id)) {
+          logger.info(`${prompt} Promo code ${originalPromo.id} was deleted from JSON. Deleting from database...`);
+          
+          // Delete image from Cloudinary if it exists
+          if (originalPromo.image?.publicId) {
+            logger.info(`${prompt} Deleting image from Cloudinary with publicId: ${originalPromo.image.publicId}...`);
+            await deleteFromCloudinary(originalPromo.image.publicId);
+            logger.info(`${prompt} Image deleted from Cloudinary successfully.`);
+          }
+          
+          // Delete the promo code itself (this will cascade delete the image relation)
+          logger.info(`${prompt} Deleting promo code with ID: ${originalPromo.id}...`);
+          await PromoCodeRepository.delete(originalPromo.id);
+          logger.info(`${prompt} Promo code deleted successfully.`);
+        }
+      }
+      
+      logger.info(`${prompt} Successfully updated promoCodes.`);
+    } catch (error) {
+      logger.error({ error }, `${prompt} Error updating promoCodes`);
+      throw error;
+    }
+  }
+
+  /**
    * Update an app setting
    * For virtual settings, updates the corresponding database tables instead of AppSetting.value
    */
@@ -707,6 +873,9 @@ export class AppSettingRepository {
           break;
         case 'technicianToSkills':
           await this.updateTechnicianToSkills(originalJson, setting.value);
+          break;
+        case 'promoCodes':
+          await this.updatePromoCodes(originalJson, setting.value);
           break;
       }
       
@@ -822,6 +991,36 @@ export class AppSettingRepository {
   }
 
   /**
+   * Delete promoCodes data (all promo codes and their images)
+   */
+  private static async deletePromoCodes(): Promise<void> {
+    const prompt = 'AppSettingRepository.deletePromoCodes function says:';
+    logger.info(`${prompt} Starting...`);
+    
+    // Get all promo codes
+    const promoCodes = await PromoCodeRepository.findAll();
+    logger.info(`${prompt} Found ${promoCodes.length} promo codes to delete.`);
+    
+    // Delete each promo code (this will handle images)
+    for (const promoCode of promoCodes) {
+      logger.info(`${prompt} Deleting promo code with ID: ${promoCode.id}...`);
+      
+      // Delete image from Cloudinary if it exists
+      if (promoCode.image?.publicId) {
+        logger.info(`${prompt} Deleting image from Cloudinary with publicId: ${promoCode.image.publicId}...`);
+        await deleteFromCloudinary(promoCode.image.publicId);
+        logger.info(`${prompt} Image deleted from Cloudinary successfully.`);
+      }
+      
+      // Delete the promo code itself (this will cascade delete the image relation)
+      await PromoCodeRepository.delete(promoCode.id);
+      logger.info(`${prompt} Promo code deleted successfully.`);
+    }
+    
+    logger.info(`${prompt} Successfully deleted all promoCodes data.`);
+  }
+
+  /**
    * Delete an app setting
    * For virtual settings, deletes the corresponding database tables data
    */
@@ -851,6 +1050,9 @@ export class AppSettingRepository {
           break;
         case 'technicianToSkills':
           await this.deleteTechnicianToSkills();
+          break;
+        case 'promoCodes':
+          await this.deletePromoCodes();
           break;
       }
       

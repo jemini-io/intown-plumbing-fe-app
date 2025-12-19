@@ -1,4 +1,4 @@
-import { Squares2X2Icon, ChartBarIcon, Cog6ToothIcon, UserGroupIcon, CalendarDaysIcon, WrenchIcon, CurrencyDollarIcon } from "@heroicons/react/24/solid";
+import { Squares2X2Icon, ChartBarIcon, Cog6ToothIcon, UserGroupIcon, CalendarDaysIcon, WrenchIcon, CurrencyDollarIcon, TicketIcon } from "@heroicons/react/24/solid";
 import React from "react";
 
 export type NavItemData = {
@@ -58,6 +58,14 @@ export const navItemsData: NavItemData[] = [
     description: "Manage skills",
     icon: ChartBarIcon, 
     requireAdmin: false 
+  },
+  { 
+    // Promo Codes page link
+    href: "/dashboard/promoCodes", 
+    label: "Promo Codes", 
+    description: "Manage promo codes",
+    icon: TicketIcon, 
+    requireAdmin: true 
   },
   { 
     // Revenue external link
