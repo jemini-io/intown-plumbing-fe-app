@@ -7,532 +7,6 @@ import { useFormStore } from '../useFormStore';
 import { createJobAction } from '@/app/actions/createJobAction';
 import { sendToParent } from '@/lib/utils/postMessage';
 import FormLayout from '@/components/FormLayout';
-import Image from 'next/image';
-
-// Sparkles animation
-function Sparkles() {
-  return (
-    <div className="effect-container">
-      {[...Array(20)].map((_, i) => (
-        <div
-          key={i}
-          className="sparkle"
-          style={{
-            left: `${10 + Math.random() * 80}%`,
-            top: `${10 + Math.random() * 80}%`,
-            animationDelay: `${Math.random() * 0.8}s`,
-          }}
-        />
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .sparkle {
-          position: absolute;
-          width: 8px;
-          height: 8px;
-          opacity: 0;
-          animation: sparkle 1.2s ease-out forwards;
-        }
-        .sparkle::before,
-        .sparkle::after {
-          content: '';
-          position: absolute;
-          background: #ffd700;
-        }
-        .sparkle::before {
-          width: 100%;
-          height: 2px;
-          top: 50%;
-          left: 0;
-          transform: translateY(-50%);
-        }
-        .sparkle::after {
-          width: 2px;
-          height: 100%;
-          left: 50%;
-          top: 0;
-          transform: translateX(-50%);
-        }
-        @keyframes sparkle {
-          0% { opacity: 0; transform: scale(0) rotate(0deg); }
-          50% { opacity: 1; transform: scale(1.5) rotate(180deg); }
-          100% { opacity: 0; transform: scale(0) rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Confetti animation
-function Confetti() {
-  return (
-    <div className="effect-container">
-      {[...Array(50)].map((_, i) => (
-        <div
-          key={i}
-          className="confetti"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 0.5}s`,
-            backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181', '#aa96da', '#fcbad3'][Math.floor(Math.random() * 7)],
-          }}
-        />
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .confetti {
-          position: absolute;
-          width: 10px;
-          height: 10px;
-          top: 50%;
-          opacity: 0;
-          animation: confetti-fall 1.5s ease-out forwards;
-        }
-        .confetti:nth-child(odd) { border-radius: 50%; }
-        .confetti:nth-child(even) { border-radius: 2px; transform: rotate(45deg); }
-        @keyframes confetti-fall {
-          0% { opacity: 1; transform: translateY(0) rotate(0deg) scale(0); }
-          10% { transform: translateY(-20px) rotate(45deg) scale(1); }
-          100% { opacity: 0; transform: translateY(100px) rotate(720deg) scale(0.5); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Fireworks animation
-function Fireworks() {
-  return (
-    <div className="effect-container">
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          className="firework"
-          style={{
-            transform: `rotate(${i * 30}deg)`,
-            backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#f38181', '#aa96da'][i % 5],
-          }}
-        />
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .firework {
-          position: absolute;
-          width: 4px;
-          height: 20px;
-          top: 50%;
-          left: 50%;
-          transform-origin: center center;
-          opacity: 0;
-          border-radius: 2px;
-          animation: firework-burst 1s ease-out forwards;
-        }
-        @keyframes firework-burst {
-          0% { opacity: 1; transform: rotate(var(--r, 0deg)) translateY(0) scale(0); }
-          50% { opacity: 1; transform: rotate(var(--r, 0deg)) translateY(-60px) scale(1); }
-          100% { opacity: 0; transform: rotate(var(--r, 0deg)) translateY(-80px) scale(0.5); }
-        }
-        .firework:nth-child(1) { --r: 0deg; }
-        .firework:nth-child(2) { --r: 30deg; }
-        .firework:nth-child(3) { --r: 60deg; }
-        .firework:nth-child(4) { --r: 90deg; }
-        .firework:nth-child(5) { --r: 120deg; }
-        .firework:nth-child(6) { --r: 150deg; }
-        .firework:nth-child(7) { --r: 180deg; }
-        .firework:nth-child(8) { --r: 210deg; }
-        .firework:nth-child(9) { --r: 240deg; }
-        .firework:nth-child(10) { --r: 270deg; }
-        .firework:nth-child(11) { --r: 300deg; }
-        .firework:nth-child(12) { --r: 330deg; }
-      `}</style>
-    </div>
-  );
-}
-
-// Coins animation
-function Coins() {
-  return (
-    <div className="effect-container">
-      {[...Array(15)].map((_, i) => (
-        <div
-          key={i}
-          className="coin"
-          style={{
-            left: `${10 + Math.random() * 80}%`,
-            animationDelay: `${Math.random() * 0.5}s`,
-          }}
-        >
-          $
-        </div>
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .coin {
-          position: absolute;
-          top: -20px;
-          font-size: 20px;
-          color: #ffd700;
-          text-shadow: 0 0 5px rgba(255, 215, 0, 0.5);
-          animation: coin-fall 1.5s ease-in forwards;
-        }
-        @keyframes coin-fall {
-          0% { opacity: 1; transform: translateY(0) rotateY(0deg); }
-          100% { opacity: 0; transform: translateY(150px) rotateY(720deg); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Hearts animation
-function Hearts() {
-  return (
-    <div className="effect-container">
-      {[...Array(12)].map((_, i) => (
-        <div
-          key={i}
-          className="heart"
-          style={{
-            left: `${10 + Math.random() * 80}%`,
-            animationDelay: `${Math.random() * 0.6}s`,
-            fontSize: `${14 + Math.random() * 10}px`,
-          }}
-        >
-          ❤️
-        </div>
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .heart {
-          position: absolute;
-          bottom: 0;
-          animation: heart-float 1.5s ease-out forwards;
-        }
-        @keyframes heart-float {
-          0% { opacity: 1; transform: translateY(0) scale(0); }
-          50% { opacity: 1; transform: translateY(-50px) scale(1.2); }
-          100% { opacity: 0; transform: translateY(-100px) scale(0.8); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Stars burst animation
-function StarsBurst() {
-  return (
-    <div className="effect-container">
-      {[...Array(15)].map((_, i) => (
-        <div
-          key={i}
-          className="star"
-          style={{
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 0.4}s`,
-          }}
-        >
-          ⭐
-        </div>
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .star {
-          position: absolute;
-          font-size: 16px;
-          animation: star-pop 1s ease-out forwards;
-        }
-        @keyframes star-pop {
-          0% { opacity: 0; transform: scale(0) rotate(0deg); }
-          50% { opacity: 1; transform: scale(1.5) rotate(180deg); }
-          100% { opacity: 0; transform: scale(0.5) rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Bubbles animation
-function Bubbles() {
-  return (
-    <div className="effect-container">
-      {[...Array(20)].map((_, i) => (
-        <div
-          key={i}
-          className="bubble"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 0.5}s`,
-            width: `${8 + Math.random() * 12}px`,
-            height: `${8 + Math.random() * 12}px`,
-          }}
-        />
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .bubble {
-          position: absolute;
-          bottom: 0;
-          border-radius: 50%;
-          background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), rgba(100,200,255,0.4));
-          border: 1px solid rgba(100,200,255,0.5);
-          animation: bubble-rise 1.5s ease-out forwards;
-        }
-        @keyframes bubble-rise {
-          0% { opacity: 0; transform: translateY(0) scale(0); }
-          20% { opacity: 1; transform: translateY(-10px) scale(1); }
-          100% { opacity: 0; transform: translateY(-120px) scale(0.6); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Ribbons animation
-function Ribbons() {
-  return (
-    <div className="effect-container">
-      {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="ribbon"
-          style={{
-            left: `${10 + i * 12}%`,
-            animationDelay: `${i * 0.1}s`,
-            backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#95e1d3', '#f38181', '#aa96da', '#fcbad3', '#45b7d1'][i],
-          }}
-        />
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .ribbon {
-          position: absolute;
-          top: -20px;
-          width: 8px;
-          height: 40px;
-          border-radius: 4px;
-          animation: ribbon-fall 1.5s ease-in forwards;
-        }
-        @keyframes ribbon-fall {
-          0% { opacity: 1; transform: translateY(0) rotate(0deg); }
-          100% { opacity: 0; transform: translateY(150px) rotate(720deg); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Explosion animation
-function Explosion() {
-  return (
-    <div className="effect-container">
-      {[...Array(16)].map((_, i) => (
-        <div
-          key={i}
-          className="particle"
-          style={{
-            '--angle': `${i * 22.5}deg`,
-            backgroundColor: ['#ff6b6b', '#4ecdc4', '#ffe66d', '#f38181'][i % 4],
-          } as React.CSSProperties}
-        />
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .particle {
-          position: absolute;
-          width: 8px;
-          height: 8px;
-          border-radius: 50%;
-          top: 50%;
-          left: 50%;
-          animation: explode 1s ease-out forwards;
-        }
-        @keyframes explode {
-          0% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(0) scale(0); }
-          30% { opacity: 1; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-40px) scale(1); }
-          100% { opacity: 0; transform: translate(-50%, -50%) rotate(var(--angle)) translateY(-80px) scale(0.3); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Party poppers animation
-function PartyPoppers() {
-  return (
-    <div className="effect-container">
-      {[...Array(25)].map((_, i) => (
-        <div
-          key={i}
-          className="popper"
-          style={{
-            left: `${Math.random() * 100}%`,
-            animationDelay: `${Math.random() * 0.3}s`,
-          }}
-        >
-          🎉
-        </div>
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .popper {
-          position: absolute;
-          top: 50%;
-          font-size: 18px;
-          animation: popper-burst 1.2s ease-out forwards;
-        }
-        @keyframes popper-burst {
-          0% { opacity: 1; transform: translateY(0) scale(0) rotate(0deg); }
-          50% { opacity: 1; transform: translateY(-30px) scale(1.2) rotate(180deg); }
-          100% { opacity: 0; transform: translateY(50px) scale(0.5) rotate(360deg); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Thumbs up animation
-function ThumbsUp() {
-  return (
-    <div className="effect-container">
-      {[...Array(8)].map((_, i) => (
-        <div
-          key={i}
-          className="thumb"
-          style={{
-            left: `${15 + Math.random() * 70}%`,
-            animationDelay: `${Math.random() * 0.4}s`,
-            fontSize: `${16 + Math.random() * 8}px`,
-          }}
-        >
-          👍
-        </div>
-      ))}
-      <style jsx>{`
-        .effect-container {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          overflow: hidden;
-          pointer-events: none;
-          z-index: 10;
-        }
-        .thumb {
-          position: absolute;
-          bottom: 20%;
-          animation: thumb-pop 1.2s ease-out forwards;
-        }
-        @keyframes thumb-pop {
-          0% { opacity: 0; transform: scale(0) rotate(-20deg); }
-          40% { opacity: 1; transform: scale(1.3) rotate(10deg); }
-          70% { opacity: 1; transform: scale(1) rotate(0deg); }
-          100% { opacity: 0; transform: scale(0.8) translateY(-30px); }
-        }
-      `}</style>
-    </div>
-  );
-}
-
-// Random celebration effect selector
-function CelebrationEffect() {
-  const effects = [Sparkles, Confetti, Fireworks, Coins, Hearts, StarsBurst, Bubbles, Ribbons, Explosion, PartyPoppers, ThumbsUp];
-  const [EffectComponent] = useState(() => effects[Math.floor(Math.random() * effects.length)]);
-  return <EffectComponent />;
-}
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -727,10 +201,6 @@ export default function StripeElementsStep() {
   const [promoResult, setPromoResult] = useState<PromoCodeResult | null>(null);
   const [isValidatingPromo, setIsValidatingPromo] = useState(false);
   const [promoError, setPromoError] = useState<string | null>(null);
-  const [promoPreview, setPromoPreview] = useState<PromoCodeResult['promoCode'] | null>(null);
-  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-  const [previewError, setPreviewError] = useState<string | null>(null);
-  const [showConfetti, setShowConfetti] = useState(false);
 
   // Calculate final price
   const originalPrice = productDetails?.stripePrice ?? 0;
@@ -785,8 +255,6 @@ export default function StripeElementsStep() {
       if (result.valid) {
         setPromoResult(result);
         setPromoError(null);
-        setShowConfetti(true);
-        setTimeout(() => setShowConfetti(false), 2000);
         // Update productDetails with original price if not set
         if (!productDetails && result.originalPrice) {
           setProductDetails({ stripePrice: result.originalPrice });
@@ -818,10 +286,10 @@ export default function StripeElementsStep() {
         }
       } else {
         setPromoResult(null);
-        setPromoError(result.error || 'Invalid promo code');
+        setPromoError('Invalid');
       }
     } catch {
-      setPromoError('Failed to validate promo code. Please try again.');
+      setPromoError('Invalid');
     } finally {
       setIsValidatingPromo(false);
     }
@@ -831,50 +299,8 @@ export default function StripeElementsStep() {
     setPromoCode('');
     setPromoResult(null);
     setPromoError(null);
-    setPromoPreview(null);
-    setPreviewError(null);
   };
 
-  // Load promo code preview when typing
-  useEffect(() => {
-    if (!promoCode.trim() || promoResult?.valid) {
-      setPromoPreview(null);
-      setPreviewError(null);
-      return;
-    }
-
-    const timeoutId = setTimeout(async () => {
-      setIsLoadingPreview(true);
-      setPreviewError(null);
-      try {
-        const response = await fetch('/api/validate-promo-code', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: promoCode }),
-        });
-        const result: PromoCodeResult = await response.json();
-        if (result.valid && result.promoCode) {
-          setPromoPreview(result.promoCode);
-          setPreviewError(null);
-        } else {
-          setPromoPreview(null);
-          // If error message exists, it means the code was found but has restrictions
-          if (result.error && result.error !== 'Invalid promo code') {
-            setPreviewError(result.error);
-          } else {
-            setPreviewError(null);
-          }
-        }
-      } catch {
-        setPromoPreview(null);
-        setPreviewError(null);
-      } finally {
-        setIsLoadingPreview(false);
-      }
-    }, 500);
-
-    return () => clearTimeout(timeoutId);
-  }, [promoCode, promoResult?.valid]);
 
   // Show loading state while fetching payment intent (but not for free bookings)
   if (!isFreeBooking && !clientSecret) {
@@ -909,23 +335,22 @@ export default function StripeElementsStep() {
         )}
       </div>
 
+      {/* Payment Form or Free Booking Form */}
+      {isFreeBooking ? (
+        <FreeBookingForm onSuccess={() => {}} />
+      ) : (
+        <Elements stripe={stripePromise} options={{ clientSecret }}>
+          <PaymentForm price={finalPrice} finalPrice={finalPrice} />
+        </Elements>
+      )}
+
       {/* Promo Code Section */}
-      <div className="mb-6 p-4 bg-white rounded-lg border border-gray-200 relative overflow-hidden">
-        {showConfetti && <CelebrationEffect />}
+      <div className="mt-6 mb-6 p-4 bg-white rounded-lg border border-gray-200 relative overflow-hidden">
         {promoResult?.valid ? (
           <div>
             <div className="flex flex-col items-center gap-1">
               {promoResult.promoCode?.description && (
                 <p className="text-xl font-bold text-gray-800 text-center">{promoResult.promoCode.description}</p>
-              )}
-              {promoResult.promoCode?.image?.url && (
-                <Image
-                  src={promoResult.promoCode.image.url}
-                  alt={promoResult.promoCode.code}
-                  width={160}
-                  height={110}
-                  className="rounded-lg object-cover"
-                />
               )}
               <p className="text-sm">
                 <span className="font-bold text-green-600">APPLIED!</span>
@@ -965,9 +390,9 @@ export default function StripeElementsStep() {
               <button
                 type="button"
                 onClick={handleApplyPromoCode}
-                disabled={isValidatingPromo || !promoCode.trim() || !promoPreview || isLoadingPreview}
+                disabled={isValidatingPromo || !promoCode.trim()}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                  promoCode.trim() && promoPreview && !isLoadingPreview
+                  promoCode.trim() && !isValidatingPromo
                     ? 'bg-red-600 text-white hover:bg-red-700'
                     : 'bg-red-400 text-white cursor-not-allowed opacity-60'
                 }`}
@@ -975,44 +400,12 @@ export default function StripeElementsStep() {
                 {isValidatingPromo ? 'Checking...' : 'Apply'}
               </button>
             </div>
-            {/* Promo preview while typing */}
-            {isLoadingPreview && (
-              <div className="mt-3 text-sm text-gray-500 text-center">Loading...</div>
-            )}
-            {previewError && !isLoadingPreview && (
-              <p className="mt-2 text-sm text-orange-600">{previewError}</p>
-            )}
-            {promoPreview && !isLoadingPreview && (
-              <div className="mt-3 flex items-center gap-3">
-                {promoPreview.image?.url && (
-                  <Image
-                    src={promoPreview.image.url}
-                    alt={promoPreview.code}
-                    width={100}
-                    height={70}
-                    className="rounded-lg object-cover flex-shrink-0"
-                  />
-                )}
-                {promoPreview.description && (
-                  <p className="text-sm text-gray-600">{promoPreview.description}</p>
-                )}
-              </div>
-            )}
           </>
         )}
         {promoError && !promoResult?.valid && (
           <p className="mt-2 text-sm text-red-600">{promoError}</p>
         )}
       </div>
-
-      {/* Payment Form or Free Booking Form */}
-      {isFreeBooking ? (
-        <FreeBookingForm onSuccess={() => {}} />
-      ) : (
-        <Elements stripe={stripePromise} options={{ clientSecret }}>
-          <PaymentForm price={finalPrice} finalPrice={finalPrice} />
-        </Elements>
-      )}
     </FormLayout>
   );
 }
