@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useTransition } from "react";
+import { useEffect, useState, useRef, useTransition, useCallback } from "react";
 import { PromoCode, PromoCodeType } from "@/lib/types/promoCode";
 import { FormComponentProps } from "@/app/dashboard/components/DashboardCard";
 import { findPromoCodeByCode } from "../actions";
@@ -29,7 +29,7 @@ export function PromoCodeForm({ existing, onSaved }: PromoCodeFormProps) {
   };
 
   // Calculate initial value for existing promo code
-  const getInitialValue = (): string => {
+  const getInitialValue = useCallback((): string => {
     if (!existing) return "";
     if (existing.type === "PERCENT") {
       const percentOff = (1 - existing.value) * 100;
@@ -38,7 +38,7 @@ export function PromoCodeForm({ existing, onSaved }: PromoCodeFormProps) {
       const dollars = existing.value / 100;
       return dollars.toFixed(2);
     }
-  };
+  }, [existing]);
   
   const [value, setValue] = useState<string>(getInitialValue());
   
@@ -69,7 +69,7 @@ export function PromoCodeForm({ existing, onSaved }: PromoCodeFormProps) {
     setImagePreview(existing?.image?.url ?? null);
     setImageFile(null);
     setRemoveImage(false);
-  }, [existing]);
+  }, [existing, getInitialValue]);
 
   // Validate code uniqueness when it changes
   useEffect(() => {
@@ -95,8 +95,7 @@ export function PromoCodeForm({ existing, onSaved }: PromoCodeFormProps) {
         } else {
           setCodeError(null);
         }
-      } catch (error) {
-        // If error checking, don't block submission
+      } catch {
         setCodeError(null);
       } finally {
         setIsCheckingCode(false);
@@ -221,20 +220,6 @@ export function PromoCodeForm({ existing, onSaved }: PromoCodeFormProps) {
       }
     });
   }
-
-  // Calculate display value for existing promo code
-  const getDisplayValue = (): string => {
-    if (!existing) return "";
-    if (existing.type === "PERCENT") {
-      // Convert from decimal to percentage (0.0 = 100% off)
-      const percentOff = (1 - existing.value) * 100;
-      return formatPercentage(percentOff);
-    } else {
-      // Convert from cents to dollars
-      const dollars = existing.value / 100;
-      return dollars.toFixed(2);
-    }
-  };
 
   // Validate if form has minimum required fields
   const isFormValid = (): boolean => {

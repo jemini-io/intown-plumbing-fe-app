@@ -255,7 +255,7 @@ export class PromoCodeRepository {
     }
 
     // Check usage limit
-    if (promoCode.usageLimit !== null && promoCode.usageCount >= promoCode.usageLimit) {
+    if (promoCode.usageLimit != null && promoCode.usageCount >= promoCode.usageLimit) {
       logger.info(`${prompt} Promo code "${code}" has reached its usage limit.`);
       return { valid: false, error: "This promo code has reached its usage limit" };
     }
@@ -272,11 +272,12 @@ export class PromoCodeRepository {
     }
 
     // Check minimum purchase
-    if (promoCode.minPurchase !== null && originalPrice < promoCode.minPurchase) {
+    const minPurchase = promoCode.minPurchase;
+    if (minPurchase != null && typeof minPurchase === 'number' && originalPrice < minPurchase) {
       logger.info(`${prompt} Minimum purchase not met for promo code "${code}".`);
       return {
         valid: false,
-        error: `Minimum purchase of $${promoCode.minPurchase.toFixed(2)} required`,
+        error: `Minimum purchase of $${minPurchase.toFixed(2)} required`,
       };
     }
 
@@ -292,8 +293,11 @@ export class PromoCodeRepository {
     }
 
     // Apply max discount cap if set
-    if (promoCode.maxDiscount !== null && discountAmount > promoCode.maxDiscount) {
-      discountAmount = promoCode.maxDiscount;
+    const maxDiscount = promoCode.maxDiscount;
+    if (maxDiscount != null && typeof maxDiscount === 'number') {
+      if (discountAmount > maxDiscount) {
+        discountAmount = maxDiscount;
+      }
     }
 
     const finalPrice = Math.max(0, originalPrice - discountAmount);

@@ -729,7 +729,6 @@ export default function StripeElementsStep() {
   const [promoError, setPromoError] = useState<string | null>(null);
   const [promoPreview, setPromoPreview] = useState<PromoCodeResult['promoCode'] | null>(null);
   const [isLoadingPreview, setIsLoadingPreview] = useState(false);
-  const [isInvalidCode, setIsInvalidCode] = useState(false);
   const [previewError, setPreviewError] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -840,7 +839,6 @@ export default function StripeElementsStep() {
   useEffect(() => {
     if (!promoCode.trim() || promoResult?.valid) {
       setPromoPreview(null);
-      setIsInvalidCode(false);
       setPreviewError(null);
       return;
     }
@@ -857,11 +855,9 @@ export default function StripeElementsStep() {
         const result: PromoCodeResult = await response.json();
         if (result.valid && result.promoCode) {
           setPromoPreview(result.promoCode);
-          setIsInvalidCode(false);
           setPreviewError(null);
         } else {
           setPromoPreview(null);
-          setIsInvalidCode(true);
           // If error message exists, it means the code was found but has restrictions
           if (result.error && result.error !== 'Invalid promo code') {
             setPreviewError(result.error);
@@ -871,7 +867,6 @@ export default function StripeElementsStep() {
         }
       } catch {
         setPromoPreview(null);
-        setIsInvalidCode(false);
         setPreviewError(null);
       } finally {
         setIsLoadingPreview(false);

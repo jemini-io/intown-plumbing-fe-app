@@ -53,7 +53,11 @@ export default function PromoCodeCard({
   const notStarted = promoCode.startsAt && new Date(promoCode.startsAt) > new Date();
 
   // Check if usage limit reached
-  const usageLimitReached = promoCode.usageLimit !== null && promoCode.usageCount >= promoCode.usageLimit;
+  const usageLimitReached = promoCode.usageLimit !== null && promoCode.usageLimit !== undefined && promoCode.usageCount >= promoCode.usageLimit;
+
+  // Extract values with proper narrowing
+  const minPurchase = promoCode.minPurchase;
+  const maxDiscount = promoCode.maxDiscount;
 
   return (
     <div
@@ -121,13 +125,13 @@ export default function PromoCodeCard({
         <div className="flex flex-wrap gap-4 text-xs text-gray-500 dark:text-gray-400">
           <span>
             Used: <strong>{promoCode.usageCount}</strong>
-            {promoCode.usageLimit !== null && ` / ${promoCode.usageLimit}`}
+            {promoCode.usageLimit !== null && promoCode.usageLimit !== undefined && ` / ${promoCode.usageLimit}`}
           </span>
-          {promoCode.minPurchase !== null && (
-            <span>Min: ${promoCode.minPurchase.toFixed(2)}</span>
+          {minPurchase != null && (
+            <span>Min: ${minPurchase.toFixed(2)}</span>
           )}
-          {promoCode.maxDiscount !== null && (
-            <span>Max: ${promoCode.maxDiscount.toFixed(2)}</span>
+          {maxDiscount != null && (
+            <span>Max: ${maxDiscount.toFixed(2)}</span>
           )}
           {promoCode.startsAt && (
             <span>Starts: {formatDate(promoCode.startsAt)}</span>
