@@ -1,25 +1,24 @@
 import React, { useEffect, useState, Fragment } from "react";
-import { PencilIcon, TrashIcon } from "@heroicons/react/24/outline";
-import { Booking } from "@/lib/types/booking";
-import { getAllBookings, deleteBooking } from "../actions";
+import { Booking, BookingStatus } from "@/lib/types/booking";
+import { getAllBookings, deleteBooking, totalRevenue } from "../actions";
 import { BookingsForm } from "./BookingsForm";
 import { DeleteConfirmModal } from "@/app/components/DeleteConfirmModal";
 import { Combobox } from "@headlessui/react";
+import { PlusIcon, UserCircleIcon } from "@heroicons/react/24/outline";
+import Image from "next/image";
 
-
-
-function statusColor(status: string) {
-  switch (status.toLowerCase()) {
-    case "confirmed":
-      return "bg-green-100 text-green-700";
-    case "pending":
-      return "bg-yellow-100 text-yellow-700";
-    case "scheduled":
-      return "bg-blue-100 text-blue-700";
-    case "canceled":
-      return "bg-red-100 text-red-700";
+function statusColor(status: BookingStatus) {
+  switch (status) {
+    case "SCHEDULED":
+      return "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300";
+    case "PENDING":
+      return "bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300";
+    case "CANCELED":
+      return "bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300";
+    case "COMPLETED":
+      return "bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300";
     default:
-      return "bg-gray-100 text-gray-700";
+      return "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300";
   }
 }
 
@@ -27,12 +26,17 @@ const columns = [
   { key: "scheduledFor", label: "Date & Time" },
   { key: "customerId", label: "Customer ID" },
   { key: "jobId", label: "Job ID" },
-  { key: "technicianId", label: "Technician ID" },
+  { key: "service", label: "Service" },
+  { key: "technician", label: "Technician" },
   { key: "status", label: "Status" },
 ];
 
 export interface BookingsListViewProps {
   showHeader?: boolean;
+  showJobId?: boolean;
+  showStatus?: boolean;
+  showNotes?: boolean;
+  showRevenue?: boolean;
   canEdit?: boolean;
   canDelete?: boolean;
   limit?: number;
@@ -40,10 +44,16 @@ export interface BookingsListViewProps {
 
 export function BookingsListView({ 
   showHeader = true, 
+  showJobId = false,
+  showStatus = true,
+  showNotes = false,
+  showRevenue = true,
   canEdit, 
   canDelete, 
   limit 
 }: BookingsListViewProps) {
+
+  const showActions = canEdit || canDelete;
   const [bookings, setBookings] = useState<Booking[] | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState<Booking | null>(null);
@@ -56,15 +66,24 @@ export function BookingsListView({
   const [sortDir, setSortDir] = useState<"asc" | "desc">("asc");
 
   // Filter state
-  const [statusFilter, setStatusFilter] = useState<string>("");
+  const [statusFilter, setStatusFilter] = useState<BookingStatus | "">("");
+  const [serviceFilter, setServiceFilter] = useState<string | null>("");
   const [technicianFilter, setTechnicianFilter] = useState<string | null>("");
   const [customerFilter, setCustomerFilter] = useState<string | null>("");
   const [dateFilter, setDateFilter] = useState<string>("");
 
-  // Obtén los valores únicos de technicianId y customerId
-  const uniqueTechnicians = Array.from(new Set((bookings || []).map(b => b.technicianId).filter(Boolean)));
-  const uniqueCustomers = Array.from(new Set((bookings || []).map(b => b.customerId).filter(Boolean)));
+  const uniqueServices = Array.from(new Set((bookings || []).map(b => b.service?.displayName || "").filter(Boolean)));
+  const uniqueTechnicians = Array.from(new Set((bookings || []).map(b => b.technician?.technicianName || "").filter(Boolean)));
+  const uniqueCustomers = Array.from(new Set((bookings || []).map(b => b.customer?.name || "").filter(Boolean)));
 
+  // Service filter state
+  const [serviceQuery, setServiceQuery] = useState("");
+  const filteredServices = serviceQuery === ""
+    ? uniqueServices
+    : uniqueServices.filter((service) =>
+        service.toLowerCase().includes(serviceQuery.toLowerCase())
+      );
+  
   // Technician filter state
   const [technicianQuery, setTechnicianQuery] = useState("");
   const filteredTechnicians = technicianQuery === ""
@@ -92,17 +111,22 @@ export function BookingsListView({
         job.toLowerCase().includes(jobQuery.toLowerCase())
       );
 
-  // Technician combobox open state
+  const [openService, setOpenService] = useState(false);
   const [openTechnician, setOpenTechnician] = useState(false);
 
   async function refresh() {
     const bookings = await getAllBookings();
-    setBookings(bookings);
+    setBookings(bookings as unknown as Booking[]);
   }
 
   useEffect(() => {
     refresh();
   }, []);
+
+  function handleAdd() {
+    setSelectedBooking(null);
+    setModalOpen(true);
+  }
 
   function handleEdit(booking: Booking) {
     setSelectedBooking(booking);
@@ -150,20 +174,63 @@ export function BookingsListView({
     }
   }
 
-  const filteredBookings = (bookings || []).filter(b =>
-    (!statusFilter || b.status === statusFilter) &&
-    (!technicianFilter || b.technicianId === technicianFilter) && 
-    (!customerFilter || b.customerId === customerFilter) &&
-    (!dateFilter || new Date(b.scheduledFor).toISOString().slice(0, 10) === dateFilter) &&
-    (!jobFilter || b.jobId === jobFilter)
-  );
+  const filteredBookings = (bookings || []).filter(b => {
+    let dateMatch = true;
+    
+    if (dateFilter && dateFilter.trim() !== "") {
+      try {
+        // datetime-local returns format: YYYY-MM-DDTHH:mm (in local timezone)
+        const filterValue = dateFilter.trim().slice(0, 16); // Normalize to YYYY-MM-DDTHH:mm
+        
+        // Convert booking date to local datetime string for comparison
+        const bookingDate = new Date(b.scheduledFor);
+        
+        // Validate booking date
+        if (isNaN(bookingDate.getTime())) {
+          dateMatch = false;
+        } else {
+          // Get local date components
+          const year = bookingDate.getFullYear();
+          const month = String(bookingDate.getMonth() + 1).padStart(2, '0');
+          const day = String(bookingDate.getDate()).padStart(2, '0');
+          const hours = String(bookingDate.getHours()).padStart(2, '0');
+          const minutes = String(bookingDate.getMinutes()).padStart(2, '0');
+          
+          // Format as YYYY-MM-DDTHH:mm (same format as datetime-local input)
+          const bookingDateTimeLocal = `${year}-${month}-${day}T${hours}:${minutes}`;
+          
+          // Compare full datetime including hour and minute
+          dateMatch = bookingDateTimeLocal === filterValue;
+        }
+      } catch {
+        // If there's an error parsing, don't match
+        dateMatch = false;
+      }
+    }
+    
+    return (
+      (!statusFilter || b.status === statusFilter) &&
+      (!serviceFilter || (b.service?.displayName || "") === serviceFilter) &&
+      (!technicianFilter || (b.technician?.technicianName || "") === technicianFilter) && 
+      (!customerFilter || (b.customer?.name || "") === customerFilter) &&
+      dateMatch &&
+      (!jobFilter || b.jobId === jobFilter)
+    );
+  });
 
   const sortedBookings = filteredBookings.sort(sortBookings);
 
-  const totalRevenue = (sortedBookings || []).reduce((sum, booking) => {
-    const revenue = Number(booking.revenue);
-    return sum + (isNaN(revenue) ? 0 : revenue);
-  }, 0);
+  const [revenueTotal, setRevenueTotal] = useState<number>(0);
+
+  useEffect(() => {
+    async function loadRevenue() {
+      const total = await totalRevenue();
+      setRevenueTotal(total);
+    }
+    if (bookings) {
+      loadRevenue();
+    }
+  }, [bookings]);
 
   const bookingsToRender = limit ? sortedBookings.slice(0, limit) : sortedBookings;
 
@@ -171,46 +238,30 @@ export function BookingsListView({
     <>
       {showHeader && (
         <div className="flex items-center justify-between mb-8">
-          <h2 className="text-xl font-semibold">Bookings</h2>
+          <h2 className="text-xl font-semibold dark:text-white">Bookings</h2>
+          <button
+            className="p-2 rounded-full bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50 text-blue-600 dark:text-blue-400 transition"
+            title="Add new booking"
+            onClick={handleAdd}
+          >
+            <PlusIcon className="h-6 w-6 dark:text-white" />
+          </button>
         </div>
       )}
       <div className="overflow-x-auto">
-        <table className="min-w-full table-auto rounded-lg bg-white">
+        <table className="min-w-full table-auto rounded-lg bg-white dark:bg-gray-800">
           <thead>
             <tr>
-              {/* Date */}
-              <th className="px-4 py-2 text-left">
-                <span className="flex items-center gap-2">
-                  <span
-                    className="flex items-center gap-1 cursor-pointer select-none"
-                    onClick={() => handleSort("scheduledFor")}
-                    tabIndex={0}
-                    role="button"
-                    title="Sort by date"
-                  >
-                    Date&Time
-                    <span className="inline-block align-middle">
-                      <span className={"text-lg " + (sortBy === "scheduledFor" && sortDir === "asc" ? "text-blue-600" : "text-gray-300")}>▲</span>
-                      <span className={"text-lg ml-0.5 " + (sortBy === "scheduledFor" && sortDir === "desc" ? "text-blue-600" : "text-gray-300")}>▼</span>
-                    </span>
-                  </span>
-                  <input
-                    type="date"
-                    className="border rounded text-xs"
-                    value={dateFilter}
-                    onChange={e => setDateFilter(e.target.value)}
-                    style={{ minWidth: 0, width: "110px" }}
-                  />
-                </span>
-              </th>
+              {/* Image */}
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700"></th>
               {/* Customer */}
-              <th className="px-4 py-2 text-left">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
-                  CustomerID
+                  Customer
                   <Combobox value={customerFilter} onChange={setCustomerFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
-                        className="border rounded text-xs ml-2"
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                         placeholder="Customer"
                         onChange={e => setCustomerQuery(e.target.value)}
                         displayValue={(val: string) => (!val ? "All" : val)}
@@ -218,7 +269,7 @@ export function BookingsListView({
                         onFocus={() => setCustomerQuery("")}
                       />
                       {customerQuery !== undefined && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                           <Combobox.Option value="">
                             All
                           </Combobox.Option>
@@ -226,7 +277,7 @@ export function BookingsListView({
                             <Combobox.Option key={cust} value={cust} as={Fragment}>
                               {({ active, selected }) => (
                                 <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {cust}
                                 </li>
@@ -240,13 +291,13 @@ export function BookingsListView({
                 </span>
               </th>
               {/* Job ID */}
-              <th className="px-4 py-2 text-left">
+              {showJobId && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   JobID
                   <Combobox value={jobFilter} onChange={setJobFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
-                        className="border rounded text-xs ml-2"
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                         placeholder="Job"
                         onChange={e => setJobQuery(e.target.value)}
                         displayValue={(val: string) => (!val ? "All" : val)}
@@ -255,7 +306,7 @@ export function BookingsListView({
                         onBlur={() => setTimeout(() => setOpenJob(false), 100)}
                       />
                       {openJob && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                           <Combobox.Option value="">
                             All
                           </Combobox.Option>
@@ -263,7 +314,7 @@ export function BookingsListView({
                             <Combobox.Option key={job} value={job} as={Fragment}>
                               {({ active, selected }) => (
                                 <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {job}
                                 </li>
@@ -275,15 +326,52 @@ export function BookingsListView({
                     </div>
                   </Combobox>
                 </span>
+              </th> )}
+              {/* Service */}
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
+                <span className="flex items-center gap-2">
+                  Service
+                  <Combobox value={serviceFilter} onChange={setServiceFilter} as="div">
+                    <div className="relative">
+                      <Combobox.Input
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
+                        placeholder="Job"
+                        onChange={e => setServiceQuery(e.target.value)}
+                        displayValue={(val: string) => (!val ? "All" : val)}
+                        style={{ minWidth: 0, width: "110px" }}
+                        onFocus={() => setOpenService(true)}
+                        onBlur={() => setTimeout(() => setOpenService(false), 100)}
+                      />
+                      {openService && (
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
+                          <Combobox.Option value="">
+                            All
+                          </Combobox.Option>
+                          {filteredServices.map((service) => (
+                            <Combobox.Option key={service} value={service} as={Fragment}>
+                              {({ active, selected }) => (
+                                <li
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
+                                >
+                                  {service}
+                                </li>
+                              )}
+                            </Combobox.Option>
+                          ))}
+                        </Combobox.Options>
+                      )}
+                    </div>
+                  </Combobox>
+                </span>
               </th>
               {/* Technician */}
-              <th className="px-4 py-2 text-left">
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
-                  TechnicianID
+                  Technician
                   <Combobox value={technicianFilter} onChange={setTechnicianFilter} as="div">
                     <div className="relative">
                       <Combobox.Input
-                        className="border rounded text-xs ml-2"
+                        className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                         placeholder="Technician"
                         onChange={e => setTechnicianQuery(e.target.value)}
                         displayValue={(val: string) => (!val ? "All" : val)}
@@ -292,7 +380,7 @@ export function BookingsListView({
                         onBlur={() => setTimeout(() => setOpenTechnician(false), 100)}
                       />
                       {openTechnician && (
-                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white border rounded shadow max-h-40 overflow-auto text-xs w-full">
+                        <Combobox.Options className="absolute left-0 mt-1 z-50 bg-white dark:bg-gray-800 border dark:border-gray-700 rounded shadow max-h-40 overflow-auto text-xs w-full">
                           <Combobox.Option value="">
                             All
                           </Combobox.Option>
@@ -300,7 +388,7 @@ export function BookingsListView({
                             <Combobox.Option key={tech} value={tech} as={Fragment}>
                               {({ active, selected }) => (
                                 <li
-                                  className={`px-2 py-1 cursor-pointer ${active ? "bg-blue-100" : ""} ${selected ? "font-bold" : ""}`}
+                                  className={`px-2 py-1 cursor-pointer dark:text-white ${active ? "bg-blue-100 dark:bg-gray-700" : ""} ${selected ? "font-bold" : ""}`}
                                 >
                                   {tech}
                                 </li>
@@ -313,64 +401,124 @@ export function BookingsListView({
                   </Combobox>
                 </span>
               </th>
+              {/* Date & Time */}
+              <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
+                <span className="flex items-center gap-2">
+                  <span
+                    className="flex items-center gap-1 cursor-pointer select-none"
+                    onClick={() => handleSort("scheduledFor")}
+                    tabIndex={0}
+                    role="button"
+                    title="Sort by date"
+                  >
+                    Date & Time
+                    <span className="inline-block align-middle">
+                      <span className={"text-lg " + (sortBy === "scheduledFor" && sortDir === "asc" ? "text-blue-600 dark:text-blue-400" : "text-gray-300 dark:text-gray-600")}>▲</span>
+                      <span className={"text-lg ml-0.5 " + (sortBy === "scheduledFor" && sortDir === "desc" ? "text-blue-600 dark:text-blue-400" : "text-gray-300 dark:text-gray-600")}>▼</span>
+                    </span>
+                  </span>
+                  <input
+                    type="datetime-local"
+                    className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs"
+                    value={dateFilter}
+                    onChange={e => setDateFilter(e.target.value)}
+                    style={{ minWidth: 0, width: "110px" }}
+                  />
+                </span>
+              </th>
               {/* Status */}
-              <th className="px-4 py-2 text-left">
+              {showStatus && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">
                 <span className="flex items-center gap-2">
                   Status
                   <select
-                    className="border rounded text-xs ml-2"
+                    className="border dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded text-xs ml-2"
                     value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
+                    onChange={e => setStatusFilter(e.target.value as BookingStatus | "")}
                     style={{ minWidth: 0, width: "110px" }}
                   >
                     <option value="">All</option>
-                    <option value="pending">Pending</option>
-                    <option value="scheduled">Scheduled</option>
-                    <option value="canceled">Canceled</option>
-                    <option value="completed">Completed</option>
+                    <option value="PENDING">PENDING</option>
+                    <option value="SCHEDULED">SCHEDULED</option>
+                    <option value="CANCELED">CANCELED</option>
+                    <option value="COMPLETED">COMPLETED</option>
                   </select>
                 </span>
-              </th>
+              </th> )}
               {/* Notes */}
-              <th className="px-4 py-2 text-left">Notes</th>
+              {showNotes && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">Notes</th> )}
               {/* Revenue */}
-              <th className="px-4 py-2 text-left">Revenue</th>
-              {(canEdit || canDelete) && (
-                <th className="px-4 py-2 text-left">Actions</th>
+              {showRevenue && ( <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">Revenue</th> )}
+              {showActions && (
+                <th className="px-4 py-2 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 border-b dark:border-gray-700">Actions</th>
               )}
             </tr>
           </thead>
           <tbody>
             {bookingsToRender.map((booking) => (
-              <tr key={booking.id} className="hover:bg-blue-50">
-                <td className="px-4 py-2 text-right">{new Date(booking.scheduledFor).toLocaleString()}</td>
-                <td className="px-4 py-2 text-right">{booking.customerId || "-"}</td>
-                <td className="px-4 py-2 text-right">{booking.jobId || "-"}</td>
-                <td className="px-4 py-2 text-right">{booking.technicianId || "-"}</td>
-                <td className="px-4 py-2 text-right">
-                  <span className={"text-xs font-bold px-2 py-1 rounded uppercase " + statusColor(booking.status)}>
-                    {booking.status.toUpperCase()}
-                  </span>
+              <tr key={booking.id} className="hover:bg-blue-50 dark:hover:bg-gray-700">
+                <td className="pl-2 pr-1 py-2 w-12">
+                  {booking.customer?.image?.url ? (
+                    <Image
+                      src={booking.customer.image.url}
+                      alt={booking.customer.name || "Customer"}
+                      width={40}
+                      height={40}
+                      className="rounded-full object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="h-10 w-10 rounded-full flex items-center justify-center">
+                      <UserCircleIcon className="text-gray-700 dark:text-gray-400 h-7 w-7" />
+                    </div>
+                  )}
                 </td>
-                <td className="px-4 py-2">{booking.notes || "-"}</td>
-                <td className="px-4 py-2 text-right">$ {Number(booking.revenue).toFixed(2)}</td>
-                {(canEdit || canDelete) && (
+                <td className="px-4 py-2 text-center dark:text-white">{booking.customer?.name || "-"}</td>
+                {showJobId && ( <td className="px-4 py-2 text-left dark:text-white">{booking.jobId || "-"}</td> )}
+                <td className="px-4 py-2 text-letf dark:text-white">{booking.service?.displayName || "-"}</td>
+                <td className="px-4 py-2 text-left dark:text-white">{booking.technician?.technicianName || "-"}</td>
+                <td className="px-4 py-2 text-right">
+                  {(() => {
+                    const start = new Date(booking.scheduledFor as unknown as string);
+                    const end = new Date(start.getTime() + 30 * 60 * 1000);
+                    const weekday = new Intl.DateTimeFormat("en-US", { weekday: "long" }).format(start);
+                    let monthShort = new Intl.DateTimeFormat("en-US", { month: "short" }).format(start);
+                    monthShort = monthShort.charAt(0).toUpperCase() + monthShort.slice(1);
+                    const monthAbbr = monthShort.endsWith(".") ? monthShort : monthShort + ".";
+                    const dateLine = `${weekday}, ${monthAbbr} ${start.getDate()}, ${start.getFullYear()}`;
+                    const timeFmt = new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+                    const timeLine = `${timeFmt.format(start)} - ${timeFmt.format(end)}`;
+                    return (
+                      <div className="text-right">
+                        <div className="dark:text-white">{dateLine}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">{timeLine}</div>
+                      </div>
+                    );
+                  })()}
+                </td>
+                {showStatus && ( <td className="px-4 py-2 text-right">
+                  <span className={"text-xs font-bold px-2 py-1 rounded uppercase " + statusColor(booking.status)}>
+                    {booking.status}
+                  </span>
+                </td> )}
+                {showNotes && ( <td className="px-4 py-2 dark:text-white">{booking.notes || "-"}</td> )}
+                {showRevenue && ( <td className="px-4 py-2 text-right dark:text-white">$ {Number(booking.revenue).toFixed(2)}</td> )}
+                {showActions && (canEdit || canDelete) && (
                   <td className="px-4 py-2 h-full">
                     <div className="flex gap-2 items-center h-full">
                       {canEdit && (
                         <button
-                          className="text-blue-500 hover:underline font-medium px-1"
+                          className="text-blue-500 dark:text-blue-400 font-medium px-1"
                           onClick={() => handleEdit(booking)}
                         >
-                          <PencilIcon title={`Edit booking`} className="h-4 w-4 inline-block" />
+                          <span className="text-xs font-semibold text-blue-600 dark:text-blue-400">EDIT</span>
                         </button>
                       )}
                       {canDelete && (
                         <button
-                          className="text-red-500 hover:underline font-medium px-1"
+                          className="text-red-500 dark:text-red-400 font-medium px-1"
                           onClick={() => handleDeleteBooking(booking)}
                         >
-                          <TrashIcon title={`Remove booking`} className="h-4 w-4 inline-block" />
+                          <span className="text-xs font-semibold text-red-600 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300">REMOVE</span>
                         </button>
                       )}
                     </div>
@@ -380,14 +528,14 @@ export function BookingsListView({
             ))}
           </tbody>
           <tfoot>
-            <tr className="bg-gray-100">
+            <tr className="bg-gray-100 dark:bg-gray-700">
               {/* empty cells for alignment */}
               {columns.map((_, idx) => (
                 <td key={idx}></td>
               ))}
               {/* Revenue total */}
-              <td className="px-4 py-2 font-bold text-right" colSpan={2}>
-                ${totalRevenue.toFixed(2)}
+              <td className="px-4 py-2 font-bold text-right dark:text-white" colSpan={2}>
+                ${revenueTotal.toFixed(2)}
               </td>
               {(canEdit || canDelete) && <td></td>}
             </tr>
@@ -396,10 +544,10 @@ export function BookingsListView({
       </div>
       {modalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
-          <div className="bg-white rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 w-[700px] overflow-auto relative" style={{ minWidth: 400, maxHeight: "90vh" }}>
             <button
               onClick={() => setModalOpen(false)}
-              className="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl font-bold"
+              className="absolute top-2 right-2 text-gray-400 dark:text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-xl font-bold"
             >
               ×
             </button>

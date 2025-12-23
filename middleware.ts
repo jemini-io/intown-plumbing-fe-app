@@ -1,8 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { iframeSecurityMiddleware } from "./lib/middleware/iframe-security";
 import { getToken } from "next-auth/jwt";
+import { adminOnlyRoutes } from "./app/dashboard/components/navItemsData";
+import pino from "pino";
+
+const logger = pino({ name: "middleware" });
 
 export async function middleware(request: NextRequest) {
+  const prompt = 'middleware function says:';
+  logger.info({prompt}, 'Starting...');
   // Apply iframe security first
   const securityResponse = iframeSecurityMiddleware(request);
   if (securityResponse) return securityResponse;
@@ -22,8 +28,7 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // Restrict access to admin-only pages
-  if (pathname.startsWith("/dashboard/settings") || pathname.startsWith("/dashboard/users")) {
+  if (adminOnlyRoutes.some(route => pathname.startsWith(route))) {
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET });
     if (!token || token.role !== "ADMIN") {
       return NextResponse.redirect(new URL("/dashboard", request.url));

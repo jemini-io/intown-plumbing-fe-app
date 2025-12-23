@@ -1,23 +1,34 @@
 import type { DefaultSession } from "next-auth";
-
+import type { UserRole } from "@/app/dashboard/users/types";
 declare module "next-auth" {
   interface User {
-    role?: string | null;
-    image?: string | null;
-    name?: string | null;
-    email?: string | null;
+    id: string;
+    role: UserRole;
+    image: string | null;
+    name: string | null;
+    email: string | null;
+    enabled: boolean;
   }
 
   interface Session {
-    user?: (DefaultSession["user"] & { role?: string | null }) | null;
-    // Note: we don't redefine `expires`; it stays from DefaultSession
+    user: {
+      id: string;
+      role: UserRole;
+      name: string | null;
+      email: string | null;
+      image: string | null;
+      enabled: boolean;
+    } & DefaultSession["user"];
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
-    role?: string | null;
+    id?: string;
+    role?: UserRole;
     name?: string | null;
+    email?: string | null;
     image?: string | null;
+    enabled?: boolean;
   }
 }

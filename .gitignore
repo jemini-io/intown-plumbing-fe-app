@@ -11,3 +11,6 @@ tsconfig.tsbuildinfo
 /lib/generated/prisma
 
 .nvmrc
+
+# Database backups
+prisma/backup/

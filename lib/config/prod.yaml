@@ -129,4 +129,4 @@ adminAuditData:
   - phoneNumber: "+14695562728"
     enabled: true
   - emailAddress: "admin@example.com"
-    enabled: true
+    enabled: false

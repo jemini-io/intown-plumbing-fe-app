@@ -4,7 +4,7 @@ import { logger } from './logger'
 import { Customer, SMSResult } from './types'
 import { Jpm_V2_JobResponse } from '../../servicetitan/generated/jpm/models/Jpm_V2_JobResponse'
 import { EnrichedJob } from './types'
-import { getCustomFields } from '@/lib/appSettings/getConfig'
+import { getCustomFields } from '@/lib/repositories/appSettings/getConfig'
 import { getTechnicianFromJob } from '@/app/api/job/createJob'
 import { env } from '@/lib/config/env'
 

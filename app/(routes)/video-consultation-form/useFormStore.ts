@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { FormData } from './types';
-import { ServiceToJobTypeMapping, QuoteSkill } from '@/lib/config/types';
+import { ServiceToJobType } from '@/lib/types/serviceToJobType';
+import { Skill } from '@/lib/types/skill';
 
 interface Technician {
   id: string;
@@ -35,11 +36,11 @@ interface FormStore {
   setFormData: (data: Partial<FormData & { street: string; city: string; state: string; zip: string; }>) => void;
   
   // Job type selection
-  availableJobTypes: ServiceToJobTypeMapping[];
-  selectedJobType: ServiceToJobTypeMapping | null;
+  availableJobTypes: ServiceToJobType[];
+  selectedJobType: ServiceToJobType | null;
   details: string;
-  setAvailableJobTypes: (jobTypes: ServiceToJobTypeMapping[]) => void;
-  setSelectedJobType: (jobType: ServiceToJobTypeMapping | null) => void;
+  setAvailableJobTypes: (jobTypes: ServiceToJobType[]) => void;
+  setSelectedJobType: (jobType: ServiceToJobType | null) => void;
   setDetails: (details: string) => void;
   
   // Time slots and technician selection
@@ -62,8 +63,8 @@ interface FormStore {
   resetForm: () => void;
 
   // Selected skill
-  selectedSkill: QuoteSkill | null;
-  setSelectedSkill: (skill: QuoteSkill | null) => void;
+  selectedSkill: Skill | null;
+  setSelectedSkill: (skill: Skill | null) => void;
 }
 
 const initialState = {

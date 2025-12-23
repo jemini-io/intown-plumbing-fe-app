@@ -2,15 +2,16 @@
 
 import FormLayout from '@/components/FormLayout';
 import Icon from '@/components/Icon';
-import { getServiceToJobTypes } from '@/lib/appSettings/getConfig';
-import { QuoteSkill, ServiceToJobTypeMapping } from '@/lib/config/types';
+import { getEnabledServicesOnly } from '@/lib/repositories/services/ServiceRepository.server';
+import { ServiceToJobType } from '@/lib/types/serviceToJobType';
+import { Skill } from '@/lib/types/skill';
 import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 
 export default function ServiceStep() {
   const [isLoadingJobTypes, setIsLoadingJobTypes] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [tooltipVisible, setTooltipVisible] = useState<number | null>(null);
+  const [tooltipVisible, setTooltipVisible] = useState<string | null>(null);
 
   const {
     availableJobTypes,
@@ -35,9 +36,9 @@ export default function ServiceStep() {
       try {
         setIsLoadingJobTypes(true);
         setError(null);
-        const jobTypes = await getServiceToJobTypes();
+        const jobTypes = await getEnabledServicesOnly();
         setAvailableJobTypes(jobTypes);
-        console.log('Fetched job types:', jobTypes);
+        console.log('Fetched enabled job types:', jobTypes);
       } catch (error) {
         console.error('Error fetching job types:', error);
         setError('Failed to load available services. Please try again.');
@@ -48,7 +49,7 @@ export default function ServiceStep() {
     fetchJobTypes();
   }, [setAvailableJobTypes]);
 
-  const handleJobTypeClick = (jobType: ServiceToJobTypeMapping) => {
+    const handleJobTypeClick = (jobType: ServiceToJobType) => {
     setSelectedJobType(jobType);
   };
 
@@ -60,7 +61,8 @@ export default function ServiceStep() {
     }
   };
 
-  const renderIcon = (jobType: ServiceToJobTypeMapping) => {
+  // const renderIcon = (jobType: ServiceToJobTypeMapping) => {
+    const renderIcon = (jobType: ServiceToJobType) => {
     if (jobType.icon) {
       return (
         <Icon 
@@ -177,17 +179,17 @@ export default function ServiceStep() {
           </div>
         )}
 
-        {/* Show quote skills if 'Get A Quote' is selected */}
+        {/* Show skills if selected job type has skills, such as 'Get a Quote' has*/}
         {selectedJobType && selectedJobType.skills && selectedJobType.skills.length > 0 && (
           <div className="mt-6 mb-2">
             <div className="mb-2 text-sm font-semibold text-gray-800">Type of Quote</div>
             <div className="flex flex-col gap-3">
-              {selectedJobType.skills.map((skill: QuoteSkill) => (
+              {selectedJobType.enabledSkills?.map((skill: Skill) => (
                 <label
-                  key={skill}
+                  key={skill.id}
                   className={`
                     flex items-center px-4 py-3 rounded-lg border cursor-pointer transition
-                    ${selectedSkill === skill
+                    ${selectedSkill?.id === skill.id
                       ? 'border-intown-blue bg-intown-blue text-white'
                       : 'border-gray-200 bg-white hover:border-indigo-400'}
                   `}
@@ -195,12 +197,12 @@ export default function ServiceStep() {
                   <input
                     type="radio"
                     name="quote-skill"
-                    value={skill}
-                    checked={selectedSkill === skill}
+                    value={skill.name}
+                    checked={selectedSkill?.id === skill.id}
                     onChange={() => setSelectedSkill(skill)}
                     className="form-radio checked:bg-intown-blue checked:border-intown-blue h-5 w-5 mr-3"
                   />
-                  <span className={`text-base font-medium ${selectedSkill === skill ? 'text-white' : 'text-gray-900'}`}>{skill.replace('Virtual Quote - ', '')}</span>
+                  <span className={`text-base font-medium ${selectedSkill?.id === skill.id ? 'text-white' : 'text-gray-900'}`}>{skill.name.replace('Virtual Quote - ', '')}</span>
                 </label>
               ))}
             </div>
@@ -238,4 +240,4 @@ export default function ServiceStep() {
       </div>
     </FormLayout>
   );
-} 
+}

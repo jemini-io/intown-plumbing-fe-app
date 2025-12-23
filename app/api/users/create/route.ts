@@ -23,6 +23,13 @@ export async function POST(req: NextRequest) {
   const role = formData.get("role") as "USER" | "ADMIN";
   const imageFile = formData.get("image") as File | null;
 
+  // parse enabled flag; only admins can set it explicitly, otherwise default true
+  const requestedEnabledRaw = formData.get("enabled");
+  const requesterIsAdmin = session.user?.role === "ADMIN";
+  const enabled = typeof requestedEnabledRaw === "string" && requesterIsAdmin
+    ? requestedEnabledRaw === "true"
+    : true;
+
   let uploadedImage = null;
   let userImage = null;
   let user = null;
@@ -41,6 +48,7 @@ export async function POST(req: NextRequest) {
         name,
         passwordDigest: hashedPassword,
         role,
+        enabled,
       },
     });
 
@@ -80,7 +88,7 @@ export async function POST(req: NextRequest) {
 
     // 2.2. Create UserImage entry and associate it to user
     try {
-      userImage = await prisma.userImage.create({
+      userImage = await prisma.image.create({
         data: {
           url: uploadedImage.url,
           publicId: uploadedImage.publicId,
@@ -101,7 +109,7 @@ export async function POST(req: NextRequest) {
         await deleteFromCloudinary(uploadedImage.publicId);
       }
       if (userImage?.id) {
-        await prisma.userImage.delete({ where: { id: userImage.id } });
+        await prisma.image.delete({ where: { id: userImage.id } });
       }
 
       await prisma.user.delete({ where: { id: user.id } });

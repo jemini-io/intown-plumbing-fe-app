@@ -3,7 +3,7 @@
 import { getAvailableAppointmentsAction } from '@/app/actions/getAvailableAppointments';
 import type { TimeSlot } from '@/app/api/appointments/getAppointments';
 import FormLayout from '@/components/FormLayout';
-import { getAppointmentDuration } from '@/lib/appSettings/getConfig';
+import { getAppointmentDuration } from '@/lib/repositories/appSettings/getConfig';
 import { useEffect, useState } from 'react';
 import { useFormStore } from '../useFormStore';
 

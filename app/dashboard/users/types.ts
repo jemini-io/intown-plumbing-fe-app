@@ -1,4 +1,4 @@
-export type Role = "USER" | "ADMIN";
+export type UserRole = "USER" | "ADMIN";
 
 export type UserImage = {
   id: string;
@@ -11,6 +11,7 @@ export type User = {
   id: string;
   name: string | null;
   email: string;
-  role: Role;
+  role: UserRole;
   image: UserImage | null; // antes: string | null
+  enabled: boolean;
 };

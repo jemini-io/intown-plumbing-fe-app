@@ -12,8 +12,8 @@ import { ServiceTitanClient } from "@/lib/servicetitan";
 import { Jpm_V2_CustomFieldModel, Jpm_V2_UpdateJobRequest } from "@/lib/servicetitan/generated/jpm";
 import { env } from "@/lib/config/env";
 import pino from "pino";
-import { getCustomFields, getDefaultManagedTechId } from "@/lib/appSettings/getConfig";
-import { findServiceById } from "@/app/dashboard/services/actions";
+import { getCustomFields, getDefaultManagedTechId } from "@/lib/repositories/appSettings/getConfig";
+import { ServiceRepository } from "@/lib/repositories/services/ServiceRepository";
 
 const logger = pino({ name: "createJobAction" });
 
@@ -40,6 +40,8 @@ export interface CreateJobData {
   billToZip?: string;
   billToCountry?: string;
   billToSameAsService?: boolean;
+  // Promo code discount
+  finalPrice?: number; // Final price after promo code discount
 }
 
 export interface CreateJobActionResult {
@@ -150,6 +152,7 @@ export async function createJob(
       billToZip: data.billToZip,
       billToSameAsService: data.billToSameAsService,
     },
+    finalPrice: data.finalPrice,
   });
 
   logger.info(
@@ -212,7 +215,7 @@ export async function createJob(
   // Send admin audit notification
   try {
     // Get service name from jobTypeId (which is the serviceTitanId)
-    const service = await findServiceById(String(data.jobTypeId));
+    const service = await ServiceRepository.findByServiceTitanId(data.jobTypeId);
     const serviceName = service?.displayName || service?.serviceTitanName || `Service ${data.jobTypeId}`;
 
     if (originalTechnician) {

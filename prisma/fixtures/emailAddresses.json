@@ -1,0 +1,42 @@
+[
+    {
+        "id": "ema_01",
+        "address": "john.doe@example.com"
+    },
+    {
+        "id": "ema_02",
+        "address": "jane.doe@example.com"
+    },
+    {
+        "id": "ema_03",
+        "address": "bob.doe@example.com"
+    },
+    {
+        "id": "ema_04",
+        "address": "json.doe@example.com"
+    },
+    {
+        "id": "ema_05",
+        "address": "joe.beam@example.com"
+    },
+    {
+        "id": "ema_06",
+        "address": "jane.beam@example.com"
+    },
+    {
+        "id": "ema_07",
+        "address": "jim.beam@example.com"
+    },
+    {
+        "id": "ema_08",
+        "address": "jill.beam@example.com"
+    },
+    {
+        "id": "ema_09",
+        "address": "bob.beam@example.com"
+    },
+    {
+        "id": "ema_10",
+        "address": "json.beam@example.com"
+    }
+]

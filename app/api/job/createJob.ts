@@ -4,11 +4,12 @@ import { Accounting_V2_InvoiceUpdateRequest, Accounting_V2_PaymentCreateRequest 
 import { Crm_V2_Customers_CreateCustomerRequest } from "@/lib/servicetitan/generated/crm";
 import { Jpm_V2_JobResponse } from "@/lib/servicetitan/generated/jpm";
 import { getProductDetails } from "@/lib/stripe/product-lookup";
-import { getServiceTitanConfig, getStripeConfig, getDefaultManagedTechId } from "@/lib/appSettings/getConfig";
+import { getServiceTitanConfig, getStripeConfig, getDefaultManagedTechId } from "@/lib/repositories/appSettings/getConfig";
 import type { Customer, Job, Location } from './types';
 import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generated/settings/models/TenantSettings_V2_TechnicianResponse';
 import { logger } from "../logger";
 import { createLocalBookingFromJob } from '@/lib/services/createLocalBookingFromJobService';
+import { BookingStatus } from '@/lib/types/booking';
 
 const tenantId = Number(env.servicetitan.tenantId);
 
@@ -16,12 +17,17 @@ export async function createJobAppointment({
   job,
   location,
   customer,
+  finalPrice,
 }: { 
   job: Job, 
   location: Location, 
   customer: Customer,
-  productName?: string
+  productName?: string,
+  finalPrice?: number
 }): Promise<Jpm_V2_JobResponse> {
+    const prompt = 'createJobAppointment function says:';
+    logger.info(`${prompt} Starting...`);
+
     const serviceTitanClient = new ServiceTitanClient();
 
     const { startTime, endTime, technicianId, jobTypeId, summary } = job;
@@ -48,6 +54,8 @@ export async function createJobAppointment({
         // zip: zip,
         phone: phone,
     });
+    logger.info(`${prompt} Existing customers count in ServiceTitan: ${existingCustomers.data.length}`);
+
     let stCustomer;
 
     if (existingCustomers && existingCustomers.data && existingCustomers.data.length > 0) {
@@ -236,7 +244,7 @@ export async function createJobAppointment({
     }
 
     try {
-      await updateInvoiceAndPayment(jobResponse, serviceTitanClient, Number(technicianId));
+      await updateInvoiceAndPayment(jobResponse, serviceTitanClient, Number(technicianId), finalPrice);
     } catch (error) {
       logger.error({ err: error }, "createJobAppointment: Error updating invoice and payment");
     }
@@ -256,10 +264,10 @@ export async function createJobAppointment({
     await createLocalBookingFromJob({
       customerId: String(stCustomer.id),
       jobId: String(jobResponse.id),
-      serviceId: String(jobTypeId),
+      serviceToJobTypeId: String(jobTypeId),
       technicianId: String(technicianId),
       scheduledFor: new Date(startTime),
-      status: jobResponse.jobStatus,
+      status: jobResponse.jobStatus as BookingStatus,
       revenue,
       notes: summary || "",
     });
@@ -268,7 +276,7 @@ export async function createJobAppointment({
     return jobResponse;
 }
 
-async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceTitanClient: ServiceTitanClient, technicianId: number): Promise<void> {
+async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceTitanClient: ServiceTitanClient, technicianId: number, finalPrice?: number): Promise<void> {
     // Get invoice by jobId
     const invoiceResponse = await serviceTitanClient.accounting.InvoicesService.invoicesGetList({
         tenant: tenantId,
@@ -285,13 +293,23 @@ async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceT
         const virtualConsultationProductName = stripeConfig.virtualConsultationProductName;
         const productDetails = await getProductDetails(virtualConsultationProductName);
         const serviceTitanConfig = await getServiceTitanConfig();
+        
+        // Use finalPrice (with discount) if provided, otherwise use original price
+        const priceToUse = finalPrice !== undefined ? finalPrice : productDetails.stripePrice;
+        
+        logger.info({
+          originalPrice: productDetails.stripePrice,
+          finalPrice,
+          priceToUse,
+        }, "createJobAppointment: Using price for invoice");
+        
         const updatedInvoiceData: Accounting_V2_InvoiceUpdateRequest = {
             summary: virtualConsultationProductName,
             items: [
                 {
                     skuId: serviceTitanConfig.virtualServiceSkuId,
                     description: virtualConsultationProductName,
-                    unitPrice: productDetails.stripePrice,
+                    unitPrice: priceToUse,
                     technicianId: Number(technicianId),
                     quantity: 1
                 }
@@ -336,7 +354,7 @@ async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceT
                 status: "Posted",
                 splits: [{
                     invoiceId: Number(invoiceId),
-                    amount: productDetails.stripePrice
+                    amount: priceToUse
                 }]
             };
 

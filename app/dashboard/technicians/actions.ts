@@ -1,100 +1,109 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { TechnicianToSkillsType } from "@/lib/types/technicianToSkillsType";
+import { TechnicianRepository } from "@/lib/repositories";
+import { deleteFromCloudinary } from "@/lib/cloudinary";
 import pino from "pino";
 
-const logger = pino({ name: "technicianToSkills-actions" });
+const logger = pino({ name: "technicians-actions" });
 
-const TECHNICIAN_SETTING_KEY = "technicianToSkills";
+/**
+ * Server Actions for Technician
+ * These actions use the Repository pattern for database access
+ * and add logging/validation/business logic as needed
+ */
 
-export async function getTechnicianToSkillsSetting() {
-  return prisma.appSetting.findUnique({ where: { key: TECHNICIAN_SETTING_KEY } });
+export async function getAllTechnicians() {
+  try {
+    const prompt = "getAllTechnicians function says:";  
+    logger.info(`${prompt} Starting...`);
+    logger.info(`${prompt} Invoking TechnicianRepository.findAll function...`);
+    const technicians = await TechnicianRepository.findAll();
+    logger.info(`${prompt} Invocation of TechnicianRepository.findAll function successfully completed.`);
+    logger.info(`${prompt} Returning array of ${technicians.length} technicians to the caller.`);
+    return technicians;
+  } catch (error) {
+    logger.error({ error }, `${prompt} Error running getAllTechnicians function:`);
+    throw error;
+  }
 }
 
-export async function findTechnicianById(technicianId: string): Promise<TechnicianToSkillsType | undefined> {
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
-  return list.find(t => t.technicianId === technicianId);
+// Optimized function for dropdowns - only fetches id, technicianName, and enabled
+export async function getTechniciansForDropdown() {
+  const prompt = "getTechniciansForDropdown function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking TechnicianRepository.findForDropdown function...`);
+  const technicians = await TechnicianRepository.findForDropdown();
+  logger.info(`${prompt} Invocation of TechnicianRepository.findForDropdown function successfully completed.`);
+  logger.info(`${prompt} Returning array of ${technicians.length} technicians for dropdown to the caller.`);
+  return technicians;
 }
 
-export async function addTechnician(newTechnician: TechnicianToSkillsType): Promise<TechnicianToSkillsType[]> {
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
+export async function findTechnicianById(id: string) {
+  const prompt = "findTechnicianById function says:";
+  logger.info(`${prompt} Starting...`);
+  logger.info(`${prompt} Invoking TechnicianRepository.findById function with ID: ${id}`);
+  const technician = await TechnicianRepository.findById(id);
+  logger.info(`${prompt} Invocation of TechnicianRepository.findById function successfully completed.`);
+  logger.info(`${prompt} Technician found with ID: ${technician?.id}`);
+  logger.info(`${prompt} Returning the technician with ID: ${technician?.id} to the caller.`);
+  return technician;
+}
 
-  if (list.some(t => String(t.technicianId) === String(newTechnician.technicianId))) {
-    throw new Error(`Technician ID "${newTechnician.technicianId}" already exists`);
+export async function deleteTechnician(id: string) {
+  const prompt = "deleteTechnician function says:";
+  logger.info(`${prompt} Starting...`);
+
+  logger.info(`${prompt} Invoking TechnicianRepository.findByIdWithImage function with ID: ${id}...`);
+  const technician = await TechnicianRepository.findByIdWithImageAndSkills(id);
+
+  if (!technician) {
+    logger.warn(`${prompt} Technician with ID: ${id} not found. Skipping delete.`);
+    return;
   }
 
-  list.push({
-    technicianId: String(newTechnician.technicianId),
-    technicianName: newTechnician.technicianName,
-    skills: newTechnician.skills,
-    enabled: newTechnician.enabled
-  });
-
-  await prisma.appSetting.upsert({
-    where: { key: TECHNICIAN_SETTING_KEY },
-    create: { key: TECHNICIAN_SETTING_KEY, value: JSON.stringify(list) },
-    update: { value: JSON.stringify(list) }
-  });
-
-  return list;
-}
-
-export async function updateTechnician(
-  originalTechnicianId: string,
-  updated: Partial<TechnicianToSkillsType>
-): Promise<TechnicianToSkillsType[]> {
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
-
-  const idx = list.findIndex(t => String(t.technicianId) === String(originalTechnicianId));
-  if (idx === -1) return list;
-
-  const current = list[idx];
-
-  // Handle ID change
-  let nextId = current.technicianId;
-  if (updated.technicianId && String(updated.technicianId) !== String(originalTechnicianId)) {
-    const collision = list.some(
-      t => String(t.technicianId) === String(updated.technicianId)
-    );
-    if (collision) {
-      throw new Error(`Technician ID "${updated.technicianId}" already exists`);
-    }
-    nextId = String(updated.technicianId);
+  // Delete image from Cloudinary if it exists (business logic)
+  if (technician.image?.publicId) {
+    logger.info(`${prompt} Technician has associated an image with publicID: ${technician.image.publicId}. Proceeding with deletion...`);
+    logger.info(`${prompt} Invoking deleteFromCloudinary function with public ID: ${technician.image.publicId}...`);
+    await deleteFromCloudinary(technician.image.publicId);
+    logger.info(`${prompt} Invocation of deleteFromCloudinary function successfully completed.`);
   }
 
-  const merged: TechnicianToSkillsType = {
-    technicianId: nextId,
-    technicianName: updated.technicianName ?? current.technicianName,
-    skills: updated.skills ?? current.skills,
-    enabled: updated.enabled ?? current.enabled
-  };
+  // Delete associated Image entry if it exists
+  if (technician.image?.id) {
+    logger.info(`${prompt} Technician has associated an image in Image table with ID: ${technician.image.id}. Proceeding with deletion...`);
+    logger.info(`${prompt} Invoking TechnicianRepository.deleteImage function with ID: ${technician.image.id}...`);
+    await TechnicianRepository.deleteImage(technician.image.id);
+    logger.info(`${prompt} Invocation of TechnicianRepository.deleteImage function successfully completed.`);
+  }
 
-  list[idx] = merged;
-
-  await prisma.appSetting.upsert({
-    where: { key: TECHNICIAN_SETTING_KEY },
-    create: { key: TECHNICIAN_SETTING_KEY, value: JSON.stringify(list) },
-    update: { value: JSON.stringify(list) }
-  });
-
-  return list;
+  // Delete TechnicianSkill relations if any
+  if (technician.skills.length > 0) {
+    logger.info(`${prompt} Technician has ${technician.skills.length} associated skills. Proceeding with deletion of skill relations...`);
+    logger.info(`${prompt} Invoking TechnicianRepository.deleteSkillRelations function...`);
+    await TechnicianRepository.deleteSkillRelations(id);
+    logger.info(`${prompt} Invocation of TechnicianRepository.deleteSkillRelations function successfully completed.`);
+  }
+  
+  // Delete the technician itself
+  logger.info(`${prompt} Proceeding with deletion of the technician itself...`);
+  logger.info(`${prompt} Invoking TechnicianRepository.delete function with technician ID: ${id}...`);
+  const deletedTechnician = await TechnicianRepository.delete(id);
+  logger.info(`${prompt} Invocation of TechnicianRepository.delete function successfully completed.`);
+  logger.info(`${prompt} Technician with ID: ${deletedTechnician.id} successfully deleted.`);
+  logger.info(`${prompt} Returning the deleted technician with ID: ${deletedTechnician.id} to the caller.`);
+  return deletedTechnician;
 }
 
-export async function deleteTechnician(technicianId: string): Promise<TechnicianToSkillsType[]> {
-  logger.info(`Deleting technician with ID: ${technicianId}`);
-  const setting = await getTechnicianToSkillsSetting();
-  const list: TechnicianToSkillsType[] = setting?.value ? JSON.parse(setting.value) : [];
-  const filtered = list.filter(t => String(t.technicianId) !== String(technicianId));
-
-  await prisma.appSetting.upsert({
-    where: { key: TECHNICIAN_SETTING_KEY },
-    create: { key: TECHNICIAN_SETTING_KEY, value: JSON.stringify(filtered) },
-    update: { value: JSON.stringify(filtered) }
-  });
-
-  return filtered;
+export async function unlinkSkillFromTechnician(technicianId: string, skillId: string) {
+  const prompt = "unlinkSkillFromTechnician function says:";
+  logger.info(`${prompt} Starting...`);
+  try {  
+    logger.info(`${prompt} Invoking TechnicianRepository.unlinkSkill function...`);
+    await TechnicianRepository.unlinkSkill(technicianId, skillId);
+    logger.info(`${prompt} Skill ${skillId} unlinked from technician ${technicianId}.`);
+  } catch (error) {
+    logger.error({ error }, `${prompt} Error running unlinkSkillFromTechnician function:`);
+    throw error;
+  }
 }

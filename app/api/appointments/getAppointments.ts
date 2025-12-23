@@ -1,9 +1,13 @@
 import { ServiceTitanClient } from '@/lib/servicetitan';
 import { env } from "@/lib/config/env";
 import { Jpm_V2_AppointmentResponse } from '@/lib/servicetitan/generated/jpm';
-import { QuoteSkill, TechnicianToSkillsMapping } from '@/lib/config/types';
-import { getTechnicianToSkills } from '@/lib/appSettings/getConfig';
+// import { QuoteSkill, TechnicianToSkillsMapping } from '@/lib/config/types';
+import { TechnicianToSkills } from '@/lib/types/technicianToSkills';
+// import { getTechnicianToSkills } from '@/lib/appSettings/getConfig';
+import { getAllTechnicians } from '@/app/dashboard/technicians/actions';
+
 import pino from 'pino';
+import { findSkillById } from '@/app/dashboard/skills/actions';
 
 const logger = pino({ name: 'getAvailableTimeSlots' });
 
@@ -26,7 +30,7 @@ export interface DateEntry {
 
 export interface JobType {
     serviceTitanId: number;
-    skill?: string;
+    skillId?: string;
 }
 
 /**
@@ -34,45 +38,62 @@ export interface JobType {
  * Accepts job details: skills and serviceTitanId
  */
 export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry[]> {
-    logger.info({ jobType }, 'Starting getAvailableTimeSlots');
+    const prompt= 'getAvailableTimeSlots function says:';
+    logger.info({ jobType }, `${prompt} Starting with parameters:`);
 
     const serviceTitanClient = new ServiceTitanClient();
     const now = new Date();
 
-    // ST API does not return the skills for technicians.
-    // const getTechsList = await client.settings.TechniciansService.techniciansGetList({
-    //     tenant: tenantId,
-    //     pageSize: 1000,
-    // });
-    // const allTechs = getTechsList.data || getTechsList;
-    const techsSkillsList: TechnicianToSkillsMapping[]  = await getTechnicianToSkills();
-
-
-    // Get ST Job Type
-    const jobTypeResponse = await serviceTitanClient.jpm.JobTypesService.jobTypesGet({
-        tenant: tenantId,
-        id: jobType.serviceTitanId
-    });
-    const jobTypeSkills = jobTypeResponse.skills;
-
-    // Filter techs for matching skills
-    let filteredTechs = techsSkillsList;
-    if (jobType.skill) {
+    
+    let enabledTechnicians: TechnicianToSkills[] = [];
+    if (jobType.skillId) {
         // If a specific skill is provided, filter for that skill
-        filteredTechs = techsSkillsList.filter((tech) => tech.skills.includes(jobType.skill as QuoteSkill));
-        logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skill ${jobType.skill}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+
+        // Fetch the whole skill object from DB by the given skillId
+        logger.info(`${prompt} Invoking findSkillById function with ID: ${jobType.skillId}`);
+        const selectedSkill = await findSkillById(jobType.skillId || '');
+        logger.info(`${prompt} Invocation of findSkillById function successfully completed.`);
+        logger.info({ selectedSkill }, `${prompt} findSkillById function returned the skill:`);
+        
+        logger.info(`${prompt} The selected skill has ${selectedSkill?.technicians?.length} technicians: ${selectedSkill?.technicians?.map((tech) => tech.technicianName).join(', ')}`);
+        enabledTechnicians = selectedSkill?.enabledTechnicians || [];
+        logger.info(`${prompt} The selected skill has ${enabledTechnicians?.length} ENABLED technicians: ${enabledTechnicians?.map((tech) => tech.technicianName).join(', ')}`);
+
     } else {
         // Otherwise, filter by jobTypeSkills as before
-        filteredTechs = techsSkillsList.filter((tech) => {
-            return tech.skills.some((skill) => jobTypeSkills.includes(skill));
+
+        // Get ServiceTitan Job Type
+        logger.info(`${prompt} Hitting ServiceTitan API for jobType with serviceTitanId: ${jobType.serviceTitanId}`);
+        const jobTypeResponse = await serviceTitanClient.jpm.JobTypesService.jobTypesGet({
+            tenant: tenantId,
+            id: jobType.serviceTitanId
         });
-        logger.info(`Found ${filteredTechs.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${filteredTechs.map((tech) => tech.technicianName).join(', ')}`);
+        const jobTypeSkills = jobTypeResponse.skills;
+        logger.info(`${prompt} ServiceTitan returned: Job Type with serviceTitanId ${jobType.serviceTitanId} has skills: ${jobTypeSkills.join(', ')}`);
+
+        logger.info(`${prompt} Invoking getAllTechnicians function...`);
+        const techsSkillsList: TechnicianToSkills[]  = await getAllTechnicians();
+        logger.info(`${prompt} Fetched ${techsSkillsList.length} technicians from getAllTechnicians function.`);
+
+        // Filter to only enabled technicians
+        logger.info(`${prompt} Filtering just ENABLED technicians...`);
+        const enabledTechsSkillsList = techsSkillsList.filter(tech => tech.enabled === true);
+        if (enabledTechsSkillsList.length === 0) {
+        logger.warn(`${prompt} No ENABLED technicians available`);
+        return [];
+        }
+        logger.info(`${prompt} Found ${enabledTechsSkillsList.length} ENABLED technicians (${enabledTechsSkillsList.map(tech => tech.technicianName).join(', ')})`);
+
+        enabledTechnicians = enabledTechsSkillsList.filter((tech) => {
+            return tech.skills?.some((skill) => jobTypeSkills.includes(skill.name));
+        });
+        logger.info(`Found ${enabledTechnicians.length} technicians for job type ${jobType.serviceTitanId} with skills ${jobTypeResponse.skills.join(', ')}: ${enabledTechnicians.map((tech) => tech.technicianName).join(', ')}`);
     }
 
     // For each technician, fetch shifts and appointments, then aggregate
     const availableTimeSlots: DateEntry[] = [];
 
-    for (const tech of filteredTechs) {
+    for (const tech of enabledTechnicians) {
         // on call shifts are long, need to look for startsOnOrAfter two weeks ago
         const twoWeeksAgo = new Date(now);
         twoWeeksAgo.setDate(now.getDate() - 14);
