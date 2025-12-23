@@ -57,6 +57,10 @@ function PaymentForm({
   const [error, setError] = useState<string | null>(null);
   const { formData, selectedTechnician, selectedJobType, details, setCurrentStep, setJobId } = useFormStore();
 
+  const handleBackClick = () => {
+    setCurrentStep('contact');
+  };
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!stripe || !elements) return;
@@ -129,7 +133,11 @@ function PaymentForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <PaymentElement />
-      {error && <div className="bg-red-50 border border-red-200 rounded-lg p-4"><p className="text-sm text-red-700">{error}</p></div>}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+          <p className="text-sm text-red-700">{error}</p>
+        </div>
+      )}
       
       {/* Promo Code Section */}
       <div className="p-4 bg-white rounded-lg border border-gray-200 relative overflow-hidden">
@@ -137,13 +145,19 @@ function PaymentForm({
           <div>
             <div className="flex flex-col items-center gap-1">
               {promoResult.promoCode?.description && (
-                <p className="text-xl font-bold text-gray-800 text-center">{promoResult.promoCode.description}</p>
+                <p className="text-xl font-bold text-gray-800 text-center">
+                  {promoResult.promoCode.description}
+                </p>
               )}
               <p className="text-sm">
                 <span className="font-bold text-green-600">APPLIED!</span>
                 {promoResult.discountAmount && (
                   <span className="text-green-600 ml-2">
-                    You save {promoResult.discountAmount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                    You save{' '}
+                    {promoResult.discountAmount.toLocaleString('en-US', {
+                      style: 'currency',
+                      currency: 'USD',
+                    })}
                   </span>
                 )}
               </p>
@@ -198,9 +212,33 @@ function PaymentForm({
         )}
       </div>
 
-      <button type="submit" disabled={!stripe || isProcessing} className="next-button w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-medium">
-        {isProcessing ? 'Processing...' : `Pay Now ${price.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}`}
-      </button>
+      <div className="flex flex-col sm:flex-row gap-4 pt-2">
+        <button
+          type="button"
+          onClick={handleBackClick}
+          className="w-full sm:w-auto px-6 py-3 border-2 border-gray-300 rounded-lg text-base font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+        >
+          <span className="flex items-center justify-center gap-2">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            </svg>
+            Back
+          </span>
+        </button>
+
+        <button
+          type="submit"
+          disabled={!stripe || isProcessing}
+          className="next-button w-full sm:flex-1 px-6 py-3 bg-blue-600 text-white rounded-lg font-medium"
+        >
+          {isProcessing
+            ? 'Processing...'
+            : `Pay Now ${price.toLocaleString('en-US', {
+                style: 'currency',
+                currency: 'USD',
+              })}`}
+        </button>
+      </div>
     </form>
   );
 }
