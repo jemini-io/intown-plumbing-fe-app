@@ -125,8 +125,8 @@ defaultManagedTechId: 49786183
 
 # Admin Audit Configuration
 # Used to send audit notifications (SMS/Email) when bookings are created
-# adminAuditData:
-#   - phoneNumber: "+1234567890"
-#     enabled: true
-#   - emailAddress: "admin@example.com"
-#     enabled: true
+adminAuditData:
+  - phoneNumber: "+14695562728"
+    enabled: true
+  - emailAddress: "admin@example.com"
+    enabled: false
