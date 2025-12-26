@@ -10,6 +10,7 @@ import { TenantSettings_V2_TechnicianResponse } from '@/lib/servicetitan/generat
 import { logger } from "../logger";
 import { createLocalBookingFromJob } from '@/lib/services/createLocalBookingFromJobService';
 import { BookingStatus } from '@/lib/types/booking';
+import { ServiceRepository } from '@/lib/repositories/services/ServiceRepository';
 
 const tenantId = Number(env.servicetitan.tenantId);
 
@@ -237,8 +238,9 @@ export async function createJobAppointment({
     }, "createJobAppointment: Job created");
 
     // Check and assign managed tech if needed
+    // Skip this for virtual services - they should use the selected technician
     try {
-      await checkAndAssignManagedTech(jobResponse, Number(technicianId));
+      await checkAndAssignManagedTech(jobResponse, Number(technicianId), Number(jobTypeId));
     } catch (error) {
       logger.error({ err: error }, "createJobAppointment: Error checking and assigning managed tech");
     }
@@ -375,8 +377,25 @@ async function updateInvoiceAndPayment(jobResponse: Jpm_V2_JobResponse, serviceT
 
 async function checkAndAssignManagedTech(
   jobResponse: Jpm_V2_JobResponse, 
-  originalTechnicianId: number
+  originalTechnicianId: number,
+  jobTypeId: number
 ): Promise<void> {
+  // Check if this is a virtual service job
+  // Virtual services should always use the selected technician (who is on shift)
+  const virtualServices = await ServiceRepository.findAll();
+  const isVirtualService = virtualServices.some(
+    service => service.serviceTitanId === jobTypeId
+  );
+  
+  if (isVirtualService) {
+    logger.info({
+      jobId: jobResponse.id,
+      jobTypeId: jobTypeId,
+      technicianId: originalTechnicianId,
+    }, "createJobAppointment: Virtual service detected, skipping managed tech assignment - using selected technician");
+    return;
+  }
+  
   const serviceTitanClient = new ServiceTitanClient();
   
   // Get original technician details
