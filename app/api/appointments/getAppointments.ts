@@ -112,7 +112,7 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
         });
         // log shift types
         logger.info(`Found ${shiftsResponse.data.length} shifts for technician ${tech.technicianName}`);
-        logger.info(`Shifts: ${shiftsResponse.data.map(shift => shift.shiftType).join(', ')}`);
+        logger.info(`Shifts: ${shiftsResponse.data.map(shift => shift?.shiftType ?? 'Unknown').join(', ')}`);
         // Filter out TimeOff shifts - allow Normal (Scheduled) and OnCall shifts
         const shifts = shiftsResponse.data.filter(shift => shift.shiftType !== 'TimeOff');
         logger.info(`Found ${shifts.length} available shifts (Normal/OnCall, excluding TimeOff) for technician ${tech.technicianName}`);
