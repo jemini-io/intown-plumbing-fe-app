@@ -110,8 +110,14 @@ export async function getAvailableTimeSlots(jobType: JobType): Promise<DateEntry
             startsOnOrAfter: twoWeeksAgo.toISOString(),
             endsOnOrBefore: twoWeeksFromNow.toISOString()
         });
-        const shifts = shiftsResponse.data;
-        logger.info(`Found ${shifts.length} shifts for technician ${tech.technicianName}`);
+        // log shift types
+        logger.info(`Found ${shiftsResponse.data.length} shifts for technician ${tech.technicianName}`);
+        logger.info(`Shifts: ${shiftsResponse.data.map(shift => shift?.shiftType ?? 'Unknown').join(', ')}`);
+        // Allow only Normal (Scheduled) and OnCall shifts; exclude TimeOff and any shifts with missing/unknown shiftType
+        const shifts = shiftsResponse.data.filter(
+            shift => shift.shiftType === 'Normal' || shift.shiftType === 'OnCall'
+        );
+        logger.info(`Found ${shifts.length} available shifts (Normal/OnCall, excluding TimeOff) for technician ${tech.technicianName}`);
 
         // Fetch appointments for this technician
         const appointmentsQuery = {
