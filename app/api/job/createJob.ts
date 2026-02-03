@@ -36,9 +36,6 @@ export async function createJobAppointment({
       billToStreet, billToUnit, billToCity, billToState, billToZip, billToSameAsService
     } = customer;
 
-    // Calculate appointmentStartsBefore
-    const appointmentStartsBefore = new Date(new Date(endTime).getTime() + 30 * 60000).toISOString();
-
     logger.info({
       customerName: name,
       customerPhone: phone,
@@ -178,31 +175,6 @@ export async function createJobAppointment({
           customerLocations: stCustomer.locations,
         }, "Customer does not have any locations");
         throw new Error('Customer does not have any locations.');
-    }
-
-    // Check if a job already exists
-    logger.info({
-      technicianId: technicianId,
-      startTime: startTime,
-      endTime: endTime,
-    }, "createJobAppointment: Checking for existing jobs");
-    const existingJobs = await serviceTitanClient.jpm.JobsService.jobsGetList({
-        tenant: tenantId,
-        technicianId: Number(technicianId),
-        firstAppointmentStartsOnOrAfter: startTime,
-        firstAppointmentStartsBefore: appointmentStartsBefore,
-        appointmentStatus: 'Scheduled',
-        page: 1,
-        pageSize: 10
-    });
-    if (existingJobs && existingJobs.data && existingJobs.data.length > 0) {
-        logger.info({
-          jobId: existingJobs.data[0].id,
-          technicianId: technicianId,
-          startTime: startTime,
-          endTime: endTime,
-        }, "createJobAppointment: Job already exists");
-        return existingJobs.data[0];
     }
 
     const serviceTitanConfig = await getServiceTitanConfig();
