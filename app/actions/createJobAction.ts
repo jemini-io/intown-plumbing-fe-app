@@ -6,6 +6,7 @@ import {
   sendTechnicianAppointmentConfirmation,
   sendTechnicianAppointmentConfirmationToManager,
   sendAdminAuditNotification,
+  sendBookingNotificationsToAdmins,
 } from "@/lib/podium";
 import { createConsultationMeeting, WherebyMeeting } from "@/lib/whereby";
 import { ServiceTitanClient } from "@/lib/servicetitan";
@@ -231,6 +232,27 @@ export async function createJob(
     logger.error(
       { err: error },
       "[createJobAction] Error sending admin audit notification"
+    );
+  }
+
+  // Send per-user booking notifications to opted-in admins
+  try {
+    const service = await ServiceRepository.findByServiceTitanId(data.jobTypeId);
+    const serviceName = service?.displayName || service?.serviceTitanName || `Service ${data.jobTypeId}`;
+
+    if (originalTechnician) {
+      await sendBookingNotificationsToAdmins(
+        data.name,
+        originalTechnician.name,
+        serviceName,
+        new Date(data.startTime),
+        jobResponse.id
+      );
+    }
+  } catch (error) {
+    logger.error(
+      { err: error },
+      "[createJobAction] Error sending per-user booking notifications"
     );
   }
 
