@@ -14,4 +14,6 @@ export type User = {
   role: UserRole;
   image: UserImage | null; // antes: string | null
   enabled: boolean;
+  notifyOnBooking: boolean;
+  notifyPhone: string | null;
 };

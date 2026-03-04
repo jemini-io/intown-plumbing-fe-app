@@ -8,6 +8,7 @@ import { createOrUpdateContact } from "./contacts";
 import { getPodiumLocationId, getAdminAuditPhoneNumber, isAdminAuditPhoneEnabled } from "@/lib/repositories/appSettings/getConfig";
 import { env } from "../config/env";
 import { logger } from './logger'
+import { prisma } from "@/lib/prisma";
 
 /**
  * Format phone number to E.164 format for consistent API usage
@@ -263,6 +264,52 @@ export async function sendAdminAuditNotification(
   ].join("\n");
 
   return sendTextMessage(phoneNumber, message, "Admin");
+}
+
+/**
+ * Send booking notifications to all admin users who have opted in.
+ * Queries users with role=ADMIN, notifyOnBooking=true, and a notifyPhone set.
+ */
+export async function sendBookingNotificationsToAdmins(
+  customerName: string,
+  technicianName: string,
+  serviceName: string,
+  date: Date,
+  jobId?: number
+) {
+  const admins = await prisma.user.findMany({
+    where: {
+      role: "ADMIN",
+      notifyOnBooking: true,
+      notifyPhone: { not: null },
+    },
+    select: { id: true, name: true, notifyPhone: true },
+  });
+
+  if (admins.length === 0) {
+    logger.info("No admins opted in for booking notifications");
+    return;
+  }
+
+  const formattedDateAtTime = formatDateAtTimeString(date);
+  const jobIdText = jobId ? ` (Job ID: ${jobId})` : "";
+
+  const message = [
+    `New Virtual Consultation booked:`,
+    `Customer: ${customerName}`,
+    `Technician: ${technicianName}`,
+    `Service: ${serviceName}`,
+    `Date/Time: ${formattedDateAtTime}${jobIdText}`,
+  ].join("\n");
+
+  for (const admin of admins) {
+    try {
+      await sendTextMessage(admin.notifyPhone!, message, admin.name ?? "Admin");
+      logger.info({ adminId: admin.id, phone: admin.notifyPhone }, "Sent booking notification to admin");
+    } catch (err) {
+      logger.error({ adminId: admin.id, err }, "Failed to send booking notification to admin");
+    }
+  }
 }
 
 function formatDateAtTimeString(date: Date): string {

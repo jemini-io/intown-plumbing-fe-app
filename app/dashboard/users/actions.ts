@@ -13,6 +13,8 @@ export async function getUsers() {
       role: true,
       image: true,
       enabled: true,
+      notifyOnBooking: true,
+      notifyPhone: true,
     },
   });
 }

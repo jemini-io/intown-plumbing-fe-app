@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import DashboardLayout from "../components/DashboardLayout";
 import { getUsers, deleteUser } from "./actions";
 import { User } from "./types";
-import {  UserCircleIcon } from "@heroicons/react/24/outline";
+import { UserCircleIcon, BellAlertIcon } from "@heroicons/react/24/outline";
 import Image from "next/image";
 import { SpinnerOverlay } from "@/app/dashboard/components/Spinner";
 import { DisableConfirmModal } from "@/app/components/DisableConfirmModal";
@@ -195,7 +195,14 @@ export default function UsersPage() {
                       </div>
                     )}
                   </td>
-                  <td className="py-2 pl-0 dark:text-white">{user.name}</td>
+                  <td className="py-2 pl-0 dark:text-white">
+                    <span className="flex items-center gap-1">
+                      {user.name}
+                      {user.notifyOnBooking && (
+                        <BellAlertIcon className="h-4 w-4 text-yellow-500" title="Booking notifications enabled" />
+                      )}
+                    </span>
+                  </td>
                   <td className="px-4 py-2 dark:text-gray-300">{user.email}</td>
                   <td className="px-4 py-2 dark:text-gray-300">{user.role}</td>
                   <td className="px-4 py-2 text-center">

@@ -32,6 +32,8 @@ interface UserFormExisting {
   role: UserRole;
   image: UserImage | null;
   enabled: boolean;
+  notifyOnBooking: boolean;
+  notifyPhone: string | null;
 }
 
 export default function ProfilePage() {
@@ -68,6 +70,8 @@ export default function ProfilePage() {
           }
         : null,
       enabled,
+      notifyOnBooking: false,
+      notifyPhone: null,
     }),
     [user, name, email, role, image, enabled]
   );

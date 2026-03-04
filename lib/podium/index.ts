@@ -15,4 +15,5 @@ export {
   sendTextMessage,
   sendAppointmentConfirmation,
   sendTechnicianAppointmentConfirmation,
-} from "./messages"; 
+  sendBookingNotificationsToAdmins,
+} from "./messages";

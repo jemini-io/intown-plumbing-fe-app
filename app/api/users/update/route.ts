@@ -93,6 +93,8 @@ export async function POST(req: NextRequest) {
     email: string;
     role: UserRole;
     enabled: boolean;
+    notifyOnBooking: boolean;
+    notifyPhone: string | null;
     passwordDigest?: string;
     image?: { connect: { id: string } } | { disconnect: true };
   } = {
@@ -100,6 +102,8 @@ export async function POST(req: NextRequest) {
     email: formData.get("email") as string,
     role: formData.get("role") as UserRole,
     enabled: formData.get("enabled") === "true",
+    notifyOnBooking: formData.get("notifyOnBooking") === "true",
+    notifyPhone: (formData.get("notifyPhone") as string) || null,
   };
 
   // Handle enabled flag coming from the form

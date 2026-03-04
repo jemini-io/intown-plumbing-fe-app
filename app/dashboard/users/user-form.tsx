@@ -25,6 +25,8 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
   const [password, setPassword] = useState<string>("");
   const [removeImage, setRemoveImage] = useState(false);
   const [enabled, setEnabled] = useState<boolean>(existing ? (existing.enabled ?? true) : true);
+  const [notifyOnBooking, setNotifyOnBooking] = useState<boolean>(existing?.notifyOnBooking ?? false);
+  const [notifyPhone, setNotifyPhone] = useState<string>(existing?.notifyPhone ?? "");
   const [confirmDisableOpen, setConfirmDisableOpen] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
   const { data: session, update } = useSession();
@@ -246,6 +248,41 @@ export function UserForm({ existing, onSaved, title }: UserFormProps) {
         )}
 
         <input type="hidden" name="enabled" value={enabled === true ? "true" : "false"} />
+        <input type="hidden" name="notifyOnBooking" value={notifyOnBooking ? "true" : "false"} />
+        <input type="hidden" name="notifyPhone" value={notifyPhone} />
+
+        {/* Booking notification toggle — only for existing ADMIN users */}
+        {existing?.role === "ADMIN" && (
+          <>
+            <div className="col-span-2 flex items-center gap-3">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Notify on Every Booking</span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={notifyOnBooking}
+                onClick={() => setNotifyOnBooking(v => !v)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${notifyOnBooking ? "bg-green-500" : "bg-gray-300"}`}
+                title={notifyOnBooking ? "Disable booking notifications" : "Enable booking notifications"}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition ${notifyOnBooking ? "translate-x-5" : "translate-x-1"}`}
+                />
+              </button>
+            </div>
+            {notifyOnBooking && (
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Notification Phone Number</label>
+                <input
+                  type="tel"
+                  value={notifyPhone}
+                  onChange={(e) => setNotifyPhone(e.target.value)}
+                  placeholder="+19405551234"
+                  className="w-full border rounded p-2 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                />
+              </div>
+            )}
+          </>
+        )}
 
         <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Image</label>

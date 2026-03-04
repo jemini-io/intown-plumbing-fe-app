@@ -26,6 +26,24 @@ async function main() {
   });
 
   logger.info(admin, "✅ Admin user ready:");
+
+  // Seed Sarah as admin with booking notifications enabled
+  const sarahPassword = await hashPassword("admin123");
+  const sarah = await prisma.user.upsert({
+    where: { email: "sarah@intownplumbingtx.com" },
+    update: { notifyOnBooking: true, notifyPhone: "+19403908591" },
+    create: {
+      email: "sarah@intownplumbingtx.com",
+      name: "Sarah",
+      passwordDigest: sarahPassword,
+      role: "ADMIN",
+      enabled: true,
+      notifyOnBooking: true,
+      notifyPhone: "+19403908591",
+    },
+  });
+
+  logger.info(sarah, "✅ Sarah admin user ready:");
 }
 
 main()
